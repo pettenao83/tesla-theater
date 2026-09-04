@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <title>Tesla Theater</title>
+  <meta http-equiv='content-type' content='text/html; charset=UTF-8' />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta property="og:title" content="Tesla Theater" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://fmossott.github.io/TeslaTheater/preview.jpg" />
+  <meta property="og:url" content="https://bit.ly/TeslaTheater" />
+  <meta property="og:alt" content="Tesla Theater" />
+  <meta property="og:site_name" content="Tesla Theater" />
+  <meta property="og:description" content="Pagina web per accedere alle piattaforme di streaming a schermo intero sul display Tesla." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:creator" content="@FMossotto" />
+  <meta name="twitter:site" content="@FMossotto" />
+  <meta name="twitter:title" content="Tesla Theater" />
+  <meta name="twitter:description" content="Pagina web per accedere alle piattaforme di streaming a schermo intero sul display Tesla." />
+  <meta name="twitter:image" content="https://fmossott.github.io/TeslaTheater/preview.jpg" />
+
+  <script>window.gtag = window.gtag || function(){};</script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- JQuery -->
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+  <script src="js/jquery.ui.touch-punch.min.js"></script>
+
+  <!-- Font awesome -->
+  <script src="https://kit.fontawesome.com/39e55326bb.js" crossorigin="anonymous"></script>
+
+  <!-- Custom -->
+  <link rel="stylesheet" href="teslatheater.css">
+  <script src="teslatheater.js"></script>
+</head>
+<body>
+
+  <div class="marquee">
+    <h1><img src="images/tesla-white.png" class="inline" alt="Tesla"/><span class="cyan">Theater</span></h1>
+    <p class="tagline">Il tuo cinema privato, direttamente sullo schermo dell'auto</p>
+  </div>
+
+  <div id="toolbar">
+    <button id="fullscreen" type="button" class="actionbutton"><em class="fas fa-expand"></em> Schermo intero</button>
+    <button id="add-app-btn" type="button" class="actionbutton"><em class="fas fa-plus"></em> Aggiungi app</button>
+    <button id="remove-app-btn" type="button" class="actionbutton"><em class="fas fa-trash"></em> Rimuovi app</button>
+    <div id="zoom-control">
+      <em class="fas fa-magnifying-glass-minus"></em>
+      <input type="range" id="zoom-slider" min="0.6" max="1.6" step="0.05" value="1" />
+      <em class="fas fa-magnifying-glass-plus"></em>
+    </div>
+  </div>
+
+  <div id="add-app-form" class="hidden">
+    <input type="text" id="add-app-name" placeholder="Nome app" />
+    <input type="text" id="add-app-url" placeholder="Indirizzo (es. netflix.com)" />
+    <label id="add-app-img-label" for="add-app-img-file">
+      <div id="add-app-img-preview" class="hidden"><img alt="Anteprima icona"/></div>
+      <span id="add-app-img-placeholder"><em class="fas fa-image"></em> Carica icona (opzionale)</span>
+    </label>
+    <input type="file" id="add-app-img-file" accept="image/*" class="hidden" />
+    <div class="add-app-actions">
+      <div id="add-app-submit" class="actionbutton"><em class="fas fa-plus"></em> Aggiungi</div>
+      <div id="add-app-cancel" class="actionbutton secondary"><em class="fas fa-xmark"></em> Annulla</div>
+    </div>
+    <p id="add-app-error" class="hidden"></p>
+  </div>
+
+  <div id="apps" class="container">
+  </div>
+
+  <template id="site-template">
+    <div link="https://link.com/" class="button">
+      <div class="deleteswitch hidden" title="Rimuovi app">
+        <em class="fas fa-trash"></em>
+      </div>
+      <div class="logo-container">
+        <img alt="site name">
+      </div>
+    </div>
+  </template>
+</body>
+</html>

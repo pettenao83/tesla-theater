@@ -1,0 +1,62 @@
+{
+  "primevideo": {
+    "name": "Prime Video",
+    "img": "primevideo.png",
+    "url": "https://www.primevideo.com/"
+  },
+  "plex": {
+    "name": "Plex",
+    "img": "plex.png",
+    "url": "https://app.plex.tv/"
+  },
+  "disneyplus": {
+    "name": "Disney+",
+    "img": "disneyplus.png",
+    "url": "https://www.disneyplus.com/"
+  },
+  "nowtv": {
+    "name": "NOW TV",
+    "img": "nowtv.png",
+    "url": "https://www.nowtv.com/"
+  },
+  "dazn": {
+    "name": "DaZn",
+    "img": "dazn.png",
+    "url": "https://www.dazn.com/"
+  },
+  "paramountplus": {
+    "name": "Paramount+",
+    "img": "paramountplus.png",
+    "url": "https://www.paramountplus.com/"
+  },
+  "discoveryplus": {
+    "name": "Discovery+",
+    "img": "discoveryplus.png",
+    "url": "https://www.discoveryplus.com/"
+  },
+  "twitch": {
+    "name": "Twitch",
+    "img": "twitch.png",
+    "url": "https://www.twitch.tv/"
+  },
+  "raiplay": {
+    "name": "Rai Play",
+    "img": "raiplay.png",
+    "url": "https://www.raiplay.it/"
+  },
+  "mediaset": {
+    "name": "Mediaset",
+    "img": "mediaset.png",
+    "url": "https://www.mediasetplay.mediaset.it/"
+  },
+  "skytg24": {
+    "name": "Sky TG24",
+    "img": "skytg24.png",
+    "url": "https://tg24.sky.it/"
+  },
+  "airtesla": {
+    "name": "Air Tesla",
+    "img": "airtesla.png",
+    "url": "http://6.6.6.6/"
+  }
+}
