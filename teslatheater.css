@@ -51,7 +51,7 @@ a:focus-visible {
 /* Neon marquee header */
 .marquee {
   text-align: center;
-  padding: 8% 4% 5%;
+  padding: clamp(16px, 3vw, 28px) 16px clamp(14px, 2.5vw, 22px);
   background: radial-gradient(120% 140% at 50% -20%, var(--sky-1) 0%, var(--sky-2) 55%, var(--bg-deep) 100%);
   border-bottom: 1px solid var(--line);
 }
