@@ -10,7 +10,9 @@ const DEFAULT_SITES = {
   "raiplay": { "name": "Rai Play", "img": "images/raiplay.png", "url": "https://www.raiplay.it/" },
   "mediaset": { "name": "Mediaset", "img": "images/mediaset.png", "url": "https://www.mediasetplay.mediaset.it/" },
   "skytg24": { "name": "Sky TG24", "img": "images/skytg24.png", "url": "https://tg24.sky.it/" },
-  "airtesla": { "name": "Air Tesla", "img": "images/airtesla.png", "url": "http://6.6.6.6/" }
+  "airtesla": { "name": "Air Tesla", "img": "images/airtesla.png", "url": "http://6.6.6.6/" },
+  "nas-cartoni": { "name": "Cartoni", "url": "https://2fhe6cvb9piy1983.myfritz.net/nas/filelink.lua?id=6ea4028fb96a7a18" },
+  "nas-film": { "name": "Film", "url": "https://2fhe6cvb9piy1983.myfritz.net/nas/filelink.lua?id=17d9c345eaab379b" }
 };
 
 function loadCustomSites() {
