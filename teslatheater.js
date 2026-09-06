@@ -337,6 +337,52 @@ function resetDefaults() {
   loadSites(sites => buildPage(sites));
 }
 
+// --- Cross-browser config export/import ----------------------------------
+// This is a static site with no shared backend: each browser keeps its own
+// localStorage, so settings don't sync between devices/browsers on their
+// own. These let you carry your configuration over manually.
+function exportSettings() {
+  const data = {
+    status: window.localStorage.getItem('TeslaTheaterStatus'),
+    customSites: window.localStorage.getItem('TeslaTheaterCustomSites'),
+    zoom: window.localStorage.getItem('TeslaTheaterZoom')
+  };
+  const code = window.btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => {
+      window.alert('Configurazione copiata negli appunti. Incollala nell\'altro browser con "Importa".');
+    }).catch(() => {
+      window.prompt('Copia questo codice e incollalo nell\'altro browser con "Importa":', code);
+    });
+  } else {
+    window.prompt('Copia questo codice e incollalo nell\'altro browser con "Importa":', code);
+  }
+}
+
+function importSettings() {
+  const code = window.prompt('Incolla qui il codice di configurazione esportato dall\'altro browser:');
+  if (!code) {
+    return;
+  }
+  try {
+    const data = JSON.parse(decodeURIComponent(escape(window.atob(code.trim()))));
+    if (data.status) {
+      window.localStorage.setItem('TeslaTheaterStatus', data.status);
+    }
+    if (data.customSites) {
+      window.localStorage.setItem('TeslaTheaterCustomSites', data.customSites);
+    }
+    if (data.zoom) {
+      window.localStorage.setItem('TeslaTheaterZoom', data.zoom);
+    }
+    window.alert('Configurazione importata.');
+    window.location.reload();
+  } catch (e) {
+    window.alert('Codice non valido: controlla di averlo copiato per intero.');
+  }
+}
+
 function initApp() {
   gtag('config', 'GA_MEASUREMENT_ID', { 'transport_type': 'beacon'});
 
@@ -361,6 +407,8 @@ function initApp() {
 
   $('#reset-defaults-btn').on('click', resetDefaults);
   $('#lock-btn').on('click', lockSite);
+  $('#export-btn').on('click', exportSettings);
+  $('#import-btn').on('click', importSettings);
 
   $('#add-app-btn').on('click', function() {
     const willShow = $('#add-app-form').hasClass('hidden');
