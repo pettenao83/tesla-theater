@@ -292,7 +292,52 @@ function resetAddAppForm() {
   $('#add-app-img-placeholder').removeClass('hidden');
 }
 
-$(function() {
+// --- Access lock ---------------------------------------------------------
+// Client-side only: this hides the launcher behind a shared PIN so a casual
+// visitor with the link can't poke at it. It is NOT real security (anyone
+// reading the page source can see the hash and brute-force it offline).
+const AUTH_HASH = '995829d2ff8904951c4e0b113280005885ae78db04a41741014a9a379290ef85';
+
+async function sha256Hex(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function isUnlocked() {
+  return window.localStorage.getItem('TeslaTheaterAuth') === '1';
+}
+
+function showApp() {
+  $('#lock-screen').addClass('hidden');
+  $('#app-root').removeClass('hidden');
+}
+
+function showLock() {
+  $('#app-root').addClass('hidden');
+  $('#lock-screen').removeClass('hidden');
+  $('#lock-error').addClass('hidden');
+  $('#lock-pin').val('').focus();
+}
+
+function lockSite() {
+  window.localStorage.removeItem('TeslaTheaterAuth');
+  showLock();
+}
+
+function resetDefaults() {
+  if (!window.confirm("Ripristinare le impostazioni predefinite? L'ordine, le app aggiunte/rimosse e lo zoom personalizzati andranno persi.")) {
+    return;
+  }
+  window.localStorage.removeItem('TeslaTheaterStatus');
+  window.localStorage.removeItem('TeslaTheaterCustomSites');
+  window.localStorage.removeItem('TeslaTheaterZoom');
+  document.cookie = 'TeslaTheaterStatus=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  zoomFactor = 1;
+  $('#zoom-slider').val(1);
+  loadSites(sites => buildPage(sites));
+}
+
+function initApp() {
   gtag('config', 'GA_MEASUREMENT_ID', { 'transport_type': 'beacon'});
 
   const mode = queryparam('mode');
@@ -313,6 +358,9 @@ $(function() {
     window.localStorage.setItem('TeslaTheaterZoom', zoomFactor);
     resizeTiles();
   });
+
+  $('#reset-defaults-btn').on('click', resetDefaults);
+  $('#lock-btn').on('click', lockSite);
 
   $('#add-app-btn').on('click', function() {
     const willShow = $('#add-app-form').hasClass('hidden');
@@ -371,6 +419,30 @@ $(function() {
     $('#add-app-btn').removeClass('active');
     resetAddAppForm();
   });
+}
+
+$(function() {
+  $('#lock-form').on('submit', async function(e) {
+    e.preventDefault();
+    const pin = $('#lock-pin').val();
+    const hash = await sha256Hex(pin);
+    if (hash === AUTH_HASH) {
+      window.localStorage.setItem('TeslaTheaterAuth', '1');
+      showApp();
+      resizeTiles();
+    } else {
+      $('#lock-error').removeClass('hidden');
+      $('#lock-pin').val('').focus();
+    }
+  });
+
+  if (isUnlocked()) {
+    showApp();
+  } else {
+    showLock();
+  }
+
+  initApp();
 });
 
 function editMode(edit) {

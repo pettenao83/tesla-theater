@@ -198,6 +198,78 @@ a:focus-visible {
   box-shadow: 0 0 14px rgba(255, 95, 125, 0.5);
 }
 
+/* Lock screen */
+#lock-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(120% 140% at 50% -10%, var(--sky-1) 0%, var(--sky-2) 55%, var(--bg-deep) 100%);
+}
+
+#lock-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+
+#lock-form h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  letter-spacing: 0.05em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lock-tagline {
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  margin: 0 0 8px;
+}
+
+#lock-pin {
+  width: 100%;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  color: var(--ink);
+  padding: 12px 18px;
+  font-size: 1.1rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+  font-family: var(--font-body);
+}
+
+#lock-pin:focus-visible {
+  outline: none;
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan-glow);
+}
+
+#lock-submit {
+  width: 100%;
+  justify-content: center;
+  background: var(--pink);
+  border-color: var(--pink);
+  color: #1a0a20;
+  font-weight: 600;
+  box-shadow: 0 0 14px var(--pink-glow);
+}
+
+#lock-error {
+  color: var(--danger);
+  font-size: 0.82rem;
+  margin: 0;
+}
+
 /* Add app panel */
 #add-app-form {
   display: flex;
