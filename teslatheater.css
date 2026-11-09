@@ -805,3 +805,18 @@ a:focus-visible {
   background: var(--bg-panel-hover);
   outline: none;
 }
+
+/* IPTV: channel list hidden -> the video uses the whole width */
+#iptv-view.iptv-focus .iptv-side {
+  display: none;
+}
+#iptv-view.iptv-focus .iptv-main {
+  grid-template-columns: 1fr;
+}
+
+/* an "active" secondary button must stay readable on the pink background */
+.actionbutton.secondary.active {
+  background: var(--pink);
+  border-color: var(--pink);
+  color: #1a0a20;
+}

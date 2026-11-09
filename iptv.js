@@ -23,6 +23,7 @@
   // repository. Edits made in the page are a local draft until saved to that file.
   const PREFS_URL = 'playlists/preferenze.json';
   const PREFS_KEY = 'TeslaTheaterIptvPrefs';
+  const FOCUS_KEY = 'TeslaTheaterIptvFocus';
   const SORTS = ['list', 'name', 'group'];
   const HLS_SRC = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
   const MPEGTS_SRC = 'https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js';
@@ -449,6 +450,19 @@
       }
     } catch (e) { /* ignore */ }
     renderPrefsUi();
+  }
+
+  // Hides the channel list so the video takes the whole width (per device).
+  function setFocus(on, remember) {
+    byId('iptv-view').classList.toggle('iptv-focus', on);
+    const btn = byId('iptv-toggle-channels');
+    btn.querySelector('span').textContent = on ? 'Mostra canali' : 'Nascondi canali';
+    btn.classList.toggle('active', on);
+    if (remember) {
+      try {
+        window.localStorage.setItem(FOCUS_KEY, on ? '1' : '0');
+      } catch (e) { /* ignore */ }
+    }
   }
 
   function renderPrefsUi() {
@@ -978,6 +992,12 @@
       applyFilter(true);
     });
     byId('iptv-save-prefs').addEventListener('click', downloadPrefs);
+    byId('iptv-toggle-channels').addEventListener('click', () => {
+      setFocus(!byId('iptv-view').classList.contains('iptv-focus'), true);
+    });
+    try {
+      setFocus(window.localStorage.getItem(FOCUS_KEY) === '1', false);
+    } catch (e) { /* ignore */ }
     byId('iptv-channels').addEventListener('click', e => {
       if (e.target.closest('.iptv-more')) {
         renderChannelChunk(false);
