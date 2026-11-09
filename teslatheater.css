@@ -904,3 +904,27 @@ body.iptv-open {
     min-height: 0;
   }
 }
+
+/* Neon scrollbars (channel list and any other scrolling area) */
+#iptv-channels,
+.iptv-side {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 95, 209, 0.7) transparent;
+}
+#iptv-channels::-webkit-scrollbar {
+  width: 12px;
+}
+#iptv-channels::-webkit-scrollbar-track {
+  background: rgba(82, 240, 255, 0.05);
+  border-left: 1px solid var(--line);
+}
+#iptv-channels::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--pink), var(--cyan));
+  border: 3px solid transparent;
+  border-radius: 100px;
+  background-clip: padding-box;
+  box-shadow: 0 0 8px var(--pink-glow);
+}
+#iptv-channels::-webkit-scrollbar-thumb:hover {
+  border-width: 2px;
+}
