@@ -1010,9 +1010,10 @@
   function addMissingDefaults() {
     let changed = false;
     // One-time clean-up: only the merged list is kept (it replaces the earlier ones).
-    if (!state.offered.includes('consolidated-v1')) {
-      state.offered.push('consolidated-v1');
+    if (!state.offered.includes('consolidated-v2')) {
+      state.offered.push('consolidated-v2');
       state.lists = state.lists.filter(l => l.id === 'default-italia');
+      state.lists.forEach(l => { l.updatedAt = 0; }); // download the current copy again
       if (!state.lists.some(l => l.id === state.activeId)) {
         state.activeId = state.lists.length ? 'default-italia' : null;
       }
