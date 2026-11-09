@@ -861,3 +861,46 @@ a:focus-visible {
 #iptv-view.iptv-focus .iptv-bar #iptv-now {
   max-width: 60vw;
 }
+
+/* The IPTV page fills the window exactly: no extra body padding, no page scroll */
+body.iptv-open {
+  padding-bottom: 0;
+  min-height: 0;
+}
+#iptv-view {
+  overflow: hidden;
+}
+@media (max-width: 820px) {
+  /* hidden channel list: the video still fits the screen on phones / narrow windows */
+  #iptv-view.iptv-focus {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  #iptv-view.iptv-focus .iptv-main,
+  #iptv-view.iptv-focus .iptv-stage {
+    flex: 1;
+    min-height: 0;
+  }
+  #iptv-view.iptv-focus .iptv-player-wrap {
+    flex: 1;
+    aspect-ratio: auto;
+  }
+}
+
+@media (max-width: 820px) {
+  /* narrow screens, list shown: video on top, channel list scrolls inside the remaining space */
+  #iptv-view {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+  }
+  .iptv-main {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .iptv-side {
+    max-height: none;
+    min-height: 0;
+  }
+}

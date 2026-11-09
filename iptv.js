@@ -1072,6 +1072,7 @@
     $('#app-header, #apps, #add-app-form').addClass('hidden');
     $('#add-app-btn').removeClass('active');
     byId('iptv-view').classList.remove('hidden');
+    document.body.classList.add('iptv-open');
     hideMessage();
     setStatus('');
     const first = state.lists.length ? (activeList() || state.lists[0]).id : null;
@@ -1085,6 +1086,7 @@
     playToken++;
     stopPlayback();
     byId('iptv-view').classList.add('hidden');
+    document.body.classList.remove('iptv-open');
     $('#app-header, #apps').removeClass('hidden');
     if (typeof resizeTiles === 'function') {
       resizeTiles();
