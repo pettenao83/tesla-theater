@@ -14,14 +14,9 @@
   // deleted does not come back, because its id is remembered in `offered`.
   const DEFAULT_LISTS = [
     {
-      id: 'default-iptvitalia',
-      name: 'IPTV Italia',
-      url: 'https://raw.githubusercontent.com/Tundrak/IPTV-Italia/main/iptvitaplus.m3u'
-    },
-    {
-      id: 'default-fulgione',
-      name: 'Fulgione TV',
-      url: 'playlists/tv.m3u' // kept in this repository, same origin as the site
+      id: 'default-italia',
+      name: 'Italia (funzionanti)',
+      url: 'playlists/italia.m3u' // merged and tested list, same origin as the site
     }
   ];
   const HLS_SRC = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
