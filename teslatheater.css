@@ -928,3 +928,53 @@ body.iptv-open {
 #iptv-channels::-webkit-scrollbar-thumb:hover {
   border-width: 2px;
 }
+
+/* IPTV audio only: picture hidden, sound keeps playing */
+#iptv-view.iptv-audio #iptv-video {
+  opacity: 0;
+  pointer-events: none;
+}
+#iptv-audio-card {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 79, 216, 0.16), #05040f 70%);
+  color: var(--cyan);
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+}
+#iptv-audio-card > em {
+  font-size: clamp(3rem, 12vh, 6rem);
+  text-shadow: 0 0 22px var(--cyan-glow);
+}
+#iptv-audio-card > span {
+  font-size: clamp(1.2rem, 3.2vh, 2rem);
+  color: var(--ink);
+}
+#iptv-audio-play {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 1px solid var(--pink);
+  background: rgba(255, 79, 216, 0.12);
+  color: var(--pink);
+  font-size: 2rem;
+  cursor: pointer;
+  box-shadow: 0 0 18px var(--pink-glow);
+}
+#iptv-audio-play:hover,
+#iptv-audio-play:focus-visible {
+  background: var(--pink);
+  color: #1a0a20;
+  outline: none;
+}
+#iptv-msg {
+  z-index: 3;
+}

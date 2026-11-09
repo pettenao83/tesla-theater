@@ -24,6 +24,7 @@
   const PREFS_URL = 'playlists/preferenze.json';
   const PREFS_KEY = 'TeslaTheaterIptvPrefs';
   const FOCUS_KEY = 'TeslaTheaterIptvFocus';
+  const AUDIO_KEY = 'TeslaTheaterIptvAudioOnly';
   const SORTS = ['list', 'name', 'group'];
   const HLS_SRC = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
   const MPEGTS_SRC = 'https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js';
@@ -473,6 +474,35 @@
     }
   }
 
+  // Audio only: the picture is hidden (the sound keeps playing) and HLS streams
+  // are limited to their lowest quality to save data. Per device.
+  function applyAudioQuality() {
+    if (hlsPlayer) {
+      hlsPlayer.autoLevelCapping = byId('iptv-view').classList.contains('iptv-audio') ? 0 : -1;
+    }
+  }
+
+  function setAudioOnly(on, remember) {
+    byId('iptv-view').classList.toggle('iptv-audio', on);
+    const btn = byId('iptv-audio-btn');
+    btn.classList.toggle('active', on);
+    btn.querySelector('span').textContent = on ? 'Mostra video' : 'Solo audio';
+    byId('iptv-audio-card').classList.toggle('hidden', !on);
+    applyAudioQuality();
+    if (remember) {
+      try {
+        window.localStorage.setItem(AUDIO_KEY, on ? '1' : '0');
+      } catch (e) { /* ignore */ }
+    }
+  }
+
+  function syncAudioPlayButton() {
+    const paused = byId('iptv-video').paused;
+    const btn = byId('iptv-audio-play');
+    btn.querySelector('em').className = 'fas ' + (paused ? 'fa-play' : 'fa-pause');
+    btn.setAttribute('aria-label', paused ? 'Riproduci' : 'Pausa');
+  }
+
   function renderPrefsUi() {
     byId('iptv-sort').value = prefs.sort;
     byId('iptv-edit').classList.toggle('active', editMode);
@@ -562,6 +592,7 @@
     stopPlayback();
     playToken++;
     byId('iptv-now').textContent = 'Seleziona un canale';
+    byId('iptv-audio-name').textContent = 'Solo audio';
     hideMessage();
     currentIndex = -1;
     state.activeId = id || null;
@@ -845,7 +876,10 @@
                 lateFailure();
               }
             });
-            hlsPlayer.on(window.Hls.Events.MANIFEST_PARSED, () => tryPlay(video));
+            hlsPlayer.on(window.Hls.Events.MANIFEST_PARSED, () => {
+              applyAudioQuality();
+              tryPlay(video);
+            });
             hlsPlayer.loadSource(url);
             hlsPlayer.attachMedia(video);
           } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -946,6 +980,7 @@
       row.classList.add('playing');
     }
     byId('iptv-now').textContent = channel[0];
+    byId('iptv-audio-name').textContent = channel[0];
     startPlayback(channel[1]);
   }
 
@@ -1000,6 +1035,22 @@
       applyFilter(true);
     });
     byId('iptv-save-prefs').addEventListener('click', downloadPrefs);
+    byId('iptv-audio-btn').addEventListener('click', () => {
+      setAudioOnly(!byId('iptv-view').classList.contains('iptv-audio'), true);
+    });
+    byId('iptv-audio-play').addEventListener('click', () => {
+      const video = byId('iptv-video');
+      if (video.paused) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    });
+    byId('iptv-video').addEventListener('play', syncAudioPlayButton);
+    byId('iptv-video').addEventListener('pause', syncAudioPlayButton);
+    try {
+      setAudioOnly(window.localStorage.getItem(AUDIO_KEY) === '1', false);
+    } catch (e) { /* ignore */ }
     byId('iptv-toggle-channels').addEventListener('click', () => {
       setFocus(!byId('iptv-view').classList.contains('iptv-focus'), true);
     });

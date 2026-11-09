@@ -34,9 +34,9 @@
   <script src="https://kit.fontawesome.com/39e55326bb.js" crossorigin="anonymous"></script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=22">
-  <script src="teslatheater.js?v=22"></script>
-  <script src="iptv.js?v=22"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=23">
+  <script src="teslatheater.js?v=23"></script>
+  <script src="iptv.js?v=23"></script>
 </head>
 <body>
 
@@ -96,6 +96,7 @@
         <button id="iptv-home" type="button" class="actionbutton"><em class="fas fa-house"></em> Home</button>
         <select id="iptv-list-select" aria-label="Lista attiva"></select>
         <button id="iptv-toggle-channels" type="button" class="actionbutton secondary" title="Nascondi o mostra l'elenco dei canali"><em class="fas fa-table-columns"></em> <span>Nascondi canali</span></button>
+        <button id="iptv-audio-btn" type="button" class="actionbutton secondary" title="Nasconde il video e lascia solo l'audio"><em class="fas fa-headphones"></em> <span>Solo audio</span></button>
         <button id="iptv-add-file" type="button" class="actionbutton secondary"><em class="fas fa-file-arrow-up"></em> Carica file</button>
         <button id="iptv-add-url" type="button" class="actionbutton secondary"><em class="fas fa-link"></em> Da indirizzo</button>
         <button id="iptv-refresh" type="button" class="actionbutton secondary hidden"><em class="fas fa-rotate"></em> Aggiorna</button>
@@ -133,6 +134,11 @@
           <div class="iptv-player-wrap">
             <video id="iptv-video" controls autoplay playsinline></video>
             <div id="iptv-msg" class="hidden"></div>
+            <div id="iptv-audio-card" class="hidden">
+              <em class="fas fa-headphones"></em>
+              <span id="iptv-audio-name">Solo audio</span>
+              <button id="iptv-audio-play" type="button" aria-label="Pausa"><em class="fas fa-pause"></em></button>
+            </div>
           </div>
           <p id="iptv-now">Seleziona un canale</p>
         </div>
