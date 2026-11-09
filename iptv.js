@@ -678,9 +678,15 @@
     });
   }
 
+  // An HTTPS page may not load http:// streams (mixed content). Many servers
+  // answer on HTTPS too, so those channels are tried at the https:// address.
+  function isMixedContent(url) {
+    return window.location.protocol === 'https:' && /^http:\/\//i.test(url);
+  }
+
   function failureText(url) {
-    if (window.location.protocol === 'https:' && /^http:\/\//i.test(url)) {
-      return 'Questo canale usa un indirizzo HTTP non protetto e il browser lo blocca su una pagina HTTPS. Serve lo stesso flusso in HTTPS.';
+    if (isMixedContent(url)) {
+      return 'Questo canale è in HTTP, che il browser blocca su una pagina HTTPS. Ho provato anche la versione HTTPS, ma il server non la offre o non permette l\'accesso da altri siti (CORS): da qui non è riproducibile.';
     }
     return 'Impossibile riprodurre questo canale: può essere offline, in un formato che il browser non supporta (es. MKV/AVI) oppure non accessibile da questo sito (CORS). Prova un altro canale.';
   }
@@ -688,11 +694,11 @@
   async function startPlayback(url) {
     const token = ++playToken;
     stopPlayback();
-    if (window.location.protocol === 'https:' && /^http:\/\//i.test(url)) {
-      showMessage(failureText(url), 'error'); // the browser would block it anyway
-      return;
-    }
     showMessage('Caricamento…', 'loading');
+    const original = url;
+    if (isMixedContent(url)) {
+      url = url.replace(/^http:/i, 'https:');
+    }
     const kinds = playPlan(url);
     const timeoutMs = kinds.length > 1 ? 8000 : 20000;
     for (const kind of kinds) {
@@ -713,7 +719,7 @@
       }
     }
     if (token === playToken) {
-      showMessage(failureText(url), 'error');
+      showMessage(failureText(original), 'error');
     }
   }
 
