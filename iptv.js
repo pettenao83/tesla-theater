@@ -19,6 +19,7 @@
       url: 'playlists/italia.m3u' // merged and tested list, same origin as the site
     }
   ];
+  const SUPERSEDED_IDS = ['default-iptvitalia', 'default-fulgione'];
   const HLS_SRC = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
   const MPEGTS_SRC = 'https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js';
   const DASH_SRC = 'https://cdn.jsdelivr.net/npm/dashjs@4.7.4/dist/dash.all.min.js';
@@ -820,6 +821,15 @@
   // First visit, after "Ripristina", or when a new suggested list was added.
   function addMissingDefaults() {
     let changed = false;
+    // The merged list replaces the earlier suggested ones: drop those (user-added lists have other ids).
+    const before = state.lists.length;
+    state.lists = state.lists.filter(l => !SUPERSEDED_IDS.includes(l.id));
+    if (state.lists.length !== before) {
+      changed = true;
+      if (!state.lists.some(l => l.id === state.activeId)) {
+        state.activeId = state.lists.some(l => l.id === 'default-italia') ? 'default-italia' : null;
+      }
+    }
     DEFAULT_LISTS.forEach(def => {
       if (state.offered.includes(def.id)) {
         return;
