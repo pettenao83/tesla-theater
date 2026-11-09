@@ -1,0 +1,840 @@
+// IPTV client: loads M3U playlists (file or address), lists the channels and
+// plays them inside the page (HLS via hls.js, MPEG-TS via mpegts.js, or the
+// browser's native <video> for MP4/WebM). Everything stays in the browser:
+// playlists are kept in localStorage, nothing is sent to any server of ours.
+(function () {
+  'use strict';
+
+  const STORAGE_KEY = 'TeslaTheaterIptv';
+  const PAGE_SIZE = 200;
+  // Address-based lists are downloaded again when the saved copy is older than this.
+  const AUTO_REFRESH_MS = 12 * 60 * 60 * 1000;
+  // List offered the very first time the IPTV page is opened (removable).
+  const DEFAULT_LIST = {
+    id: 'default-iptvitalia',
+    name: 'IPTV Italia',
+    url: 'https://raw.githubusercontent.com/Tundrak/IPTV-Italia/main/iptvitaplus.m3u'
+  };
+  const HLS_SRC = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
+  const MPEGTS_SRC = 'https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js';
+  const DASH_SRC = 'https://cdn.jsdelivr.net/npm/dashjs@4.7.4/dist/dash.all.min.js';
+
+  let state = { lists: [], activeId: null };
+  let channels = [];      // channels of the active list: [name, url, logo, group]
+  let filtered = [];      // indexes into `channels` matching search + group
+  let shown = 0;          // how many of `filtered` are rendered
+  let currentIndex = -1;  // index into `channels` of the playing channel
+  let playToken = 0;      // invalidates async work of a previous playback
+  let hlsPlayer = null;
+  let tsPlayer = null;
+  let dashPlayer = null;
+  let detachVideo = null;
+  let bound = false;
+  let searchTimer = null;
+  const scripts = {};
+
+  const byId = id => document.getElementById(id);
+
+  // --- Storage -------------------------------------------------------------
+  function loadState() {
+    try {
+      const raw = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || 'null');
+      if (raw && Array.isArray(raw.lists)) {
+        state = { lists: raw.lists, activeId: raw.activeId || null };
+        return;
+      }
+    } catch (e) { /* corrupted value: start clean */ }
+    state = { lists: [], activeId: null };
+  }
+
+  // Returns 'ok', 'slim' (address-based lists saved without their channels,
+  // they are downloaded again on demand) or 'fail' (does not fit at all).
+  function saveState() {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      return 'ok';
+    } catch (e) {
+      try {
+        const slim = {
+          activeId: state.activeId,
+          lists: state.lists.map(l => (l.url ? { id: l.id, name: l.name, url: l.url } : l))
+        };
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+        return 'slim';
+      } catch (e2) {
+        return 'fail';
+      }
+    }
+  }
+
+  function activeList() {
+    return state.lists.find(l => l.id === state.activeId) || null;
+  }
+
+  // --- M3U parsing ---------------------------------------------------------
+  function nameFromUrl(url) {
+    const path = url.split(/[?#]/)[0].replace(/\/+$/, '');
+    const last = decodeURIComponent(path.split('/').pop() || '').replace(/\.[^.]+$/, '');
+    return last || url;
+  }
+
+  function parseExtinf(line) {
+    let inQuotes = false;
+    let comma = -1;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        inQuotes = !inQuotes;
+      } else if (c === ',' && !inQuotes) {
+        comma = i;
+        break;
+      }
+    }
+    const head = comma === -1 ? line : line.slice(0, comma);
+    const title = comma === -1 ? '' : line.slice(comma + 1).trim();
+    const attrs = {};
+    head.replace(/([\w-]+)="([^"]*)"/g, (_, key, value) => {
+      attrs[key.toLowerCase()] = value;
+      return '';
+    });
+    return { title, attrs };
+  }
+
+  // Returns the channels, or null when the text is a single HLS stream
+  // (media/master playlist) rather than a list of channels.
+  function parseM3u(text) {
+    if (/#EXT-X-(STREAM-INF|TARGETDURATION|MEDIA-SEQUENCE)/.test(text)) {
+      return null;
+    }
+    const result = [];
+    let pending = null;
+    for (const raw of text.split(/\r?\n/)) {
+      const line = raw.trim();
+      if (!line) {
+        continue;
+      }
+      if (line.startsWith('#EXTINF')) {
+        pending = parseExtinf(line);
+      } else if (line.startsWith('#EXTGRP:')) {
+        if (pending && !pending.attrs['group-title']) {
+          pending.attrs['group-title'] = line.slice(8).trim();
+        }
+      } else if (line.startsWith('#')) {
+        continue; // #EXTM3U, #EXTVLCOPT, comments...
+      } else {
+        const attrs = pending ? pending.attrs : {};
+        const name = (pending && pending.title) || attrs['tvg-name'] || nameFromUrl(line);
+        result.push([name, line, attrs['tvg-logo'] || '', attrs['group-title'] || '']);
+        pending = null;
+      }
+    }
+    return result;
+  }
+
+  // --- Playlist sources ----------------------------------------------------
+  // github.com/<user>/<repo>/(raw|blob)/<branch>/<file> redirects to
+  // raw.githubusercontent.com, but the redirect itself has no usable CORS
+  // header and the browser refuses it: point straight at the final address.
+  function githubRawUrl(url) {
+    const m = url.match(/^https?:\/\/(?:www\.)?github\.com\/([^/]+)\/([^/]+)\/(?:raw|blob)\/(.+)$/i);
+    return m ? `https://raw.githubusercontent.com/${m[1]}/${m[2]}/${m[3].split('?')[0]}` : url;
+  }
+
+  function normalizeUrl(input) {
+    const value = input.trim();
+    if (/^https?:\/\//i.test(value)) {
+      return githubRawUrl(value);
+    }
+    if (value.startsWith('/') || value.startsWith('./')) {
+      return value;
+    }
+    const first = value.split('/')[0];
+    if (value.includes('/') && first.includes('.') && !/\.m3u8?$/i.test(first)) {
+      return githubRawUrl('https://' + value);
+    }
+    return value; // relative to this site, e.g. playlists/mia.m3u
+  }
+
+  function listNameFromUrl(url) {
+    try {
+      const u = new URL(url, window.location.href);
+      const base = nameFromUrl(u.pathname);
+      return u.origin === window.location.origin ? base : `${base} · ${u.hostname}`;
+    } catch (e) {
+      return nameFromUrl(url);
+    }
+  }
+
+  async function fetchPlaylist(url) {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) {
+      throw new Error('HTTP ' + res.status);
+    }
+    const text = await res.text();
+    const parsed = parseM3u(text);
+    if (parsed === null) {
+      // A single HLS stream: expose it as a one-channel list.
+      return [[listNameFromUrl(url), new URL(url, window.location.href).href, '', '']];
+    }
+    if (!parsed.length) {
+      throw new Error('empty');
+    }
+    return parsed;
+  }
+
+  function fetchErrorText(url, err) {
+    if (window.location.protocol === 'https:' && /^http:\/\//i.test(url)) {
+      return "L'indirizzo è HTTP: il browser lo blocca da una pagina HTTPS. Prova con https:// oppure carica il file della lista.";
+    }
+    if (err && err.message === 'empty') {
+      return 'Nessun canale trovato: controlla che l\'indirizzo punti a una lista M3U.';
+    }
+    if (err && /^HTTP \d+/.test(err.message)) {
+      return `Il server ha risposto ${err.message}. Controlla l'indirizzo.`;
+    }
+    return 'Impossibile scaricare la lista: indirizzo errato oppure il server non consente l\'accesso da questo sito (CORS). Scarica il file .m3u e usa "Carica file".';
+  }
+
+  // --- Status line ---------------------------------------------------------
+  function setStatus(text, kind) {
+    const el = byId('iptv-status');
+    el.textContent = text || '';
+    el.classList.toggle('error', kind === 'error');
+    el.classList.toggle('warn', kind === 'warn');
+    el.classList.toggle('hidden', !text);
+  }
+
+  function countStatus() {
+    const n = channels.length;
+    setStatus(n ? `${n.toLocaleString('it-IT')} canali` : '');
+  }
+
+  // --- Rendering -----------------------------------------------------------
+  function renderLists() {
+    const select = byId('iptv-list-select');
+    select.innerHTML = '';
+    if (!state.lists.length) {
+      select.appendChild(new Option('Nessuna lista', ''));
+      select.disabled = true;
+    } else {
+      select.disabled = false;
+      state.lists.forEach(l => {
+        const count = l.channels ? ` (${l.channels.length.toLocaleString('it-IT')})` : '';
+        select.appendChild(new Option(l.name + count, l.id));
+      });
+      select.value = state.activeId;
+    }
+    const active = activeList();
+    byId('iptv-refresh').classList.toggle('hidden', !(active && active.url));
+    byId('iptv-delete').classList.toggle('hidden', !active);
+  }
+
+  function renderGroups() {
+    const select = byId('iptv-group');
+    const counts = new Map();
+    channels.forEach(c => {
+      const g = c[3] || 'Senza gruppo';
+      counts.set(g, (counts.get(g) || 0) + 1);
+    });
+    const previous = select.value;
+    select.innerHTML = '';
+    select.appendChild(new Option(`Tutti i gruppi (${channels.length.toLocaleString('it-IT')})`, ''));
+    [...counts.keys()]
+      .sort((a, b) => a.localeCompare(b, 'it'))
+      .forEach(g => select.appendChild(new Option(`${g} (${counts.get(g).toLocaleString('it-IT')})`, g)));
+    select.value = counts.has(previous) ? previous : '';
+    select.classList.toggle('hidden', counts.size < 2);
+  }
+
+  function placeholderLogo(name) {
+    const span = document.createElement('span');
+    span.className = 'iptv-logo iptv-logo-ph';
+    const initial = name.match(/[\p{L}\p{N}]/u);
+    span.textContent = initial ? initial[0].toUpperCase() : '•';
+    return span;
+  }
+
+  function channelLogo(channel) {
+    if (/^https?:\/\//i.test(channel[2])) {
+      const img = document.createElement('img');
+      img.className = 'iptv-logo';
+      img.loading = 'lazy';
+      img.alt = '';
+      img.referrerPolicy = 'no-referrer';
+      img.addEventListener('error', () => img.replaceWith(placeholderLogo(channel[0])));
+      img.src = channel[2];
+      return img;
+    }
+    return placeholderLogo(channel[0]);
+  }
+
+  // Playlist data is untrusted: only ever written with textContent / properties.
+  function channelRow(index) {
+    const channel = channels[index];
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'iptv-channel';
+    button.dataset.index = String(index);
+    if (index === currentIndex) {
+      button.classList.add('playing');
+    }
+    const text = document.createElement('span');
+    text.className = 'iptv-ch-text';
+    const name = document.createElement('span');
+    name.className = 'iptv-ch-name';
+    name.textContent = channel[0];
+    text.appendChild(name);
+    if (channel[3]) {
+      const group = document.createElement('span');
+      group.className = 'iptv-ch-group';
+      group.textContent = channel[3];
+      text.appendChild(group);
+    }
+    button.append(channelLogo(channel), text);
+    return button;
+  }
+
+  function renderChannelChunk(reset) {
+    const box = byId('iptv-channels');
+    if (reset) {
+      box.textContent = '';
+      box.scrollTop = 0;
+    } else {
+      const more = box.querySelector('.iptv-more');
+      if (more) {
+        more.remove();
+      }
+    }
+    const end = Math.min(shown + PAGE_SIZE, filtered.length);
+    const fragment = document.createDocumentFragment();
+    for (let i = shown; i < end; i++) {
+      fragment.appendChild(channelRow(filtered[i]));
+    }
+    shown = end;
+    box.appendChild(fragment);
+
+    if (!filtered.length) {
+      const empty = document.createElement('p');
+      empty.className = 'iptv-empty';
+      empty.textContent = channels.length
+        ? 'Nessun canale corrisponde alla ricerca.'
+        : 'Nessuna lista caricata. Usa "Carica file" per aprire un .m3u oppure "Da indirizzo" per scaricarlo da un link.';
+      box.appendChild(empty);
+    } else if (shown < filtered.length) {
+      const more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'iptv-more actionbutton secondary';
+      more.textContent = `Mostra altri (${(filtered.length - shown).toLocaleString('it-IT')})`;
+      box.appendChild(more);
+    }
+  }
+
+  function applyFilter() {
+    const query = byId('iptv-search').value.trim().toLowerCase();
+    const group = byId('iptv-group').value;
+    filtered = [];
+    for (let i = 0; i < channels.length; i++) {
+      const c = channels[i];
+      if (group && (c[3] || 'Senza gruppo') !== group) {
+        continue;
+      }
+      if (query && !c[0].toLowerCase().includes(query)) {
+        continue;
+      }
+      filtered.push(i);
+    }
+    shown = 0;
+    renderChannelChunk(true);
+  }
+
+  // --- Lists management ----------------------------------------------------
+  async function selectList(id) {
+    stopPlayback();
+    playToken++;
+    byId('iptv-now').textContent = 'Seleziona un canale';
+    hideMessage();
+    currentIndex = -1;
+    state.activeId = id || null;
+    saveState();
+    const list = activeList();
+    if (list && !list.channels && list.url) {
+      setStatus('Scarico la lista…');
+      try {
+        list.channels = await fetchPlaylist(list.url);
+        list.updatedAt = Date.now();
+        saveState();
+      } catch (e) {
+        setStatus(fetchErrorText(list.url, e), 'error');
+      }
+    }
+    channels = (list && list.channels) || [];
+    renderLists();
+    renderGroups();
+    applyFilter();
+    if (!byId('iptv-status').classList.contains('error')) {
+      countStatus();
+    }
+    if (list && list.url && list.channels && isStale(list)) {
+      autoRefresh(list);
+    }
+  }
+
+  function isStale(list) {
+    return !list.updatedAt || Date.now() - list.updatedAt > AUTO_REFRESH_MS;
+  }
+
+  // Silent background update of an address-based list: on failure the saved
+  // copy simply stays in use. The playing channel is followed by its address.
+  async function autoRefresh(list) {
+    try {
+      const fresh = await fetchPlaylist(list.url);
+      if (!state.lists.includes(list)) {
+        return; // deleted in the meantime
+      }
+      const playingUrl = currentIndex >= 0 && channels[currentIndex] ? channels[currentIndex][1] : null;
+      list.channels = fresh;
+      list.updatedAt = Date.now();
+      saveState();
+      if (state.activeId === list.id) {
+        channels = fresh;
+        currentIndex = playingUrl ? channels.findIndex(c => c[1] === playingUrl) : -1;
+        renderLists();
+        renderGroups();
+        applyFilter();
+        setStatus(`${channels.length.toLocaleString('it-IT')} canali · lista aggiornata automaticamente`);
+      }
+    } catch (e) { /* keep the copy we have */ }
+  }
+
+  function addList(name, url, channelData) {
+    const list = { id: 'l' + Date.now().toString(36), name, channels: channelData };
+    if (url) {
+      list.url = url;
+      list.updatedAt = Date.now();
+    }
+    state.lists.push(list);
+    state.activeId = list.id;
+    const saved = saveState();
+    return selectList(list.id).then(() => {
+      if (saved === 'slim') {
+        setStatus('Lista troppo grande per la memoria del browser: verrà scaricata di nuovo dall\'indirizzo a ogni apertura.', 'warn');
+      } else if (saved === 'fail') {
+        setStatus('Lista troppo grande per essere salvata sul dispositivo: resta disponibile solo finché non chiudi la pagina.', 'warn');
+      }
+    });
+  }
+
+  async function handleFile(file) {
+    setStatus('Leggo il file…');
+    try {
+      const parsed = parseM3u(await file.text());
+      if (parsed === null) {
+        setStatus('Questo file è una singola playlist HLS, non una lista di canali: aggiungila con "Da indirizzo".', 'error');
+        return;
+      }
+      if (!parsed.length) {
+        setStatus('Nessun canale trovato nel file: è davvero una lista M3U?', 'error');
+        return;
+      }
+      await addList(file.name.replace(/\.[^.]+$/, '') || 'Lista', null, parsed);
+    } catch (e) {
+      setStatus('Impossibile leggere il file.', 'error');
+    }
+  }
+
+  async function addFromUrl(name, rawUrl) {
+    const url = normalizeUrl(rawUrl);
+    setStatus('Scarico la lista…');
+    try {
+      const parsed = await fetchPlaylist(url);
+      await addList(name || listNameFromUrl(url), url, parsed);
+      byId('iptv-url-form').classList.add('hidden');
+      byId('iptv-url-name').value = '';
+      byId('iptv-url-address').value = '';
+    } catch (e) {
+      setStatus(fetchErrorText(url, e), 'error');
+    }
+  }
+
+  async function refreshActive() {
+    const list = activeList();
+    if (!list || !list.url) {
+      return;
+    }
+    setStatus('Aggiorno la lista…');
+    try {
+      list.channels = await fetchPlaylist(list.url);
+      list.updatedAt = Date.now();
+      saveState();
+      await selectList(list.id);
+    } catch (e) {
+      setStatus(fetchErrorText(list.url, e), 'error');
+    }
+  }
+
+  function deleteActive() {
+    const list = activeList();
+    if (!list || !window.confirm(`Eliminare la lista "${list.name}"?`)) {
+      return;
+    }
+    state.lists = state.lists.filter(l => l.id !== list.id);
+    selectList(state.lists.length ? state.lists[0].id : null);
+  }
+
+  // --- Playback ------------------------------------------------------------
+  function ensureScript(src) {
+    if (!scripts[src]) {
+      scripts[src] = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = () => {
+          delete scripts[src];
+          reject(new Error('script-load'));
+        };
+        document.head.appendChild(script);
+      });
+    }
+    return scripts[src];
+  }
+
+  function showMessage(text, kind) {
+    const el = byId('iptv-msg');
+    el.textContent = text;
+    el.className = kind || '';
+  }
+
+  function hideMessage() {
+    const el = byId('iptv-msg');
+    el.textContent = '';
+    el.className = 'hidden';
+  }
+
+  function stopPlayback() {
+    const video = byId('iptv-video');
+    if (detachVideo) {
+      detachVideo();
+      detachVideo = null;
+    }
+    if (hlsPlayer) {
+      hlsPlayer.destroy();
+      hlsPlayer = null;
+    }
+    if (dashPlayer) {
+      try {
+        dashPlayer.reset();
+      } catch (e) { /* already torn down */ }
+      dashPlayer = null;
+    }
+    if (tsPlayer) {
+      try {
+        tsPlayer.pause();
+        tsPlayer.unload();
+        tsPlayer.detachMediaElement();
+        tsPlayer.destroy();
+      } catch (e) { /* already torn down */ }
+      tsPlayer = null;
+    }
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+  }
+
+  function tryPlay(video) {
+    const started = video.play();
+    if (started && started.catch) {
+      started.catch(err => {
+        if (err && err.name === 'NotAllowedError') {
+          video.muted = true;
+          return video.play().catch(() => {});
+        }
+        return undefined;
+      });
+    }
+  }
+
+  function playPlan(url) {
+    const path = url.split(/[?#]/)[0].toLowerCase();
+    if (path.endsWith('.m3u8') || /m3u8/i.test(url)) {
+      return ['hls'];
+    }
+    if (path.endsWith('.mpd')) {
+      return ['dash'];
+    }
+    if (path.endsWith('.ts')) {
+      return ['ts'];
+    }
+    if (/\.(mp4|webm|ogv|ogg|mov|m4v|mkv|avi|mp3|aac)$/.test(path)) {
+      return ['native'];
+    }
+    // No telling from the address (typical of provider URLs): try the likely
+    // ones. hls.js rejects anything that is not a playlist right away, so it
+    // goes first and the slower guesses only run when it gives up.
+    return ['hls', 'ts', 'native'];
+  }
+
+  // Resolves once the video is actually playing, rejects when this method
+  // cannot play the stream. Later failures are reported on the overlay.
+  function attemptPlayback(kind, url, token, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      const video = byId('iptv-video');
+      let settled = false;
+      let timer = null;
+
+      const lateFailure = () => {
+        if (token === playToken) {
+          showMessage('Il flusso si è interrotto. Riprova o scegli un altro canale.', 'error');
+        }
+      };
+      const fail = err => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timer);
+        reject(err);
+      };
+      const onPlaying = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        clearTimeout(timer);
+        resolve();
+      };
+      const onError = () => (settled ? lateFailure() : fail(new Error('media-error')));
+
+      video.addEventListener('playing', onPlaying);
+      video.addEventListener('error', onError);
+      detachVideo = () => {
+        clearTimeout(timer);
+        video.removeEventListener('playing', onPlaying);
+        video.removeEventListener('error', onError);
+      };
+      timer = setTimeout(() => fail(new Error('timeout')), timeoutMs);
+
+      const run = async () => {
+        if (kind === 'native') {
+          video.src = url;
+          tryPlay(video);
+        } else if (kind === 'hls') {
+          await ensureScript(HLS_SRC);
+          if (window.Hls && window.Hls.isSupported()) {
+            hlsPlayer = new window.Hls({ enableWorker: true });
+            hlsPlayer.on(window.Hls.Events.ERROR, (_, data) => {
+              if (!data.fatal) {
+                return;
+              }
+              if (!settled) {
+                fail(new Error(data.details || 'hls-error'));
+              } else if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) {
+                hlsPlayer.startLoad();
+              } else if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
+                hlsPlayer.recoverMediaError();
+              } else {
+                lateFailure();
+              }
+            });
+            hlsPlayer.on(window.Hls.Events.MANIFEST_PARSED, () => tryPlay(video));
+            hlsPlayer.loadSource(url);
+            hlsPlayer.attachMedia(video);
+          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = url; // Safari / iOS play HLS natively
+            tryPlay(video);
+          } else {
+            throw new Error('hls-unsupported');
+          }
+        } else if (kind === 'dash') {
+          await ensureScript(DASH_SRC);
+          if (!window.dashjs) {
+            throw new Error('dash-unsupported');
+          }
+          dashPlayer = window.dashjs.MediaPlayer().create();
+          dashPlayer.on('error', () => {
+            if (!settled) {
+              fail(new Error('dash-error')); // later hiccups are handled by dash.js itself
+            }
+          });
+          dashPlayer.initialize(video, url, true);
+        } else {
+          await ensureScript(MPEGTS_SRC);
+          if (!window.mpegts || !window.mpegts.isSupported()) {
+            throw new Error('mpegts-unsupported');
+          }
+          tsPlayer = window.mpegts.createPlayer({ type: 'mpegts', isLive: true, url });
+          tsPlayer.on(window.mpegts.Events.ERROR, (type, detail) => {
+            if (!settled) {
+              fail(new Error(detail || type));
+            } else {
+              lateFailure();
+            }
+          });
+          tsPlayer.attachMediaElement(video);
+          tsPlayer.load();
+          Promise.resolve(tsPlayer.play()).catch(() => {});
+        }
+      };
+      run().catch(fail);
+    });
+  }
+
+  function failureText(url) {
+    if (window.location.protocol === 'https:' && /^http:\/\//i.test(url)) {
+      return 'Questo canale usa un indirizzo HTTP non protetto e il browser lo blocca su una pagina HTTPS. Serve lo stesso flusso in HTTPS.';
+    }
+    return 'Impossibile riprodurre questo canale: può essere offline, in un formato che il browser non supporta (es. MKV/AVI) oppure non accessibile da questo sito (CORS). Prova un altro canale.';
+  }
+
+  async function startPlayback(url) {
+    const token = ++playToken;
+    stopPlayback();
+    if (window.location.protocol === 'https:' && /^http:\/\//i.test(url)) {
+      showMessage(failureText(url), 'error'); // the browser would block it anyway
+      return;
+    }
+    showMessage('Caricamento…', 'loading');
+    const kinds = playPlan(url);
+    const timeoutMs = kinds.length > 1 ? 8000 : 20000;
+    for (const kind of kinds) {
+      if (token !== playToken) {
+        return;
+      }
+      try {
+        await attemptPlayback(kind, url, token, timeoutMs);
+        if (token === playToken) {
+          hideMessage();
+        }
+        return;
+      } catch (e) {
+        if (token !== playToken) {
+          return;
+        }
+        stopPlayback();
+      }
+    }
+    if (token === playToken) {
+      showMessage(failureText(url), 'error');
+    }
+  }
+
+  function playChannel(index) {
+    const channel = channels[index];
+    if (!channel) {
+      return;
+    }
+    currentIndex = index;
+    document.querySelectorAll('#iptv-channels .iptv-channel.playing')
+      .forEach(el => el.classList.remove('playing'));
+    const row = document.querySelector(`#iptv-channels .iptv-channel[data-index="${index}"]`);
+    if (row) {
+      row.classList.add('playing');
+    }
+    byId('iptv-now').textContent = channel[0];
+    startPlayback(channel[1]);
+  }
+
+  // --- View ----------------------------------------------------------------
+  function bind() {
+    if (bound) {
+      return;
+    }
+    bound = true;
+    byId('iptv-home').addEventListener('click', closeIptv);
+    byId('iptv-list-select').addEventListener('change', e => selectList(e.target.value));
+    byId('iptv-add-file').addEventListener('click', () => byId('iptv-file').click());
+    byId('iptv-file').addEventListener('change', e => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (file) {
+        handleFile(file);
+      }
+    });
+    byId('iptv-add-url').addEventListener('click', () => {
+      const form = byId('iptv-url-form');
+      form.classList.toggle('hidden');
+      if (!form.classList.contains('hidden')) {
+        byId('iptv-url-address').focus();
+      }
+    });
+    byId('iptv-url-cancel').addEventListener('click', () => byId('iptv-url-form').classList.add('hidden'));
+    byId('iptv-url-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const address = byId('iptv-url-address').value.trim();
+      if (!address) {
+        setStatus('Inserisci l\'indirizzo della lista.', 'error');
+        return;
+      }
+      addFromUrl(byId('iptv-url-name').value.trim(), address);
+    });
+    byId('iptv-refresh').addEventListener('click', refreshActive);
+    byId('iptv-delete').addEventListener('click', deleteActive);
+    byId('iptv-search').addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(applyFilter, 150);
+    });
+    byId('iptv-group').addEventListener('change', applyFilter);
+    byId('iptv-channels').addEventListener('click', e => {
+      if (e.target.closest('.iptv-more')) {
+        renderChannelChunk(false);
+        return;
+      }
+      const row = e.target.closest('.iptv-channel');
+      if (row) {
+        playChannel(Number(row.dataset.index));
+      }
+    });
+  }
+
+  function openIptv() {
+    bind();
+    if (window.localStorage.getItem(STORAGE_KEY) === null) {
+      // First visit (or after "Ripristina"): start with the suggested list.
+      state = { lists: [{ ...DEFAULT_LIST }], activeId: DEFAULT_LIST.id };
+      saveState();
+    }
+    loadState();
+    $('#app-header, #apps, #add-app-form').addClass('hidden');
+    $('#add-app-btn').removeClass('active');
+    byId('iptv-view').classList.remove('hidden');
+    hideMessage();
+    setStatus('');
+    const first = state.lists.length ? (activeList() || state.lists[0]).id : null;
+    selectList(first);
+  }
+
+  function closeIptv() {
+    playToken++;
+    stopPlayback();
+    byId('iptv-view').classList.add('hidden');
+    $('#app-header, #apps').removeClass('hidden');
+    if (typeof resizeTiles === 'function') {
+      resizeTiles();
+    }
+  }
+
+  // Only address-based lists travel with the settings export: they are small
+  // and get downloaded again on the other browser.
+  function exportData() {
+    try {
+      const raw = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || 'null');
+      if (!raw || !Array.isArray(raw.lists)) {
+        return null;
+      }
+      const lists = raw.lists.filter(l => l.url).map(l => ({ id: l.id, name: l.name, url: l.url }));
+      return lists.length ? JSON.stringify({ lists, activeId: raw.activeId || null }) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function reset() {
+    playToken++;
+    stopPlayback();
+    state = { lists: [], activeId: null };
+    channels = [];
+  }
+
+  window.openIptv = openIptv;
+  window.iptvExportData = exportData;
+  window.iptvReset = reset;
+})();

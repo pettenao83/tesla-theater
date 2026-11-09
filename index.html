@@ -34,8 +34,9 @@
   <script src="https://kit.fontawesome.com/39e55326bb.js" crossorigin="anonymous"></script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=5">
-  <script src="teslatheater.js?v=5"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=7">
+  <script src="teslatheater.js?v=7"></script>
+  <script src="iptv.js?v=7"></script>
 </head>
 <body>
 
@@ -89,6 +90,44 @@
 
     <div id="apps" class="container">
     </div>
+
+    <section id="iptv-view" class="hidden" aria-label="IPTV">
+      <div class="iptv-bar">
+        <button id="iptv-home" type="button" class="actionbutton"><em class="fas fa-house"></em> Home</button>
+        <select id="iptv-list-select" aria-label="Lista attiva"></select>
+        <button id="iptv-add-file" type="button" class="actionbutton secondary"><em class="fas fa-file-arrow-up"></em> Carica file</button>
+        <button id="iptv-add-url" type="button" class="actionbutton secondary"><em class="fas fa-link"></em> Da indirizzo</button>
+        <button id="iptv-refresh" type="button" class="actionbutton secondary hidden"><em class="fas fa-rotate"></em> Aggiorna</button>
+        <button id="iptv-delete" type="button" class="actionbutton secondary hidden"><em class="fas fa-trash"></em> Elimina lista</button>
+        <input type="file" id="iptv-file" class="hidden" accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/x-mpegurl,application/vnd.apple.mpegurl,text/plain" />
+      </div>
+
+      <form id="iptv-url-form" class="hidden">
+        <input type="text" id="iptv-url-name" placeholder="Nome (opzionale)" autocomplete="off" />
+        <input type="text" id="iptv-url-address" placeholder="Indirizzo della lista (https://… oppure playlists/mia.m3u)" autocomplete="off" autocapitalize="off" spellcheck="false" />
+        <button type="submit" class="actionbutton"><em class="fas fa-plus"></em> Scarica e aggiungi</button>
+        <button type="button" id="iptv-url-cancel" class="actionbutton secondary">Annulla</button>
+      </form>
+
+      <p id="iptv-status" class="hidden"></p>
+
+      <div class="iptv-main">
+        <aside class="iptv-side">
+          <div class="iptv-filters">
+            <input type="search" id="iptv-search" placeholder="Cerca canale" autocomplete="off" />
+            <select id="iptv-group" class="hidden" aria-label="Gruppo"></select>
+          </div>
+          <div id="iptv-channels"></div>
+        </aside>
+        <div class="iptv-stage">
+          <div class="iptv-player-wrap">
+            <video id="iptv-video" controls autoplay playsinline></video>
+            <div id="iptv-msg" class="hidden"></div>
+          </div>
+          <p id="iptv-now">Seleziona un canale</p>
+        </div>
+      </div>
+    </section>
   </div>
 
   <template id="site-template">

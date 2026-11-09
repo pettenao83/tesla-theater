@@ -1,6 +1,7 @@
 const DEFAULT_SITES = {
   "netflix": { "name": "Netflix", "img": "images/netflix.png", "url": "https://www.netflix.com/" },
   "youtube": { "name": "YouTube", "img": "images/youtube.png", "url": "https://www.youtube.com/" },
+  "iptv": { "name": "IPTV", "img": "images/iptv.svg", "url": "#iptv", "internal": "iptv" },
   "primevideo": { "name": "Prime Video", "img": "images/primevideo.png", "url": "https://www.primevideo.com/" },
   "plex": { "name": "Plex", "img": "images/plex.png", "url": "https://app.plex.tv/" },
   "disneyplus": { "name": "Disney+", "img": "images/disneyplus.png", "url": "https://www.disneyplus.com/" },
@@ -73,6 +74,12 @@ function removeDefaultSite(id) {
 
 function open() {
   if (onEdit) {
+    return;
+  }
+
+  // Built-in pages (e.g. the IPTV player) open inside the launcher itself.
+  if ($(this).attr('data-internal') === 'iptv' && typeof openIptv === 'function') {
+    openIptv();
     return;
   }
 
@@ -228,6 +235,9 @@ function addSiteButton($template, siteId, site, $apps) {
   $app.attr('id', siteId);
   $app.attr('link', site.url);
   $app.attr('title', site.name);
+  if (site.internal) {
+    $app.attr('data-internal', site.internal);
+  }
   $app.find('.deleteswitch').attr('for', siteId);
 
   if (site.img) {
@@ -325,12 +335,16 @@ function lockSite() {
 }
 
 function resetDefaults() {
-  if (!window.confirm("Ripristinare le impostazioni predefinite? L'ordine, le app aggiunte/rimosse e lo zoom personalizzati andranno persi.")) {
+  if (!window.confirm("Ripristinare le impostazioni predefinite? L'ordine, le app aggiunte/rimosse, lo zoom e le liste IPTV personalizzati andranno persi.")) {
     return;
   }
   window.localStorage.removeItem('TeslaTheaterStatus');
   window.localStorage.removeItem('TeslaTheaterCustomSites');
   window.localStorage.removeItem('TeslaTheaterZoom');
+  window.localStorage.removeItem('TeslaTheaterIptv');
+  if (typeof iptvReset === 'function') {
+    iptvReset();
+  }
   document.cookie = 'TeslaTheaterStatus=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
   zoomFactor = 1;
   $('#zoom-slider').val(1);
@@ -345,7 +359,8 @@ function exportSettings() {
   const data = {
     status: window.localStorage.getItem('TeslaTheaterStatus'),
     customSites: window.localStorage.getItem('TeslaTheaterCustomSites'),
-    zoom: window.localStorage.getItem('TeslaTheaterZoom')
+    zoom: window.localStorage.getItem('TeslaTheaterZoom'),
+    iptv: typeof iptvExportData === 'function' ? iptvExportData() : null
   };
   const code = window.btoa(unescape(encodeURIComponent(JSON.stringify(data))));
 
@@ -375,6 +390,9 @@ function importSettings() {
     }
     if (data.zoom) {
       window.localStorage.setItem('TeslaTheaterZoom', data.zoom);
+    }
+    if (data.iptv) {
+      window.localStorage.setItem('TeslaTheaterIptv', data.iptv);
     }
     window.alert('Configurazione importata.');
     window.location.reload();
