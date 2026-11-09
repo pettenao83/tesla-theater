@@ -9,17 +9,26 @@
   const PAGE_SIZE = 200;
   // Address-based lists are downloaded again when the saved copy is older than this.
   const AUTO_REFRESH_MS = 12 * 60 * 60 * 1000;
-  // List offered the very first time the IPTV page is opened (removable).
-  const DEFAULT_LIST = {
-    id: 'default-iptvitalia',
-    name: 'IPTV Italia',
-    url: 'https://raw.githubusercontent.com/Tundrak/IPTV-Italia/main/iptvitaplus.m3u'
-  };
+  // Suggested lists, each offered once per browser (removable). A list added
+  // here later also reaches people who already use the IPTV page; one they
+  // deleted does not come back, because its id is remembered in `offered`.
+  const DEFAULT_LISTS = [
+    {
+      id: 'default-iptvitalia',
+      name: 'IPTV Italia',
+      url: 'https://raw.githubusercontent.com/Tundrak/IPTV-Italia/main/iptvitaplus.m3u'
+    },
+    {
+      id: 'default-fulgione',
+      name: 'Fulgione TV',
+      url: 'playlists/tv.m3u' // kept in this repository, same origin as the site
+    }
+  ];
   const HLS_SRC = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
   const MPEGTS_SRC = 'https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js';
   const DASH_SRC = 'https://cdn.jsdelivr.net/npm/dashjs@4.7.4/dist/dash.all.min.js';
 
-  let state = { lists: [], activeId: null };
+  let state = { lists: [], activeId: null, offered: [] };
   let channels = [];      // channels of the active list: [name, url, logo, group]
   let filtered = [];      // indexes into `channels` matching search + group
   let shown = 0;          // how many of `filtered` are rendered
@@ -40,11 +49,16 @@
     try {
       const raw = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || 'null');
       if (raw && Array.isArray(raw.lists)) {
-        state = { lists: raw.lists, activeId: raw.activeId || null };
+        // State saved before `offered` existed had only the first default.
+        state = {
+          lists: raw.lists,
+          activeId: raw.activeId || null,
+          offered: Array.isArray(raw.offered) ? raw.offered : ['default-iptvitalia']
+        };
         return;
       }
     } catch (e) { /* corrupted value: start clean */ }
-    state = { lists: [], activeId: null };
+    state = { lists: [], activeId: null, offered: [] };
   }
 
   // Returns 'ok', 'slim' (address-based lists saved without their channels,
@@ -57,6 +71,7 @@
       try {
         const slim = {
           activeId: state.activeId,
+          offered: state.offered,
           lists: state.lists.map(l => (l.url ? { id: l.id, name: l.name, url: l.url } : l))
         };
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
@@ -100,10 +115,26 @@
     return { title, attrs };
   }
 
+  // True for a single HLS stream (master or media playlist) as opposed to a
+  // list of channels. Some channel lists also carry stray #EXT-X-TARGETDURATION
+  // lines at the top, so those tags alone prove nothing: a media playlist is
+  // told apart by its entries being media segments.
+  function isHlsStream(text) {
+    if (/#EXT-X-STREAM-INF/.test(text)) {
+      return true;
+    }
+    if (!/#EXT-X-(TARGETDURATION|MEDIA-SEQUENCE|ENDLIST)/.test(text)) {
+      return false;
+    }
+    const entries = text.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+    const segments = entries.filter(l => /\.(ts|aac|m4s|m4a|m4v|mp4|cmfv|cmfa|vtt|webvtt)([?#]|$)/i.test(l));
+    return entries.length > 0 && segments.length / entries.length >= 0.5;
+  }
+
   // Returns the channels, or null when the text is a single HLS stream
-  // (media/master playlist) rather than a list of channels.
+  // rather than a list of channels.
   function parseM3u(text) {
-    if (/#EXT-X-(STREAM-INF|TARGETDURATION|MEDIA-SEQUENCE)/.test(text)) {
+    if (isHlsStream(text)) {
       return null;
     }
     const result = [];
@@ -791,14 +822,31 @@
     });
   }
 
-  function openIptv() {
-    bind();
-    if (window.localStorage.getItem(STORAGE_KEY) === null) {
-      // First visit (or after "Ripristina"): start with the suggested list.
-      state = { lists: [{ ...DEFAULT_LIST }], activeId: DEFAULT_LIST.id };
+  // First visit, after "Ripristina", or when a new suggested list was added.
+  function addMissingDefaults() {
+    let changed = false;
+    DEFAULT_LISTS.forEach(def => {
+      if (state.offered.includes(def.id)) {
+        return;
+      }
+      state.offered.push(def.id);
+      if (!state.lists.some(l => l.id === def.id)) {
+        state.lists.push({ ...def });
+        if (!state.activeId) {
+          state.activeId = def.id;
+        }
+      }
+      changed = true;
+    });
+    if (changed) {
       saveState();
     }
+  }
+
+  function openIptv() {
+    bind();
     loadState();
+    addMissingDefaults();
     $('#app-header, #apps, #add-app-form').addClass('hidden');
     $('#add-app-btn').removeClass('active');
     byId('iptv-view').classList.remove('hidden');
@@ -827,7 +875,9 @@
         return null;
       }
       const lists = raw.lists.filter(l => l.url).map(l => ({ id: l.id, name: l.name, url: l.url }));
-      return lists.length ? JSON.stringify({ lists, activeId: raw.activeId || null }) : null;
+      return lists.length
+        ? JSON.stringify({ lists, activeId: raw.activeId || null, offered: raw.offered || [] })
+        : null;
     } catch (e) {
       return null;
     }
@@ -836,7 +886,7 @@
   function reset() {
     playToken++;
     stopPlayback();
-    state = { lists: [], activeId: null };
+    state = { lists: [], activeId: null, offered: [] };
     channels = [];
   }
 
