@@ -19,7 +19,11 @@
       url: 'playlists/italia.m3u' // merged and tested list, same origin as the site
     }
   ];
-  const SUPERSEDED_IDS = ['default-iptvitalia', 'default-fulgione'];
+  // Favourites + sort order are shared by everybody: they live in a file of the
+  // repository. Edits made in the page are a local draft until saved to that file.
+  const PREFS_URL = 'playlists/preferenze.json';
+  const PREFS_KEY = 'TeslaTheaterIptvPrefs';
+  const SORTS = ['list', 'name', 'group'];
   const HLS_SRC = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js';
   const MPEGTS_SRC = 'https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js';
   const DASH_SRC = 'https://cdn.jsdelivr.net/npm/dashjs@4.7.4/dist/dash.all.min.js';
@@ -36,6 +40,11 @@
   let detachVideo = null;
   let bound = false;
   let searchTimer = null;
+  let prefs = { sort: 'list', favorites: [] };
+  let prefsBase = '';     // fingerprint of the shared file the draft started from
+  let prefsDirty = false; // local edits not yet saved to the shared file
+  let editMode = false;   // shows the move up/down buttons on favourites
+  let favCount = 0;       // how many rows at the top of `filtered` are favourites
   const scripts = {};
 
   const byId = id => document.getElementById(id);
@@ -298,6 +307,8 @@
   // Playlist data is untrusted: only ever written with textContent / properties.
   function channelRow(index) {
     const channel = channels[index];
+    const item = document.createElement('div');
+    item.className = 'iptv-item';
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'iptv-channel';
@@ -318,7 +329,31 @@
       text.appendChild(group);
     }
     button.append(channelLogo(channel), text);
-    return button;
+    item.appendChild(button);
+
+    const isFav = prefs.favorites.includes(channel[1]);
+    if (isFav && editMode) {
+      [['up', 'fa-chevron-up', 'Sposta su'], ['down', 'fa-chevron-down', 'Sposta giù']].forEach(([act, icon, label]) => {
+        const move = document.createElement('button');
+        move.type = 'button';
+        move.className = 'iptv-move';
+        move.dataset.move = act;
+        move.dataset.index = String(index);
+        move.title = label;
+        move.setAttribute('aria-label', label);
+        move.innerHTML = '<em class="fas ' + icon + '"></em>';
+        item.appendChild(move);
+      });
+    }
+    const star = document.createElement('button');
+    star.type = 'button';
+    star.className = 'iptv-fav' + (isFav ? ' on' : '');
+    star.dataset.index = String(index);
+    star.title = isFav ? 'Togli dai preferiti' : 'Aggiungi ai preferiti';
+    star.setAttribute('aria-label', star.title);
+    star.innerHTML = '<em class="' + (isFav ? 'fas' : 'far') + ' fa-star"></em>';
+    item.appendChild(star);
+    return item;
   }
 
   function renderChannelChunk(reset) {
@@ -335,7 +370,14 @@
     const end = Math.min(shown + PAGE_SIZE, filtered.length);
     const fragment = document.createDocumentFragment();
     for (let i = shown; i < end; i++) {
-      fragment.appendChild(channelRow(filtered[i]));
+      const row = channelRow(filtered[i]);
+      if (i < favCount) {
+        row.classList.add('is-fav');
+        if (i === favCount - 1) {
+          row.classList.add('fav-last');
+        }
+      }
+      fragment.appendChild(row);
     }
     shown = end;
     box.appendChild(fragment);
@@ -356,7 +398,112 @@
     }
   }
 
-  function applyFilter() {
+  // --- Favourites and sort (shared) ----------------------------------------
+  function normPrefs(raw) {
+    const out = { sort: 'list', favorites: [] };
+    if (raw && typeof raw === 'object') {
+      if (SORTS.includes(raw.sort)) {
+        out.sort = raw.sort;
+      }
+      if (Array.isArray(raw.favorites)) {
+        out.favorites = [...new Set(raw.favorites.filter(u => typeof u === 'string'))];
+      }
+    }
+    return out;
+  }
+
+  function prefsFingerprint(p) {
+    return JSON.stringify(normPrefs(p));
+  }
+
+  async function loadPrefs() {
+    let remote = normPrefs(null);
+    try {
+      const res = await fetch(PREFS_URL, { cache: 'no-cache' });
+      if (res.ok) {
+        remote = normPrefs(await res.json());
+      }
+    } catch (e) { /* offline or missing file: start empty */ }
+    prefsBase = prefsFingerprint(remote);
+    prefs = remote;
+    prefsDirty = false;
+    try {
+      const draft = JSON.parse(window.localStorage.getItem(PREFS_KEY) || 'null');
+      // A draft only counts while the shared file is still the one it was based on.
+      if (draft && draft.base === prefsBase && draft.data) {
+        prefs = normPrefs(draft.data);
+        prefsDirty = prefsFingerprint(prefs) !== prefsBase;
+      } else if (draft) {
+        window.localStorage.removeItem(PREFS_KEY);
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  function touchPrefs() {
+    prefsDirty = prefsFingerprint(prefs) !== prefsBase;
+    try {
+      if (prefsDirty) {
+        window.localStorage.setItem(PREFS_KEY, JSON.stringify({ base: prefsBase, data: prefs }));
+      } else {
+        window.localStorage.removeItem(PREFS_KEY);
+      }
+    } catch (e) { /* ignore */ }
+    renderPrefsUi();
+  }
+
+  function renderPrefsUi() {
+    byId('iptv-sort').value = prefs.sort;
+    byId('iptv-edit').classList.toggle('active', editMode);
+    byId('iptv-save-prefs').classList.toggle('hidden', !prefsDirty);
+  }
+
+  function toggleFavorite(url) {
+    const i = prefs.favorites.indexOf(url);
+    if (i >= 0) {
+      prefs.favorites.splice(i, 1);
+    } else {
+      prefs.favorites.push(url);
+    }
+    touchPrefs();
+    applyFilter(true);
+  }
+
+  function moveFavorite(url, delta) {
+    const i = prefs.favorites.indexOf(url);
+    const j = i + delta;
+    if (i < 0 || j < 0 || j >= prefs.favorites.length) {
+      return;
+    }
+    [prefs.favorites[i], prefs.favorites[j]] = [prefs.favorites[j], prefs.favorites[i]];
+    touchPrefs();
+    applyFilter(true);
+  }
+
+  function downloadPrefs() {
+    const data = JSON.stringify({ version: 1, ...normPrefs(prefs) }, null, 2) + '\n';
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+    link.download = 'preferenze.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 2000);
+    setStatus('Scaricato preferenze.json: sostituisci playlists/preferenze.json nel repository e fai git push.');
+  }
+
+  function compareChannels(a, b) {
+    const ca = channels[a];
+    const cb = channels[b];
+    if (prefs.sort === 'group') {
+      const g = (ca[3] || '~').localeCompare(cb[3] || '~', 'it');
+      if (g) {
+        return g;
+      }
+    }
+    return ca[0].localeCompare(cb[0], 'it', { sensitivity: 'base', numeric: true });
+  }
+
+  function applyFilter(keepScroll) {
     const query = byId('iptv-search').value.trim().toLowerCase();
     const group = byId('iptv-group').value;
     filtered = [];
@@ -370,8 +517,22 @@
       }
       filtered.push(i);
     }
+    const favOrder = new Map(prefs.favorites.map((u, n) => [u, n]));
+    const favs = filtered.filter(i => favOrder.has(channels[i][1]))
+      .sort((a, b) => favOrder.get(channels[a][1]) - favOrder.get(channels[b][1]));
+    let rest = filtered.filter(i => !favOrder.has(channels[i][1]));
+    if (prefs.sort !== 'list') {
+      rest = rest.sort(compareChannels);
+    }
+    favCount = favs.length;
+    filtered = favs.concat(rest);
     shown = 0;
+    const box = byId('iptv-channels');
+    const top = keepScroll === true ? box.scrollTop : 0;
     renderChannelChunk(true);
+    if (keepScroll === true) {
+      box.scrollTop = top;
+    }
   }
 
   // --- Lists management ----------------------------------------------------
@@ -803,12 +964,39 @@
     byId('iptv-delete').addEventListener('click', deleteActive);
     byId('iptv-search').addEventListener('input', () => {
       clearTimeout(searchTimer);
-      searchTimer = setTimeout(applyFilter, 150);
+      searchTimer = setTimeout(() => applyFilter(), 150);
     });
-    byId('iptv-group').addEventListener('change', applyFilter);
+    byId('iptv-group').addEventListener('change', () => applyFilter());
+    byId('iptv-sort').addEventListener('change', e => {
+      prefs.sort = SORTS.includes(e.target.value) ? e.target.value : 'list';
+      touchPrefs();
+      applyFilter();
+    });
+    byId('iptv-edit').addEventListener('click', () => {
+      editMode = !editMode;
+      renderPrefsUi();
+      applyFilter(true);
+    });
+    byId('iptv-save-prefs').addEventListener('click', downloadPrefs);
     byId('iptv-channels').addEventListener('click', e => {
       if (e.target.closest('.iptv-more')) {
         renderChannelChunk(false);
+        return;
+      }
+      const star = e.target.closest('.iptv-fav');
+      if (star) {
+        const ch = channels[Number(star.dataset.index)];
+        if (ch) {
+          toggleFavorite(ch[1]);
+        }
+        return;
+      }
+      const move = e.target.closest('.iptv-move');
+      if (move) {
+        const ch = channels[Number(move.dataset.index)];
+        if (ch) {
+          moveFavorite(ch[1], move.dataset.move === 'up' ? -1 : 1);
+        }
         return;
       }
       const row = e.target.closest('.iptv-channel');
@@ -821,14 +1009,14 @@
   // First visit, after "Ripristina", or when a new suggested list was added.
   function addMissingDefaults() {
     let changed = false;
-    // The merged list replaces the earlier suggested ones: drop those (user-added lists have other ids).
-    const before = state.lists.length;
-    state.lists = state.lists.filter(l => !SUPERSEDED_IDS.includes(l.id));
-    if (state.lists.length !== before) {
-      changed = true;
+    // One-time clean-up: only the merged list is kept (it replaces the earlier ones).
+    if (!state.offered.includes('consolidated-v1')) {
+      state.offered.push('consolidated-v1');
+      state.lists = state.lists.filter(l => l.id === 'default-italia');
       if (!state.lists.some(l => l.id === state.activeId)) {
-        state.activeId = state.lists.some(l => l.id === 'default-italia') ? 'default-italia' : null;
+        state.activeId = state.lists.length ? 'default-italia' : null;
       }
+      changed = true;
     }
     DEFAULT_LISTS.forEach(def => {
       if (state.offered.includes(def.id)) {
@@ -858,7 +1046,10 @@
     hideMessage();
     setStatus('');
     const first = state.lists.length ? (activeList() || state.lists[0]).id : null;
-    selectList(first);
+    loadPrefs().then(() => {
+      renderPrefsUi();
+      selectList(first);
+    });
   }
 
   function closeIptv() {
@@ -893,6 +1084,10 @@
     stopPlayback();
     state = { lists: [], activeId: null, offered: [] };
     channels = [];
+    prefsDirty = false;
+    try {
+      window.localStorage.removeItem(PREFS_KEY);
+    } catch (e) { /* ignore */ }
   }
 
   window.openIptv = openIptv;

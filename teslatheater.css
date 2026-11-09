@@ -478,6 +478,7 @@ a:focus-visible {
 
 #iptv-list-select,
 #iptv-group,
+#iptv-sort,
 #iptv-search,
 #iptv-url-form input {
   background: var(--bg-panel);
@@ -497,6 +498,7 @@ a:focus-visible {
 
 #iptv-search:focus-visible,
 #iptv-group:focus-visible,
+#iptv-sort:focus-visible,
 #iptv-list-select:focus-visible,
 #iptv-url-form input:focus-visible {
   outline: none;
@@ -741,4 +743,65 @@ a:focus-visible {
   .iptv-side {
     max-height: 55vh;
   }
+}
+
+/* IPTV: favourites and sort */
+.iptv-prefs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.iptv-prefs #iptv-sort {
+  flex: 1 1 140px;
+  background: var(--bg-deep);
+  padding: 8px 14px;
+}
+.iptv-prefs .actionbutton {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+.iptv-item {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid rgba(82, 240, 255, 0.08);
+}
+.iptv-item .iptv-channel {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  border-bottom: 0;
+}
+.iptv-item.is-fav {
+  background: rgba(255, 79, 216, 0.05);
+}
+.iptv-item.fav-last {
+  border-bottom: 2px solid var(--pink);
+}
+.iptv-fav,
+.iptv-move {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 48px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+.iptv-move {
+  width: 40px;
+  color: var(--cyan);
+}
+.iptv-fav.on {
+  color: var(--pink);
+}
+.iptv-fav:hover,
+.iptv-fav:focus-visible,
+.iptv-move:hover,
+.iptv-move:focus-visible {
+  background: var(--bg-panel-hover);
+  outline: none;
 }
