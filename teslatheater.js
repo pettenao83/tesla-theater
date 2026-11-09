@@ -2,6 +2,7 @@ const DEFAULT_SITES = {
   "netflix": { "name": "Netflix", "img": "images/netflix.png", "url": "https://www.netflix.com/" },
   "youtube": { "name": "YouTube", "img": "images/youtube.png", "url": "https://www.youtube.com/" },
   "iptv": { "name": "IPTV", "img": "images/iptv.svg", "url": "#iptv", "internal": "iptv" },
+  "applemusic": { "name": "Apple Music", "img": "images/applemusic.svg", "url": "https://music.apple.com/" },
   "primevideo": { "name": "Prime Video", "img": "images/primevideo.png", "url": "https://www.primevideo.com/" },
   "plex": { "name": "Plex", "img": "images/plex.png", "url": "https://app.plex.tv/" },
   "disneyplus": { "name": "Disney+", "img": "images/disneyplus.png", "url": "https://www.disneyplus.com/" },
