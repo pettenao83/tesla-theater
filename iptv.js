@@ -458,6 +458,14 @@
     const btn = byId('iptv-toggle-channels');
     btn.querySelector('span').textContent = on ? 'Mostra canali' : 'Nascondi canali';
     btn.classList.toggle('active', on);
+    // With the list hidden the channel name moves into the top bar, like a button.
+    const now = byId('iptv-now');
+    const target = on ? byId('iptv-toggle-channels').parentNode : document.querySelector('.iptv-stage');
+    if (on) {
+      btn.after(now);
+    } else {
+      target.appendChild(now);
+    }
     if (remember) {
       try {
         window.localStorage.setItem(FOCUS_KEY, on ? '1' : '0');

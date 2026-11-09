@@ -820,3 +820,44 @@ a:focus-visible {
   border-color: var(--pink);
   color: #1a0a20;
 }
+
+/* IPTV focus mode: no channel count, channel name as a pill in the bar, video as large as possible */
+#iptv-view.iptv-focus {
+  max-width: none;
+  padding: 10px 12px 12px;
+  gap: 8px;
+}
+#iptv-view.iptv-focus #iptv-status:not(.error):not(.warn) {
+  display: none;
+}
+#iptv-view.iptv-focus .iptv-bar #iptv-now {
+  display: inline-flex;
+  align-items: center;
+  max-width: 34vw;
+  padding: 10px 18px;
+  border: 1px solid var(--cyan);
+  border-radius: 100px;
+  background: rgba(82, 240, 255, 0.08);
+  color: var(--cyan);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 0 10px var(--cyan-glow);
+}
+#iptv-view.iptv-focus .iptv-player-wrap {
+  min-height: 0;
+}
+#iptv-view.iptv-focus .iptv-bar #iptv-list-select,
+#iptv-view.iptv-focus .iptv-bar #iptv-add-file,
+#iptv-view.iptv-focus .iptv-bar #iptv-add-url,
+#iptv-view.iptv-focus .iptv-bar #iptv-refresh,
+#iptv-view.iptv-focus .iptv-bar #iptv-delete {
+  display: none;
+}
+#iptv-view.iptv-focus .iptv-bar #iptv-now {
+  max-width: 60vw;
+}
