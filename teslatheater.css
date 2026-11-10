@@ -1358,7 +1358,7 @@ body.spotify-open {
 @media (max-width: 640px) and (orientation: portrait) {
   .sp-main {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1.6fr) minmax(0, 1fr);
   }
 }
 
@@ -1781,7 +1781,9 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
 .sp-queue, .sp-shelf { display: none; }
 
 /* Vinile: a record spins out of the cover while the music plays */
-.sp-l-vinyl .sp-main { grid-template-columns: minmax(300px, 50%) minmax(0, 1fr); }
+@media not all and (max-width: 640px) and (orientation: portrait) {
+  .sp-l-vinyl .sp-main { grid-template-columns: minmax(300px, 50%) minmax(0, 1fr); }
+}
 .sp-l-vinyl .sp-cover-wrap { container-type: size; justify-content: flex-start; padding-left: 3cqw; }
 .sp-l-vinyl .sp-art { width: min(72cqw, 100cqh); height: auto; aspect-ratio: 1; max-width: none; }
 .sp-art { isolation: isolate; }
@@ -2023,7 +2025,7 @@ html[data-theme$="-light"] .sp-row {
 /* Player details: tidy column, depth on controls, queue as clickable cards */
 @media not all and (max-width: 640px) and (orientation: portrait) {
   .sp-l-immersive .sp-now > :not(.sp-cover-wrap),
-  .sp-l-cinema .sp-now > :not(.sp-cover-wrap) { max-width: 780px; width: 100%; }
+  .sp-l-cinema .sp-now > :not(.sp-cover-wrap) { max-width: 780px; }
   .sp-l-immersive .sp-volrow,
   .sp-l-cinema .sp-volrow { max-width: 380px; }
   .sp-l-immersive .sp-queue { display: block; grid-column: 2; grid-row: 6; }
@@ -2048,7 +2050,8 @@ html[data-theme$="-light"] .sp-row {
 .sp-queue-label { color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; margin-bottom: 8px; }
 .sp-queue-row { display: flex; gap: 12px; }
 .sp-next {
-  flex: 0 0 92px;
+  flex: 1 1 0;
+  max-width: 108px;
   min-width: 0;
   padding: 6px 6px 8px;
   color: #fff;
@@ -2087,3 +2090,19 @@ html[data-theme$="-light"] .sp-row {
 }
 #sp-msg.error { border-color: var(--danger); }
 #sp-msg.hidden { display: none; }
+
+.sp-l-immersive .sp-now { box-shadow: none; }
+
+/* Narrow portrait window: Immersivo and Cinema stack the cover above the details */
+@media (max-width: 640px) and (orientation: portrait) {
+  .sp-l-immersive .sp-cover-wrap,
+  .sp-l-cinema .sp-cover-wrap { flex: 0 0 auto; padding: 0; }
+  .sp-l-immersive .sp-art,
+  .sp-l-cinema .sp-art { width: min(100%, 24vh); height: auto; aspect-ratio: 1; max-width: none; }
+  .sp-l-cinema #sp-cover,
+  .sp-l-cinema #sp-cover.empty { border-radius: 14px; }
+  .sp-l-cinema .sp-now { padding: 12px; }
+  .sp-l-immersive #sp-track, .sp-l-cinema #sp-track { font-size: 1.6rem; white-space: normal; }
+  .sp-queue, .sp-shelf { display: none !important; }
+  .sp-l-immersive .sp-now, .sp-l-cinema .sp-now { justify-content: flex-start; gap: 8px; }
+}
