@@ -6,7 +6,7 @@
   'use strict';
 
   const KEY = 'TeslaTheaterDash';
-  const THEMES = ['neon', 'minimal', 'cover'];
+  const THEMES = ['neon', 'minimal', 'cover', 'android-dark', 'android-light', 'ios-dark', 'ios-light'];
   const DEFAULT_CITY = { name: 'Spinea (Venezia)', lat: 45.49, lon: 12.15 };
   const cfg = { theme: 'neon', city: DEFAULT_CITY };
   let player = null;

@@ -181,7 +181,7 @@ a:focus-visible {
 .actionbutton.active {
   background: var(--pink);
   border-color: var(--pink);
-  color: #1a0a20;
+  color: var(--on-pink, #1a0a20);
   font-weight: 600;
   box-shadow: 0 0 14px var(--pink-glow);
 }
@@ -194,7 +194,7 @@ a:focus-visible {
 #remove-app-btn.active {
   background: var(--danger);
   border-color: var(--danger);
-  color: #1a0a20;
+  color: var(--on-pink, #1a0a20);
   box-shadow: 0 0 14px rgba(255, 95, 125, 0.5);
 }
 
@@ -259,7 +259,7 @@ a:focus-visible {
   justify-content: center;
   background: var(--pink);
   border-color: var(--pink);
-  color: #1a0a20;
+  color: var(--on-pink, #1a0a20);
   font-weight: 600;
   box-shadow: 0 0 14px var(--pink-glow);
 }
@@ -370,7 +370,7 @@ a:focus-visible {
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 14%;
-  background: var(--bg-panel);
+  background: var(--tile-bg, var(--bg-panel));
   position: relative;
   display: flex;
   align-items: center;
@@ -391,7 +391,7 @@ a:focus-visible {
   transform: translateY(-3px);
   border-color: var(--cyan);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), 0 0 16px var(--cyan-glow);
-  background: var(--bg-panel-hover);
+  background: var(--tile-bg-hover, var(--bg-panel-hover));
 }
 
 .button:nth-child(3n+1).active:hover,
@@ -818,7 +818,7 @@ a:focus-visible {
 .actionbutton.secondary.active {
   background: var(--pink);
   border-color: var(--pink);
-  color: #1a0a20;
+  color: var(--on-pink, #1a0a20);
 }
 
 /* IPTV focus mode: no channel count, channel name as a pill in the bar, video as large as possible */
@@ -972,7 +972,7 @@ body.iptv-open {
 #iptv-audio-play:hover,
 #iptv-audio-play:focus-visible {
   background: var(--pink);
-  color: #1a0a20;
+  color: var(--on-pink, #1a0a20);
   outline: none;
 }
 #iptv-msg {
@@ -1228,7 +1228,7 @@ body.spotify-open {
   width: 72px;
   height: 72px;
   font-size: 1.5rem;
-  color: #1a0a20;
+  color: var(--on-pink, #1a0a20);
   background: var(--pink);
   border-color: var(--pink);
   box-shadow: 0 0 18px var(--pink-glow);
@@ -1274,7 +1274,7 @@ body.spotify-open {
   cursor: pointer;
 }
 .sp-tab.active {
-  color: #1a0a20;
+  color: var(--on-pink, #1a0a20);
   background: var(--pink);
   border-color: var(--pink);
 }
@@ -1423,7 +1423,7 @@ body.spotify-open {
 }
 .dash-ctl .dash-play {
   width: 56px; height: 56px;
-  color: #1a0a20;
+  color: var(--on-pink, #1a0a20);
   background: var(--pink);
   border-color: var(--pink);
   box-shadow: 0 0 14px var(--pink-glow);
@@ -1518,3 +1518,104 @@ html[data-theme="cover"] .dash-card { border-radius: 22px; border-color: transpa
   #dash-time, html[data-theme="minimal"] #dash-time { font-size: 2.2rem; }
   #dash-track, html[data-theme="cover"] #dash-track { font-size: 1.2rem; }
 }
+
+/* ---------- Styles: Android 17 and iOS, dark and light ---------- */
+html[data-theme^="android"] {
+  --font-display: 'Roboto', system-ui, sans-serif;
+  --font-body: 'Roboto', system-ui, sans-serif;
+}
+html[data-theme^="ios"] {
+  --font-display: -apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+  --font-body: -apple-system, 'SF Pro Text', 'Inter', system-ui, sans-serif;
+}
+/* Android 17 (Material 3 Expressive) */
+html[data-theme="android-dark"] {
+  --bg-deep: #141218;
+  --bg-panel: #211f26;
+  --bg-panel-hover: #2b2930;
+  --sky-1: #2b2930;
+  --sky-2: #141218;
+  --pink: #d0bcff;
+  --pink-glow: rgba(208, 188, 255, 0.25);
+  --cyan: #eaddff;
+  --cyan-glow: rgba(234, 221, 255, 0.12);
+  --ink: #e6e0e9;
+  --ink-muted: #cac4d0;
+  --line: rgba(147, 143, 153, 0.35);
+  --line-pink: rgba(208, 188, 255, 0.35);
+  --on-pink: #381e72;
+}
+html[data-theme="android-light"] {
+  --bg-deep: #fef7ff;
+  --bg-panel: #f3edf7;
+  --bg-panel-hover: #ece6f0;
+  --sky-1: #e8def8;
+  --sky-2: #fef7ff;
+  --pink: #6750a4;
+  --pink-glow: rgba(103, 80, 164, 0.15);
+  --cyan: #4f378b;
+  --cyan-glow: rgba(79, 55, 139, 0.08);
+  --ink: #1d1b20;
+  --ink-muted: #49454f;
+  --line: rgba(121, 116, 126, 0.35);
+  --line-pink: rgba(103, 80, 164, 0.3);
+  --on-pink: #ffffff;
+  --tile-bg: #2b2930;
+  --tile-bg-hover: #3a3740;
+}
+/* iOS */
+html[data-theme="ios-dark"] {
+  --bg-deep: #000000;
+  --bg-panel: #1c1c1e;
+  --bg-panel-hover: #2c2c2e;
+  --sky-1: #1c1c1e;
+  --sky-2: #000000;
+  --pink: #0a84ff;
+  --pink-glow: rgba(10, 132, 255, 0.25);
+  --cyan: #ffffff;
+  --cyan-glow: rgba(255, 255, 255, 0.08);
+  --ink: #ffffff;
+  --ink-muted: #8e8e93;
+  --line: rgba(84, 84, 88, 0.5);
+  --line-pink: rgba(10, 132, 255, 0.4);
+  --on-pink: #ffffff;
+}
+html[data-theme="ios-light"] {
+  --bg-deep: #f2f2f7;
+  --bg-panel: #ffffff;
+  --bg-panel-hover: #e5e5ea;
+  --sky-1: #f2f2f7;
+  --sky-2: #f2f2f7;
+  --pink: #007aff;
+  --pink-glow: rgba(0, 122, 255, 0.15);
+  --cyan: #1c1c1e;
+  --cyan-glow: rgba(0, 0, 0, 0.04);
+  --ink: #000000;
+  --ink-muted: #6c6c70;
+  --line: rgba(60, 60, 67, 0.2);
+  --line-pink: rgba(0, 122, 255, 0.3);
+  --on-pink: #ffffff;
+  --tile-bg: #1c1c1e;
+  --tile-bg-hover: #2c2c2e;
+}
+/* shapes */
+html[data-theme^="android"] .button { border-radius: 28px; }
+html[data-theme^="android"] .dash-card { border-radius: 28px; border-color: transparent; }
+html[data-theme^="android"] #dash-cover { border-radius: 20px; box-shadow: none; }
+html[data-theme^="android"] #dash-time { font-weight: 400; text-shadow: none; font-size: 3.8rem; }
+html[data-theme^="android"] #dash-track { font-weight: 500; font-size: 1.4rem; }
+html[data-theme^="ios"] .button { border-radius: 26px; border-color: transparent; }
+html[data-theme^="ios"] .dash-card { border-radius: 22px; border-color: transparent; }
+html[data-theme^="ios"] #dash-cover { border-radius: 14px; box-shadow: none; }
+html[data-theme^="ios"] #dash-time { font-weight: 300; text-shadow: none; font-size: 3.8rem; }
+html[data-theme^="ios"] #dash-track { font-weight: 600; font-size: 1.35rem; }
+html[data-theme^="ios"] .marquee h1,
+html[data-theme^="android"] .marquee h1 { letter-spacing: 0.01em; }
+html[data-theme^="ios"] .marquee h1 .cyan,
+html[data-theme^="android"] .marquee h1 .cyan { text-shadow: none; }
+/* light looks: dark logo, softer header, no glow */
+html[data-theme$="-light"] .inline { filter: invert(1); }
+html[data-theme$="-light"] #app-header { box-shadow: 0 1px 0 var(--line); }
+html[data-theme$="-light"] .dash-card { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); }
+html[data-theme$="-light"] .button.active:hover,
+html[data-theme$="-light"] .button.active:focus-visible { box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18); }

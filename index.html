@@ -22,7 +22,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@300;400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
   <!-- JQuery -->
   <link rel="stylesheet" href="//code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
@@ -36,18 +36,18 @@
   <script>
     try {
       var savedDash = JSON.parse(window.localStorage.getItem('TeslaTheaterDash') || '{}');
-      if (['neon', 'minimal', 'cover'].indexOf(savedDash.theme) >= 0) {
+      if (['neon', 'minimal', 'cover', 'android-dark', 'android-light', 'ios-dark', 'ios-light'].indexOf(savedDash.theme) >= 0) {
         document.documentElement.setAttribute('data-theme', savedDash.theme);
       }
     } catch (e) { /* ignore */ }
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=28">
-  <script src="teslatheater.js?v=28"></script>
-  <script src="iptv.js?v=28"></script>
-  <script src="spotify.js?v=28"></script>
-  <script src="dashboard.js?v=28"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=29">
+  <script src="teslatheater.js?v=29"></script>
+  <script src="iptv.js?v=29"></script>
+  <script src="spotify.js?v=29"></script>
+  <script src="dashboard.js?v=29"></script>
 </head>
 <body>
 
@@ -113,6 +113,10 @@
             <button type="button" class="dash-theme actionbutton secondary" data-theme="neon">Neon</button>
             <button type="button" class="dash-theme actionbutton secondary" data-theme="minimal">Minimale</button>
             <button type="button" class="dash-theme actionbutton secondary" data-theme="cover">Cover</button>
+            <button type="button" class="dash-theme actionbutton secondary" data-theme="android-dark">Android scuro</button>
+            <button type="button" class="dash-theme actionbutton secondary" data-theme="android-light">Android chiaro</button>
+            <button type="button" class="dash-theme actionbutton secondary" data-theme="ios-dark">iOS scuro</button>
+            <button type="button" class="dash-theme actionbutton secondary" data-theme="ios-light">iOS chiaro</button>
           </div>
           <div class="dash-set-row">
             <strong>Meteo</strong>
