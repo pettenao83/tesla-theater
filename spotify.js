@@ -240,10 +240,40 @@
     m.classList.toggle('error', !!isError);
   }
 
+  // Starts playback. When Spotify says there is no active device (the usual case when
+  // nothing is playing), the last known or first available device is woken up and used.
+  async function startPlayback(body) {
+    const path = '/me/player/play';
+    try {
+      await api(path, { method: 'PUT', body });
+      return;
+    } catch (e) {
+      if (!(e.status === 404 || e.reason === 'NO_ACTIVE_DEVICE')) {
+        throw e;
+      }
+    }
+    const d = await api('/me/player/devices');
+    const list = (d && d.devices) || [];
+    const known = player && player.device && list.find(x => x.id === player.device.id);
+    const dev = list.find(x => x.is_active) || known || list.find(x => !x.is_restricted) || list[0];
+    if (!dev) {
+      const err = new Error('Nessun dispositivo Spotify disponibile');
+      err.status = 404;
+      throw err;
+    }
+    await api('/me/player', { method: 'PUT', body: { device_ids: [dev.id], play: false } });
+    await new Promise(r => setTimeout(r, 600));
+    await api(path + '?device_id=' + encodeURIComponent(dev.id), { method: 'PUT', body });
+  }
+
   // Sends a playback command, then refreshes the screen shortly after.
   async function command(path, method, body) {
     try {
-      await api(path, { method: method || 'PUT', body });
+      if (path === '/me/player/play') {
+        await startPlayback(body);
+      } else {
+        await api(path, { method: method || 'PUT', body });
+      }
       setMsg('');
     } catch (e) {
       fail(e);
