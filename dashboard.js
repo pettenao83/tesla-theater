@@ -8,7 +8,7 @@
   const KEY = 'TeslaTheaterDash';
   const THEMES = ['neon', 'minimal', 'cover', 'android-dark', 'android-light', 'ios-dark', 'ios-light'];
   const DEFAULT_CITY = { name: 'Spinea (Venezia)', lat: 45.49, lon: 12.15 };
-  const cfg = { theme: 'neon', city: DEFAULT_CITY, news: 'ansa' };
+  const cfg = { theme: 'ios-light', city: DEFAULT_CITY, news: 'ansa' };
   let player = null;
   let weatherTimer = null;
   let started = false;
@@ -139,7 +139,7 @@
   const NEWS_KEY = 'TeslaTheaterNews';
   const NEWS_TTL = 10 * 60 * 1000;
   let news = { source: '', items: [], at: 0 };
-  let newsPage = 0;
+  let newsIndex = 0;
 
   function https(u) {
     return u ? String(u).replace(/^http:\/\//i, 'https://') : '';
@@ -216,7 +216,7 @@
     }
     if (items && items.length) {
       news = { source: used, items, at: Date.now() };
-      newsPage = 0;
+      newsIndex = 0;
       try {
         window.localStorage.setItem(NEWS_KEY, JSON.stringify(news));
       } catch (e) { /* ignore */ }
@@ -224,60 +224,82 @@
     renderNews();
   }
 
+  function mk(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) {
+      e.className = cls;
+    }
+    if (text != null) {
+      e.textContent = text;
+    }
+    return e;
+  }
+
+  function picture(url, cls) {
+    if (url) {
+      const im = mk('img', cls);
+      im.alt = '';
+      im.src = url;
+      im.onerror = () => { im.style.visibility = 'hidden'; };
+      return im;
+    }
+    const ph = mk('span', cls + ' news-ph');
+    ph.innerHTML = '<em class="fas fa-newspaper"></em>';
+    return ph;
+  }
+
+  // One big story with its photo and two smaller ones; the set rotates by itself.
   function renderNews() {
-    const list = byId('news-list');
-    const items = news.items || [];
+    const items = (news.items || []).slice(0, 8);
     const src = NEWS_SOURCES[news.source] || NEWS_SOURCES[cfg.news];
     byId('news-chip').textContent = src.name;
     byId('news-age').textContent = items.length ? 'Aggiornato ' + ago(news.at) : 'Carico le notizie…';
-    list.textContent = '';
-    const pages = Math.max(1, Math.ceil(items.length / 3));
-    newsPage = newsPage % pages;
-    items.slice(newsPage * 3, newsPage * 3 + 3).forEach(it => {
-      const a = document.createElement('a');
-      a.className = 'news-item';
-      a.href = it.link;
-      const thumb = it.img ? document.createElement('img') : document.createElement('span');
-      if (it.img) {
-        thumb.className = 'news-thumb';
-        thumb.alt = '';
-        thumb.loading = 'lazy';
-        thumb.src = it.img;
-        thumb.onerror = () => { thumb.style.visibility = 'hidden'; };
-      } else {
-        thumb.className = 'news-thumb news-ph';
-        thumb.innerHTML = '<em class="fas fa-newspaper"></em>';
-      }
-      const text = document.createElement('span');
-      text.className = 'news-text';
-      const t = document.createElement('span');
-      t.className = 'news-title';
-      t.textContent = it.title;
-      const m = document.createElement('span');
-      m.className = 'news-meta';
-      m.textContent = ago(it.at);
-      text.appendChild(t);
-      text.appendChild(m);
-      a.appendChild(thumb);
-      a.appendChild(text);
-      list.appendChild(a);
-    });
+    const main = byId('news-main');
+    const more = byId('news-more');
     const dots = byId('news-dots');
+    main.textContent = '';
+    more.textContent = '';
     dots.textContent = '';
-    for (let i = 0; i < pages; i++) {
-      const d = document.createElement('i');
-      d.className = i === newsPage ? 'on' : '';
-      dots.appendChild(d);
+    if (!items.length) {
+      return;
     }
-    relayout();
+    newsIndex = newsIndex % items.length;
+    const first = items[newsIndex];
+    byId('dash-news').classList.add('nophoto');
+    main.appendChild(mk('div', 'news-title', first.title));
+    main.appendChild(mk('div', 'news-meta', ago(first.at)));
+    const count = 5;
+    for (let k = 1; k <= count && k < items.length; k++) {
+      const it = items[(newsIndex + k) % items.length];
+      const row = mk('div', 'news-row' + (it.img ? '' : ' nothumb'));
+      if (it.img) {
+        row.appendChild(picture(it.img, 'news-thumb'));
+      }
+      const txt = mk('div', 'news-row-text');
+      txt.appendChild(mk('div', 'news-row-title', it.title));
+      txt.appendChild(mk('div', 'news-meta', ago(it.at)));
+      row.appendChild(txt);
+      more.appendChild(row);
+    }
+    items.forEach((x, i) => dots.appendChild(mk('i', i === newsIndex ? 'on' : '')));
+    // keep only the smaller stories that fit in the card
+    while (more.children.length > 1 && more.scrollHeight > more.clientHeight + 1) {
+      more.lastChild.remove();
+    }
   }
 
-  function turnNews(step) {
-    const pages = Math.max(1, Math.ceil((news.items || []).length / 3));
-    newsPage = (newsPage + step + pages) % pages;
-    renderNews();
+  function rotateNews() {
+    const card = byId('dash-news');
+    if (document.hidden || byId('dash').offsetParent === null || !(news.items || []).length) {
+      return;
+    }
+    card.classList.add('swap');
+    setTimeout(() => {
+      newsIndex += 1;
+      renderNews();
+      card.classList.remove('swap');
+    }, 280);
   }
-
   // ---------- Spotify now playing ----------
 
   function spotify() {
@@ -408,14 +430,12 @@
       });
     });
     byId('dash-city-search').addEventListener('click', searchCity);
-    byId('news-prev').addEventListener('click', () => turnNews(-1));
-    byId('news-next').addEventListener('click', () => turnNews(1));
     const sel = byId('dash-news-source');
     sel.value = cfg.news;
     sel.addEventListener('change', () => {
       cfg.news = sel.value;
       save();
-      newsPage = 0;
+      newsIndex = 0;
       news = { source: '', items: [], at: 0 };
       loadNews(true);
     });
@@ -441,7 +461,9 @@
     weatherTimer = setInterval(loadWeather, 15 * 60 * 1000);
     loadNews(false);
     setInterval(() => loadNews(true), NEWS_TTL);
-    setInterval(() => { if (!document.hidden && byId('dash').offsetParent !== null) { turnNews(1); } }, 14000);
+    setInterval(rotateNews, 9000);
+    let newsResize;
+    window.addEventListener('resize', () => { clearTimeout(newsResize); newsResize = setTimeout(renderNews, 200); });
     renderNow();
     pollNow();
     setInterval(pollNow, 4000);
@@ -455,7 +477,7 @@
     try {
       window.localStorage.removeItem(KEY);
     } catch (e) { /* ignore */ }
-    cfg.theme = 'neon';
+    cfg.theme = 'ios-light';
     cfg.city = DEFAULT_CITY;
     cfg.news = 'ansa';
     try {

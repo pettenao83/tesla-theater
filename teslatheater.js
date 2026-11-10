@@ -177,20 +177,22 @@ function buildPage(sites) {
 function resizeTiles() {
   const $apps = $('#apps');
   const count = $apps.children('.button').length;
-  if (!count) {
+  const el = $apps[0];
+  if (!count || !el) {
     return;
   }
+  const cs = window.getComputedStyle(el);
+  const availWidth = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const availHeight = el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  if (availWidth <= 0 || availHeight <= 0) {
+    return; // the home is hidden (another page is open)
+  }
 
-  const gap = 16;
-  const minSize = 84;
-  const maxSize = 220;
-  const absoluteMin = 48;
-  const absoluteMax = 320;
+  const gap = Math.max(8, Math.min(16, Math.round(availWidth / 70)));
+  const maxSize = 240;
+  const absoluteMin = 40;
 
-  const availWidth = $apps.width();
-  const availHeight = Math.max(window.innerHeight - $apps.offset().top - 100, minSize);
-
-  let best = minSize;
+  let best = absoluteMin;
   // Try every possible column count and keep the layout that yields the largest tile.
   for (let cols = 1; cols <= count; cols++) {
     const rows = Math.ceil(count / cols);
@@ -202,8 +204,9 @@ function resizeTiles() {
     }
   }
 
-  best = Math.max(minSize, Math.min(maxSize, best));
-  best = Math.max(absoluteMin, Math.min(absoluteMax, best * zoomFactor));
+  // The box is fixed: tiles always fit inside it; the zoom slider can only make them smaller.
+  best = Math.max(absoluteMin, Math.min(maxSize, best * Math.min(1, zoomFactor)));
+  el.style.setProperty('gap', gap + 'px');
   document.documentElement.style.setProperty('--tile-size', `${Math.floor(best)}px`);
 }
 

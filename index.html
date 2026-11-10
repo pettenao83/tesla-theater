@@ -36,18 +36,17 @@
   <script>
     try {
       var savedDash = JSON.parse(window.localStorage.getItem('TeslaTheaterDash') || '{}');
-      if (['neon', 'minimal', 'cover', 'android-dark', 'android-light', 'ios-dark', 'ios-light'].indexOf(savedDash.theme) >= 0) {
-        document.documentElement.setAttribute('data-theme', savedDash.theme);
-      }
+      var okThemes = ['neon', 'minimal', 'cover', 'android-dark', 'android-light', 'ios-dark', 'ios-light'];
+      document.documentElement.setAttribute('data-theme', okThemes.indexOf(savedDash.theme) >= 0 ? savedDash.theme : 'ios-light');
     } catch (e) { /* ignore */ }
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=45">
-  <script src="teslatheater.js?v=45"></script>
-  <script src="iptv.js?v=45"></script>
-  <script src="spotify.js?v=45"></script>
-  <script src="dashboard.js?v=45"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=48">
+  <script src="teslatheater.js?v=48"></script>
+  <script src="iptv.js?v=48"></script>
+  <script src="spotify.js?v=48"></script>
+  <script src="dashboard.js?v=48"></script>
 </head>
 <body>
 
@@ -74,7 +73,7 @@
         <button id="remove-app-btn" type="button" class="actionbutton" title="Rimuovi app" aria-label="Rimuovi app"><em class="fas fa-trash"></em><span class="lbl">Rimuovi app</span></button>
         <div id="zoom-control">
           <em class="fas fa-search-minus"></em>
-          <input type="range" id="zoom-slider" min="0.6" max="1.6" step="0.05" value="1" />
+          <input type="range" id="zoom-slider" min="0.5" max="1" step="0.05" value="1" />
           <em class="fas fa-search-plus"></em>
         </div>
         <button id="export-btn" type="button" class="actionbutton secondary" title="Esporta" aria-label="Esporta"><em class="fas fa-upload"></em><span class="lbl">Esporta</span></button>
@@ -85,6 +84,7 @@
       </div>
 
       <section id="dash" aria-label="Dashboard">
+        <div class="dash-top">
         <div id="dash-now" class="dash-card">
           <img id="dash-cover" class="empty" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
           <div class="dash-now-main">
@@ -107,17 +107,16 @@
           <em id="dash-wicon" class="fas fa-cloud"></em>
           <div class="dash-wtext"><span id="dash-temp">--°</span><span id="dash-wdesc"><span id="dash-wtext"></span><small id="dash-city"></small></span></div>
         </div>
+        </div>
+        <div id="apps" class="container"></div>
         <div id="dash-news" class="dash-card">
           <div class="news-head">
             <span id="news-chip" class="news-chip">Notizie</span>
             <span id="news-age" class="news-age"></span>
-            <span class="news-nav">
-              <button id="news-prev" type="button" aria-label="Notizie precedenti"><em class="fas fa-chevron-left"></em></button>
-              <span id="news-dots" class="news-dots"></span>
-              <button id="news-next" type="button" aria-label="Notizie successive"><em class="fas fa-chevron-right"></em></button>
-            </span>
           </div>
-          <div id="news-list" class="news-list"></div>
+          <div id="news-main" class="news-main"></div>
+          <div id="news-more" class="news-more"></div>
+          <div id="news-dots" class="news-dots"></div>
         </div>
         <div id="dash-settings" class="dash-card hidden">
           <div class="dash-set-row">
@@ -166,8 +165,6 @@
       <p id="add-app-error" class="hidden"></p>
     </div>
 
-    <div id="apps" class="container">
-    </div>
 
     <section id="iptv-view" class="hidden" aria-label="IPTV">
       <div class="iptv-bar">
