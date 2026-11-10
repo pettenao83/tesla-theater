@@ -311,7 +311,8 @@
     if (!imgs.length) {
       return '';
     }
-    return (small ? imgs[imgs.length - 1] : imgs[0]).url;
+    // Spotify offers 640 / 300 / 64 px: the 64 px one looks blurry, so thumbnails use the 300 px one.
+    return (small ? (imgs[1] || imgs[0]) : imgs[0]).url;
   }
 
   function artistsOf(item) {
@@ -346,7 +347,7 @@
     }
     byId('sp-track').textContent = item ? item.name : 'Nessuna riproduzione';
     byId('sp-artist').textContent = item
-      ? artistsOf(item)
+      ? artistsOf(item) + (item.album && item.album.name ? ' · ' + item.album.name : '')
       : 'Avvia Spotify sull\'auto o sul telefono, oppure scegli un dispositivo.';
     byId('sp-dur').textContent = fmt(item && item.duration_ms);
     const seek = byId('sp-seek');
@@ -435,6 +436,20 @@
     probe.src = url;
   }
 
+  // Skip ahead to the n-th upcoming track, keeping the queue order intact.
+  async function skipTo(index) {
+    for (let k = 0; k <= index; k++) {
+      try {
+        await api('/me/player/next', { method: 'POST' });
+      } catch (e) {
+        fail(e);
+        break;
+      }
+    }
+    setTimeout(poll, 500);
+    setTimeout(() => { lastItemId = null; }, 600);
+  }
+
   async function refreshQueue() {
     const box = byId('sp-queue');
     if (layout !== 'immersive' || !st.access) {
@@ -449,14 +464,21 @@
         box.classList.add('hidden');
         return;
       }
-      box.appendChild(el('span', 'sp-queue-label', 'Prossimi'));
-      next.forEach(t => {
+      box.appendChild(el('div', 'sp-queue-label', 'Prossimi'));
+      const row = el('div', 'sp-queue-row');
+      next.forEach((t, i) => {
+        const b = el('button', 'sp-next');
+        b.type = 'button';
+        b.title = t.name;
         const im = el('img');
-        im.alt = t.name;
-        im.title = t.name;
+        im.alt = '';
         im.src = imageOf(t, true);
-        box.appendChild(im);
+        b.appendChild(im);
+        b.appendChild(el('span', null, t.name));
+        b.addEventListener('click', () => skipTo(i));
+        row.appendChild(b);
       });
+      box.appendChild(row);
       box.classList.remove('hidden');
     } catch (e) {
       box.classList.add('hidden');

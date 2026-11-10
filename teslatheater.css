@@ -1826,7 +1826,7 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
     align-items: center;
     align-content: stretch;
     text-align: left;
-    padding: 8px 8px 72px;
+    padding: 8px;
     background: transparent;
     border: 0;
   }
@@ -1879,18 +1879,6 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
 }
 .sp-l-immersive .sp-bar .actionbutton.active { background: rgba(255, 255, 255, 0.22); }
 .sp-l-immersive #sp-msg { color: #ffd5d5; }
-.sp-l-immersive .sp-queue {
-  display: flex;
-  position: absolute;
-  left: 20px;
-  bottom: 18px;
-  align-items: center;
-  gap: 8px;
-  z-index: 2;
-}
-.sp-l-immersive .sp-queue.hidden { display: none; }
-.sp-queue-label { color: rgba(255, 255, 255, 0.75); font-size: 0.85rem; margin-right: 4px; }
-.sp-queue img { width: 46px; height: 46px; object-fit: cover; border-radius: 8px; }
 .sp-l-immersive.sp-lib-open .sp-lib {
   display: flex;
   position: absolute;
@@ -2031,3 +2019,60 @@ html[data-theme$="-light"] .sp-row {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10), 0 5px 10px rgba(0, 0, 0, 0.08);
 }
 .sp-card img { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35); }
+
+/* Player details: tidy column, depth on controls, queue as clickable cards */
+@media not all and (max-width: 640px) and (orientation: portrait) {
+  .sp-l-immersive .sp-now > :not(.sp-cover-wrap),
+  .sp-l-cinema .sp-now > :not(.sp-cover-wrap) { max-width: 780px; width: 100%; }
+  .sp-l-immersive .sp-volrow,
+  .sp-l-cinema .sp-volrow { max-width: 380px; }
+  .sp-l-immersive .sp-queue { display: block; grid-column: 2; grid-row: 6; }
+  .sp-l-immersive .sp-queue.hidden { display: none; }
+  .sp-l-immersive #sp-track,
+  .sp-l-cinema #sp-track { font-size: 3rem; }
+  .sp-l-immersive #sp-artist,
+  .sp-l-cinema #sp-artist { margin-top: 4px; opacity: 0.85; }
+}
+.sp-controls button {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.30), 0 8px 16px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.sp-controls button:hover { transform: translateY(-2px); }
+.sp-controls button:active { transform: translateY(0) scale(0.97); }
+.sp-controls .sp-play {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 6px rgba(0, 0, 0, 0.35), 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+.sp-l-immersive .sp-controls .sp-play {
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.10), 0 3px 6px rgba(0, 0, 0, 0.35), 0 14px 28px rgba(0, 0, 0, 0.35);
+}
+.sp-queue-label { color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; margin-bottom: 8px; }
+.sp-queue-row { display: flex; gap: 12px; }
+.sp-next {
+  flex: 0 0 92px;
+  min-width: 0;
+  padding: 6px 6px 8px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.10);
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.30), 0 10px 18px rgba(0, 0, 0, 0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+.sp-next:hover,
+.sp-next:focus-visible {
+  transform: translateY(-5px) scale(1.04);
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 8px rgba(0, 0, 0, 0.35), 0 18px 30px rgba(0, 0, 0, 0.35);
+  outline: none;
+}
+.sp-next:active { transform: translateY(-1px) scale(0.98); }
+.sp-next img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 9px; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4); }
+.sp-next span { display: block; margin-top: 6px; font-size: 0.75rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-card { transition: transform 0.18s ease; }
+.sp-card:hover, .sp-card:focus-visible { transform: translateY(-4px); outline: none; }
+.sp-card img { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.30), 0 10px 18px rgba(0, 0, 0, 0.30); }
+.sp-l-cinema #sp-cover { box-shadow: 14px 0 30px rgba(0, 0, 0, 0.35); }
+@media (max-height: 560px) { .sp-queue { display: none !important; } }
