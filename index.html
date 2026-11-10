@@ -43,11 +43,11 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=33">
-  <script src="teslatheater.js?v=33"></script>
-  <script src="iptv.js?v=33"></script>
-  <script src="spotify.js?v=33"></script>
-  <script src="dashboard.js?v=33"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=34">
+  <script src="teslatheater.js?v=34"></script>
+  <script src="iptv.js?v=34"></script>
+  <script src="spotify.js?v=34"></script>
+  <script src="dashboard.js?v=34"></script>
 </head>
 <body>
 
@@ -204,6 +204,12 @@
       <div class="sp-bar">
         <button id="sp-home" type="button" class="actionbutton"><em class="fas fa-home"></em> Home</button>
         <span class="sp-title">Spotify</span>
+        <div class="sp-layouts" role="group" aria-label="Aspetto del player">
+          <button type="button" class="sp-layout actionbutton secondary" data-layout="vinyl"><em class="fas fa-compact-disc"></em> Vinile</button>
+          <button type="button" class="sp-layout actionbutton secondary" data-layout="immersive"><em class="fas fa-image"></em> Immersivo</button>
+          <button type="button" class="sp-layout actionbutton secondary" data-layout="cinema"><em class="fas fa-film"></em> Cinema</button>
+        </div>
+        <button id="sp-lib-btn" type="button" class="actionbutton secondary hidden"><em class="fas fa-list"></em> Libreria</button>
         <button id="sp-devices-btn" type="button" class="actionbutton secondary hidden"><em class="fas fa-volume-up"></em> <span id="sp-device-name">Dispositivi</span></button>
         <button id="sp-logout" type="button" class="actionbutton secondary hidden"><em class="fas fa-sign-out-alt"></em> Esci</button>
       </div>
@@ -234,9 +240,10 @@
         </div>
       </div>
 
+      <div id="sp-queue" class="sp-queue hidden" aria-label="Prossimi brani"></div>
       <div id="sp-main" class="sp-main hidden">
         <div class="sp-now">
-          <div class="sp-cover-wrap"><img id="sp-cover" class="empty" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" /></div>
+          <div class="sp-cover-wrap"><div class="sp-art"><div class="sp-vinyl" aria-hidden="true"></div><img id="sp-cover" class="empty" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" /></div></div>
           <div class="sp-info">
             <div id="sp-track">Nessuna riproduzione</div>
             <div id="sp-artist"></div>
@@ -258,6 +265,7 @@
             <input type="range" id="sp-vol" min="0" max="100" value="50" aria-label="Volume" />
             <em class="fas fa-volume-up"></em>
           </div>
+          <div id="sp-shelf" class="sp-shelf"></div>
         </div>
         <div class="sp-lib">
           <div id="sp-tabs" class="sp-tabs">

@@ -30,6 +30,11 @@
   let seeking = false;
   let open = false;
   let listToken = 0;
+  let layout = 'vinyl';
+  let lastItemId = null;
+  let shelfLoaded = false;
+  const LAYOUT_KEY = 'TeslaTheaterSpotifyLayout';
+  const LAYOUTS = ['vinyl', 'immersive', 'cinema'];
 
   const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   const byId = id => document.getElementById(id);
@@ -159,6 +164,7 @@
     st.expires = 0;
     player = null;
     crumb = null;
+    shelfLoaded = false;
     save();
     stopTimers();
     render();
@@ -330,6 +336,14 @@
     } else if (cover.getAttribute('src') !== BLANK) {
       cover.src = BLANK;
     }
+    const itemId = item ? item.id || item.uri : null;
+    if (itemId !== lastItemId) {
+      lastItemId = itemId;
+      if (layout === 'immersive') {
+        applyColor();
+        refreshQueue();
+      }
+    }
     byId('sp-track').textContent = item ? item.name : 'Nessuna riproduzione';
     byId('sp-artist').textContent = item
       ? artistsOf(item)
@@ -340,6 +354,7 @@
     seek.disabled = !item;
     byId('sp-device-name').textContent = (player && player.device && player.device.name) || 'Dispositivi';
     const playing = !!(player && player.is_playing);
+    byId('spotify-view').classList.toggle('sp-playing', playing);
     byId('sp-play').innerHTML = '<em class="fas fa-' + (playing ? 'pause' : 'play') + '"></em>';
     byId('sp-play').setAttribute('aria-label', playing ? 'Pausa' : 'Riproduci');
     byId('sp-shuffle').classList.toggle('on', !!(player && player.shuffle_state));
@@ -353,6 +368,126 @@
       vol.value = dev.volume_percent;
     }
     tick();
+  }
+
+  // ---------- look of the player: vinyl / immersive / cinema ----------
+
+  function setLayout(l, remember) {
+    layout = LAYOUTS.includes(l) ? l : 'vinyl';
+    const v = byId('spotify-view');
+    LAYOUTS.forEach(x => v.classList.toggle('sp-l-' + x, x === layout));
+    v.classList.remove('sp-lib-open');
+    byId('sp-lib-btn').classList.remove('active');
+    byId('sp-lib-btn').classList.toggle('hidden', layout !== 'immersive');
+    document.querySelectorAll('.sp-layout').forEach(b => b.classList.toggle('active', b.dataset.layout === layout));
+    if (remember) {
+      try {
+        window.localStorage.setItem(LAYOUT_KEY, layout);
+      } catch (e) { /* ignore */ }
+    }
+    if (layout === 'cinema') {
+      loadShelf();
+    }
+    if (layout === 'immersive') {
+      lastItemId = null;
+      refreshQueue();
+      applyColor();
+    }
+  }
+
+  // Background colour for the immersive look: the cover's average colour, darkened.
+  function applyColor() {
+    const v = byId('spotify-view');
+    const url = player && imageOf(player.item, false);
+    if (!url || layout !== 'immersive') {
+      v.style.removeProperty('--sp-bg');
+      return;
+    }
+    const probe = new Image();
+    probe.crossOrigin = 'anonymous';
+    probe.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = 16;
+        c.height = 16;
+        const x = c.getContext('2d');
+        x.drawImage(probe, 0, 0, 16, 16);
+        const d = x.getImageData(0, 0, 16, 16).data;
+        let r = 0;
+        let g = 0;
+        let b = 0;
+        for (let i = 0; i < d.length; i += 4) {
+          r += d[i];
+          g += d[i + 1];
+          b += d[i + 2];
+        }
+        const n = d.length / 4;
+        r /= n;
+        g /= n;
+        b /= n;
+        const k = Math.min(0.6, 105 / (Math.max(r, g, b) || 1));
+        v.style.setProperty('--sp-bg', 'rgb(' + Math.round(r * k) + ',' + Math.round(g * k) + ',' + Math.round(b * k) + ')');
+      } catch (e) {
+        v.style.removeProperty('--sp-bg');
+      }
+    };
+    probe.onerror = () => v.style.removeProperty('--sp-bg');
+    probe.src = url;
+  }
+
+  async function refreshQueue() {
+    const box = byId('sp-queue');
+    if (layout !== 'immersive' || !st.access) {
+      box.classList.add('hidden');
+      return;
+    }
+    try {
+      const q = await api('/me/player/queue');
+      const next = ((q && q.queue) || []).slice(0, 6);
+      box.textContent = '';
+      if (!next.length) {
+        box.classList.add('hidden');
+        return;
+      }
+      box.appendChild(el('span', 'sp-queue-label', 'Prossimi'));
+      next.forEach(t => {
+        const im = el('img');
+        im.alt = t.name;
+        im.title = t.name;
+        im.src = imageOf(t, true);
+        box.appendChild(im);
+      });
+      box.classList.remove('hidden');
+    } catch (e) {
+      box.classList.add('hidden');
+    }
+  }
+
+  async function loadShelf() {
+    if (shelfLoaded || !st.access) {
+      return;
+    }
+    try {
+      const d = await api('/me/playlists?limit=12');
+      const box = byId('sp-shelf');
+      box.textContent = '';
+      box.appendChild(el('div', 'sp-shelf-title', 'Le tue playlist'));
+      const row = el('div', 'sp-shelf-row');
+      ((d && d.items) || []).filter(Boolean).forEach(p => {
+        const b = el('button', 'sp-card');
+        b.type = 'button';
+        const im = el('img');
+        im.alt = '';
+        im.loading = 'lazy';
+        im.src = imageOf(p, true);
+        b.appendChild(im);
+        b.appendChild(el('span', null, p.name));
+        b.addEventListener('click', () => command('/me/player/play', 'PUT', { context_uri: p.uri }));
+        row.appendChild(b);
+      });
+      box.appendChild(row);
+      shelfLoaded = true;
+    } catch (e) { /* the shelf is optional */ }
   }
 
   // ---------- devices ----------
@@ -498,6 +633,12 @@
     if (loggedIn) {
       renderList();
       startTimers();
+      if (layout === 'cinema') {
+        loadShelf();
+      }
+      if (layout === 'immersive') {
+        refreshQueue();
+      }
       return;
     }
     byId('sp-redirect').textContent = redirectUri();
@@ -513,6 +654,14 @@
     }
     bound = true;
     byId('sp-home').addEventListener('click', closeSpotify);
+    document.querySelectorAll('.sp-layout').forEach(b => {
+      b.addEventListener('click', () => setLayout(b.dataset.layout, true));
+    });
+    byId('sp-lib-btn').addEventListener('click', () => {
+      const v = byId('spotify-view');
+      v.classList.toggle('sp-lib-open');
+      byId('sp-lib-btn').classList.toggle('active', v.classList.contains('sp-lib-open'));
+    });
     byId('sp-logout').addEventListener('click', logout);
     byId('sp-devices-btn').addEventListener('click', showDevices);
     byId('sp-save-id').addEventListener('click', () => {
@@ -595,6 +744,11 @@
     bind();
     load();
     open = true;
+    try {
+      setLayout(window.localStorage.getItem(LAYOUT_KEY) || 'vinyl', false);
+    } catch (e) {
+      setLayout('vinyl', false);
+    }
     $('#app-header, #apps, #add-app-form').addClass('hidden');
     byId('iptv-view').classList.add('hidden');
     byId('app-root').classList.remove('hidden');

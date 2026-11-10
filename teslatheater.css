@@ -1754,3 +1754,197 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
 @media (max-width: 700px) {
   #toolbar { flex-wrap: wrap; }
 }
+
+/* ---------- Spotify player looks: Vinile / Immersivo / Cinema ---------- */
+#spotify-view { position: relative; }
+.sp-layouts { display: flex; gap: 6px; }
+.sp-layouts .actionbutton { padding: 8px 14px; font-size: 0.85rem; }
+.sp-art {
+  position: relative;
+  height: 100%;
+  aspect-ratio: 1;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#sp-cover,
+#sp-cover.empty {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+}
+.sp-vinyl { display: none; }
+.sp-queue, .sp-shelf { display: none; }
+
+/* Vinile: a record spins out of the cover while the music plays */
+.sp-l-vinyl .sp-main { grid-template-columns: minmax(300px, 50%) minmax(0, 1fr); }
+.sp-l-vinyl .sp-cover-wrap { container-type: size; justify-content: flex-start; padding-left: 3cqw; }
+.sp-l-vinyl .sp-art { width: min(72cqw, 100cqh); height: auto; aspect-ratio: 1; max-width: none; }
+.sp-art { isolation: isolate; }
+.sp-l-vinyl .sp-vinyl {
+  display: block;
+  position: absolute;
+  z-index: 0;
+  top: 4%;
+  left: 32%;
+  width: 92%;
+  height: 92%;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle at center, #2b2d36 0 2px, #14151a 2px 4px);
+  box-shadow: 0 0 0 2px var(--line), 0 10px 24px rgba(0, 0, 0, 0.35);
+  animation: sp-spin 5s linear infinite;
+  animation-play-state: paused;
+}
+.sp-l-vinyl .sp-vinyl::after {
+  content: "";
+  position: absolute;
+  inset: 36%;
+  border-radius: 50%;
+  background: var(--pink);
+  box-shadow: 0 0 0 6px #0f1014;
+}
+.sp-playing.sp-l-vinyl .sp-vinyl { animation-play-state: running; }
+@keyframes sp-spin { to { transform: rotate(360deg); } }
+
+/* Immersivo e Cinema: cover on the left, everything else on the right */
+@media not all and (max-width: 640px) and (orientation: portrait) {
+  .sp-l-immersive .sp-main,
+  .sp-l-cinema .sp-main { grid-template-columns: minmax(0, 1fr); }
+  .sp-l-immersive .sp-lib,
+  .sp-l-cinema .sp-lib { display: none; }
+  .sp-l-immersive .sp-now,
+  .sp-l-cinema .sp-now {
+    display: grid;
+    grid-template-columns: 44% minmax(0, 1fr);
+    grid-template-rows: 1fr repeat(5, auto) 1fr;
+    column-gap: 28px;
+    row-gap: 14px;
+    align-items: center;
+    align-content: stretch;
+    text-align: left;
+    padding: 8px 8px 72px;
+    background: transparent;
+    border: 0;
+  }
+  .sp-l-immersive .sp-now > .sp-cover-wrap,
+  .sp-l-cinema .sp-now > .sp-cover-wrap { grid-column: 1; grid-row: 1 / -1; height: 100%; align-self: stretch; }
+  .sp-l-immersive .sp-info,
+  .sp-l-cinema .sp-info { grid-column: 2; grid-row: 2; text-align: left; }
+  .sp-l-immersive .sp-seekrow,
+  .sp-l-cinema .sp-seekrow { grid-column: 2; grid-row: 3; }
+  .sp-l-immersive .sp-controls,
+  .sp-l-cinema .sp-controls { grid-column: 2; grid-row: 4; justify-content: flex-start; gap: 18px; }
+  .sp-l-immersive .sp-volrow,
+  .sp-l-cinema .sp-volrow { grid-column: 2; grid-row: 5; }
+  .sp-l-immersive .sp-shelf,
+  .sp-l-cinema .sp-shelf { grid-column: 2; grid-row: 6; }
+  .sp-l-immersive #sp-track,
+  .sp-l-cinema #sp-track { font-size: 2.4rem; line-height: 1.1; white-space: normal; }
+  .sp-l-immersive #sp-artist,
+  .sp-l-cinema #sp-artist { font-size: 1.15rem; }
+}
+
+/* Immersivo: the background takes the colour of the cover */
+#spotify-view.sp-l-immersive {
+  max-width: none;
+  background: var(--sp-bg, #2a2a2e);
+  color: #fff;
+  transition: background 0.6s ease;
+}
+.sp-l-immersive .sp-art { max-width: min(100%, 66vh); height: auto; width: 100%; align-self: center; }
+.sp-l-immersive #sp-cover { border-radius: 16px; box-shadow: 0 22px 44px rgba(0, 0, 0, 0.5); }
+.sp-l-immersive .sp-title,
+.sp-l-immersive #sp-track { color: #fff; text-shadow: none; }
+.sp-l-immersive #sp-artist,
+.sp-l-immersive .sp-seekrow,
+.sp-l-immersive .sp-volrow { color: rgba(255, 255, 255, 0.75); }
+.sp-l-immersive .sp-seekrow input,
+.sp-l-immersive .sp-volrow input { accent-color: #fff; }
+.sp-l-immersive .sp-controls button { color: #fff; border-color: rgba(255, 255, 255, 0.35); }
+.sp-l-immersive .sp-controls button.on { color: #fff; background: rgba(255, 255, 255, 0.2); box-shadow: none; }
+.sp-l-immersive .sp-controls .sp-play {
+  color: var(--sp-bg, #2a2a2e);
+  background: #fff;
+  border-color: #fff;
+  box-shadow: none;
+}
+.sp-l-immersive .sp-bar .actionbutton {
+  color: #fff;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.sp-l-immersive .sp-bar .actionbutton.active { background: rgba(255, 255, 255, 0.22); }
+.sp-l-immersive #sp-msg { color: #ffd5d5; }
+.sp-l-immersive .sp-queue {
+  display: flex;
+  position: absolute;
+  left: 20px;
+  bottom: 18px;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+}
+.sp-l-immersive .sp-queue.hidden { display: none; }
+.sp-queue-label { color: rgba(255, 255, 255, 0.75); font-size: 0.85rem; margin-right: 4px; }
+.sp-queue img { width: 46px; height: 46px; object-fit: cover; border-radius: 8px; }
+.sp-l-immersive.sp-lib-open .sp-lib {
+  display: flex;
+  position: absolute;
+  right: 20px;
+  top: 74px;
+  bottom: 84px;
+  width: min(520px, 92%);
+  z-index: 6;
+  color: var(--ink);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+}
+
+/* Cinema: full-height cover and a shelf of playlists */
+.sp-l-cinema .sp-now {
+  overflow: hidden;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  padding: 0;
+}
+.sp-l-cinema .sp-now > :not(.sp-cover-wrap) { margin: 0 24px; width: auto; min-width: 0; }
+.sp-l-cinema .sp-cover-wrap { padding: 0; }
+.sp-l-cinema .sp-art { max-width: none; aspect-ratio: auto; width: 100%; height: 100%; }
+.sp-l-cinema #sp-cover,
+.sp-l-cinema #sp-cover.empty { border-radius: 0; box-shadow: none; }
+.sp-l-cinema .sp-shelf { display: block; }
+.sp-shelf-title { color: var(--ink-muted); font-size: 0.9rem; margin-bottom: 8px; }
+.sp-shelf-row { display: flex; gap: 12px; overflow: hidden; }
+.sp-card {
+  flex: 0 0 calc(25% - 9px);
+  min-width: 0;
+  padding: 0;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.sp-card img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; background: var(--bg-deep); }
+.sp-card span { display: block; margin-top: 6px; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-height: 560px) {
+  .sp-queue, .sp-shelf { display: none !important; }
+  .sp-l-immersive .sp-now, .sp-l-cinema .sp-now { padding-bottom: 8px; }
+  .sp-l-immersive #sp-track, .sp-l-cinema #sp-track { font-size: 1.5rem; }
+  .sp-l-immersive .sp-art { max-width: min(100%, 70vh); }
+}
+
+/* No horizontal separator lines in the header; the zoom control is as tall as the buttons */
+#toolbar { border-bottom: 0; }
+#app-header,
+html[data-theme$="-light"] #app-header { box-shadow: none; }
+#toolbar #zoom-control {
+  height: 50px;
+  padding: 0 18px;
+  box-sizing: border-box;
+}
