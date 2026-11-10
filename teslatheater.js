@@ -176,38 +176,58 @@ function buildPage(sites) {
 
 function resizeTiles() {
   const $apps = $('#apps');
-  const count = $apps.children('.button').length;
+  const $kids = $apps.children('.button');
+  const count = $kids.length;
   const el = $apps[0];
   if (!count || !el) {
     return;
   }
-  const cs = window.getComputedStyle(el);
-  const availWidth = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const availHeight = el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-  if (availWidth <= 0 || availHeight <= 0) {
+  const W = el.clientWidth;
+  const H = el.clientHeight;
+  if (W <= 0 || H <= 0) {
     return; // the home is hidden (another page is open)
   }
 
-  const gap = Math.max(8, Math.min(16, Math.round(availWidth / 70)));
+  const ratio = 0.16;      // space between tiles (and from the edges) relative to the tile size
   const maxSize = 240;
   const absoluteMin = 40;
+  const zoom = Math.min(1, zoomFactor);
 
-  let best = absoluteMin;
-  // Try every possible column count and keep the layout that yields the largest tile.
+  // Try every possible column count and keep the layout that yields the largest tile when
+  // the spacing is the same everywhere: between tiles and from the box edges.
+  let best = { size: absoluteMin, cols: 1 };
   for (let cols = 1; cols <= count; cols++) {
     const rows = Math.ceil(count / cols);
-    const sizeByWidth = (availWidth - gap * (cols - 1)) / cols;
-    const sizeByHeight = (availHeight - gap * (rows - 1)) / rows;
-    const size = Math.min(sizeByWidth, sizeByHeight);
-    if (size > best) {
-      best = size;
+    const byWidth = W / (cols + (cols + 1) * ratio);
+    const byHeight = H / (rows + (rows + 1) * ratio);
+    const size = Math.min(byWidth, byHeight);
+    if (size > best.size) {
+      best = { size: size, cols: cols };
     }
   }
 
-  // The box is fixed: tiles always fit inside it; the zoom slider can only make them smaller.
-  best = Math.max(absoluteMin, Math.min(maxSize, best * Math.min(1, zoomFactor)));
-  el.style.setProperty('gap', gap + 'px');
-  document.documentElement.style.setProperty('--tile-size', `${Math.floor(best)}px`);
+  const size = Math.floor(Math.max(absoluteMin, Math.min(maxSize, best.size * zoom)));
+  const cols = best.cols;
+  const rows = Math.ceil(count / cols);
+  // The leftover space is shared evenly, so edges and gaps are equal (never too airy).
+  // One gap for both directions, so the grid looks regular; the box centres it.
+  const gap = Math.max(6, Math.min((W - cols * size) / (cols + 1), (H - rows * size) / (rows + 1), size * 0.5));
+  const gx = gap;
+  const gy = gap;
+
+  el.style.padding = '0';
+  el.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`;
+  el.style.columnGap = `${Math.round(gx)}px`;
+  el.style.rowGap = `${Math.round(gy)}px`;
+  document.documentElement.style.setProperty('--tile-size', `${size}px`);
+
+  // An incomplete last row is centred under the others.
+  const rem = count % cols;
+  const shift = rem ? Math.round(((cols - rem) * (size + gx)) / 2) : 0;
+  $kids.css('margin-left', '');
+  if (shift) {
+    $kids.slice(count - rem).css('margin-left', `${shift}px`);
+  }
 }
 
 let resizeTimer;
