@@ -8,7 +8,7 @@
   const KEY = 'TeslaTheaterDash';
   const THEMES = ['neon', 'minimal', 'cover', 'android-dark', 'android-light', 'ios-dark', 'ios-light'];
   const DEFAULT_CITY = { name: 'Spinea (Venezia)', lat: 45.49, lon: 12.15 };
-  const cfg = { theme: 'neon', city: DEFAULT_CITY };
+  const cfg = { theme: 'neon', city: DEFAULT_CITY, news: 'ansa' };
   let player = null;
   let weatherTimer = null;
   let started = false;
@@ -21,6 +21,9 @@
       const saved = JSON.parse(window.localStorage.getItem(KEY) || '{}');
       if (THEMES.includes(saved.theme)) {
         cfg.theme = saved.theme;
+      }
+      if (typeof saved.news === 'string' && NEWS_SOURCES[saved.news]) {
+        cfg.news = saved.news;
       }
       if (saved.city && typeof saved.city.lat === 'number' && typeof saved.city.lon === 'number') {
         cfg.city = saved.city;
@@ -119,6 +122,160 @@
     } catch (e) {
       msg.textContent = 'Ricerca non riuscita, riprova.';
     }
+  }
+
+
+  // ---------- news (RSS in italiano) ----------
+
+  const PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
+  const NEWS_SOURCES = {
+    ansa: { name: 'ANSA', url: 'https://www.ansa.it/sito/ansait_rss.xml' },
+    corriere: { name: 'Corriere della Sera', url: 'https://xml2.corriereobjects.it/rss/homepage.xml', direct: true },
+    repubblica: { name: 'la Repubblica', url: 'https://www.repubblica.it/rss/homepage/rss2.0.xml' },
+    sky: { name: 'Sky TG24', url: 'https://tg24.sky.it/rss/tg24.xml' },
+    rai: { name: 'Rai News', url: 'https://www.rainews.it/rss/tutti' },
+    google: { name: 'Google Notizie', url: 'https://news.google.com/rss?hl=it&gl=IT&ceid=IT:it' }
+  };
+  const NEWS_KEY = 'TeslaTheaterNews';
+  const NEWS_TTL = 10 * 60 * 1000;
+  let news = { source: '', items: [], at: 0 };
+  let newsPage = 0;
+
+  function https(u) {
+    return u ? String(u).replace(/^http:\/\//i, 'https://') : '';
+  }
+
+  function imgFromHtml(html) {
+    const m = /<img[^>]+src=["']([^"']+)["']/i.exec(html || '');
+    return m ? https(m[1]) : '';
+  }
+
+  function ago(ms) {
+    if (!ms) {
+      return '';
+    }
+    const min = Math.max(0, Math.round((Date.now() - ms) / 60000));
+    if (min < 1) { return 'adesso'; }
+    if (min < 60) { return min + ' min fa'; }
+    const h = Math.round(min / 60);
+    return h < 24 ? h + ' h fa' : Math.round(h / 24) + ' g fa';
+  }
+
+  async function fetchFeed(id) {
+    const src = NEWS_SOURCES[id];
+    if (src.direct) {
+      const r = await fetch(src.url);
+      if (!r.ok) { throw new Error('HTTP ' + r.status); }
+      const xml = new DOMParser().parseFromString(await r.text(), 'text/xml');
+      return Array.from(xml.querySelectorAll('item')).slice(0, 12).map(it => {
+        const q = t => { const e = it.querySelector(t); return e ? e.textContent : ''; };
+        const enc = it.querySelector('enclosure');
+        return {
+          title: q('title').trim(),
+          link: q('link').trim(),
+          at: Date.parse(q('pubDate')) || 0,
+          img: https((enc && enc.getAttribute('url')) || imgFromHtml(q('description')))
+        };
+      });
+    }
+    const r = await fetch(PROXY + encodeURIComponent(src.url));
+    if (!r.ok) { throw new Error('HTTP ' + r.status); }
+    const j = await r.json();
+    if (j.status !== 'ok') { throw new Error(j.message || 'feed'); }
+    return (j.items || []).slice(0, 12).map(it => ({
+      title: String(it.title || '').trim(),
+      link: it.link,
+      at: Date.parse(String(it.pubDate || '').replace(' ', 'T') + 'Z') || 0,
+      img: https(it.thumbnail || (it.enclosure && /image/.test(it.enclosure.type || 'image') && it.enclosure.link) || imgFromHtml(it.description || it.content))
+    }));
+  }
+
+  async function loadNews(force) {
+    try {
+      const c = JSON.parse(window.localStorage.getItem(NEWS_KEY) || 'null');
+      if (c && c.items && c.source === cfg.news) {
+        news = c;
+      }
+    } catch (e) { /* ignore */ }
+    if (!force && news.source === cfg.news && Date.now() - news.at < NEWS_TTL) {
+      renderNews();
+      return;
+    }
+    renderNews();
+    let items = null;
+    let used = cfg.news;
+    try {
+      items = await fetchFeed(cfg.news);
+    } catch (e) {
+      if (cfg.news !== 'corriere') {
+        try {
+          items = await fetchFeed('corriere');
+          used = 'corriere';
+        } catch (e2) { /* keep the cached headlines */ }
+      }
+    }
+    if (items && items.length) {
+      news = { source: used, items, at: Date.now() };
+      newsPage = 0;
+      try {
+        window.localStorage.setItem(NEWS_KEY, JSON.stringify(news));
+      } catch (e) { /* ignore */ }
+    }
+    renderNews();
+  }
+
+  function renderNews() {
+    const list = byId('news-list');
+    const items = news.items || [];
+    const src = NEWS_SOURCES[news.source] || NEWS_SOURCES[cfg.news];
+    byId('news-chip').textContent = src.name;
+    byId('news-age').textContent = items.length ? 'Aggiornato ' + ago(news.at) : 'Carico le notizie…';
+    list.textContent = '';
+    const pages = Math.max(1, Math.ceil(items.length / 3));
+    newsPage = newsPage % pages;
+    items.slice(newsPage * 3, newsPage * 3 + 3).forEach(it => {
+      const a = document.createElement('a');
+      a.className = 'news-item';
+      a.href = it.link;
+      const thumb = it.img ? document.createElement('img') : document.createElement('span');
+      if (it.img) {
+        thumb.className = 'news-thumb';
+        thumb.alt = '';
+        thumb.loading = 'lazy';
+        thumb.src = it.img;
+        thumb.onerror = () => { thumb.style.visibility = 'hidden'; };
+      } else {
+        thumb.className = 'news-thumb news-ph';
+        thumb.innerHTML = '<em class="fas fa-newspaper"></em>';
+      }
+      const text = document.createElement('span');
+      text.className = 'news-text';
+      const t = document.createElement('span');
+      t.className = 'news-title';
+      t.textContent = it.title;
+      const m = document.createElement('span');
+      m.className = 'news-meta';
+      m.textContent = ago(it.at);
+      text.appendChild(t);
+      text.appendChild(m);
+      a.appendChild(thumb);
+      a.appendChild(text);
+      list.appendChild(a);
+    });
+    const dots = byId('news-dots');
+    dots.textContent = '';
+    for (let i = 0; i < pages; i++) {
+      const d = document.createElement('i');
+      d.className = i === newsPage ? 'on' : '';
+      dots.appendChild(d);
+    }
+    relayout();
+  }
+
+  function turnNews(step) {
+    const pages = Math.max(1, Math.ceil((news.items || []).length / 3));
+    newsPage = (newsPage + step + pages) % pages;
+    renderNews();
   }
 
   // ---------- Spotify now playing ----------
@@ -251,6 +408,17 @@
       });
     });
     byId('dash-city-search').addEventListener('click', searchCity);
+    byId('news-prev').addEventListener('click', () => turnNews(-1));
+    byId('news-next').addEventListener('click', () => turnNews(1));
+    const sel = byId('dash-news-source');
+    sel.value = cfg.news;
+    sel.addEventListener('change', () => {
+      cfg.news = sel.value;
+      save();
+      newsPage = 0;
+      news = { source: '', items: [], at: 0 };
+      loadNews(true);
+    });
     byId('dash-city-input').addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -271,6 +439,9 @@
     setInterval(tickClock, 10000);
     loadWeather();
     weatherTimer = setInterval(loadWeather, 15 * 60 * 1000);
+    loadNews(false);
+    setInterval(() => loadNews(true), NEWS_TTL);
+    setInterval(() => { if (!document.hidden && byId('dash').offsetParent !== null) { turnNews(1); } }, 14000);
     renderNow();
     pollNow();
     setInterval(pollNow, 4000);
@@ -286,6 +457,10 @@
     } catch (e) { /* ignore */ }
     cfg.theme = 'neon';
     cfg.city = DEFAULT_CITY;
+    cfg.news = 'ansa';
+    try {
+      window.localStorage.removeItem(NEWS_KEY);
+    } catch (e) { /* ignore */ }
     if (started) {
       applyTheme();
       loadWeather();

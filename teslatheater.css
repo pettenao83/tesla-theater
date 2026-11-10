@@ -1366,7 +1366,7 @@ body.spotify-open {
 #dash {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-areas: "now clock weather" "settings settings settings";
+  grid-template-areas: "now clock weather" "news news news" "settings settings settings";
   gap: 16px;
   max-width: 1500px;
   margin: 14px auto 0;
@@ -1474,7 +1474,7 @@ html[data-theme="minimal"] {
 }
 html[data-theme="minimal"] #dash {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-areas: "clock weather" "now now" "settings settings";
+  grid-template-areas: "clock weather" "now now" "news news" "settings settings";
 }
 html[data-theme="minimal"] #dash-time { font-size: 4.6rem; text-shadow: none; }
 html[data-theme="minimal"] #dash-cover { width: 76px; height: 76px; border-radius: 8px; box-shadow: none; }
@@ -1501,7 +1501,7 @@ html[data-theme="cover"] {
 }
 html[data-theme="cover"] #dash {
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-  grid-template-areas: "now clock" "now weather" "settings settings";
+  grid-template-areas: "now clock" "now weather" "news news" "settings settings";
 }
 html[data-theme="cover"] #dash-cover { width: 190px; height: 190px; border-radius: 18px; }
 html[data-theme="cover"] #dash-track { font-size: 2rem; white-space: normal; }
@@ -1510,7 +1510,7 @@ html[data-theme="cover"] .dash-card { border-radius: 22px; border-color: transpa
 @media (max-width: 900px), (max-height: 560px) {
   #dash, html[data-theme="minimal"] #dash, html[data-theme="cover"] #dash {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas: "now now" "clock weather" "settings settings";
+    grid-template-areas: "now now" "clock weather" "news news" "settings settings";
     padding: 0 12px;
     gap: 8px;
   }
@@ -2106,3 +2106,181 @@ html[data-theme$="-light"] .sp-row {
   .sp-queue, .sp-shelf { display: none !important; }
   .sp-l-immersive .sp-now, .sp-l-cinema .sp-now { justify-content: flex-start; gap: 8px; }
 }
+
+/* Home news feed: card with three headlines */
+#dash-news { grid-area: news; flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px 14px; }
+.news-head { display: flex; align-items: center; gap: 12px; }
+.news-chip {
+  padding: 3px 12px;
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
+  border-radius: 100px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.news-age { flex: 1; color: var(--ink-muted); font-size: 0.85rem; }
+.news-nav { display: flex; align-items: center; gap: 10px; }
+.news-nav button {
+  width: 34px; height: 34px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+.news-dots { display: flex; gap: 5px; }
+.news-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); display: block; }
+.news-dots i.on { background: var(--pink); }
+.news-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.news-item {
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+  padding: 8px;
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--bg-panel-hover);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 2px 4px rgba(0, 0, 0, 0.25), 0 8px 14px rgba(0, 0, 0, 0.20);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.news-item:hover, .news-item:focus-visible { transform: translateY(-3px); text-decoration: none; outline: none; }
+.news-thumb {
+  width: 72px; height: 72px; flex: none;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--bg-deep);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.news-ph { display: flex; align-items: center; justify-content: center; color: var(--ink-muted); font-size: 1.4rem; }
+.news-text { display: flex; flex-direction: column; min-width: 0; justify-content: center; }
+.news-title {
+  font-size: 0.98rem; line-height: 1.25; font-weight: 500;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.news-meta { margin-top: 4px; color: var(--ink-muted); font-size: 0.78rem; }
+html[data-theme$="-light"] .news-item { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10), 0 6px 12px rgba(0, 0, 0, 0.08); }
+#dash-news-source {
+  padding: 10px 16px; color: var(--ink); background: var(--bg-deep);
+  border: 1px solid var(--line); border-radius: 100px; font: inherit;
+}
+@media (max-width: 900px), (max-height: 560px) {
+  .news-list { grid-template-columns: minmax(0, 1fr); }
+  .news-item:nth-child(n+2) { display: none; }
+}
+
+/* ===== One consistent surface language for every style =====
+   raised (fuori): buttons, cards, tiles  ·  inset (dentro): fields, tracks, progress bars
+   borders are hairlines; the depth comes from the shadows. */
+:root {
+  --bd: rgba(255, 255, 255, 0.08);
+  --raise-hi: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --raise: 0 1px 1px rgba(0, 0, 0, 0.30), 0 4px 8px rgba(0, 0, 0, 0.26), 0 10px 20px rgba(0, 0, 0, 0.20);
+  --inset: inset 0 2px 4px rgba(0, 0, 0, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+}
+html[data-theme$="-light"] {
+  --bd: rgba(0, 0, 0, 0.06);
+  --raise-hi: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --raise: 0 1px 1px rgba(0, 0, 0, 0.06), 0 3px 6px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.08);
+  --inset: inset 0 1px 3px rgba(0, 0, 0, 0.16), inset 0 -1px 0 rgba(255, 255, 255, 0.8);
+}
+/* softer divider colour in the non-neon looks */
+html[data-theme="android-light"] { --line: rgba(121, 116, 126, 0.16); }
+html[data-theme="ios-light"] { --line: rgba(60, 60, 67, 0.12); }
+html[data-theme="android-dark"] { --line: rgba(147, 143, 153, 0.20); }
+html[data-theme="ios-dark"] { --line: rgba(84, 84, 88, 0.30); }
+
+/* raised: buttons */
+.actionbutton,
+.sp-tab,
+.sp-controls button,
+.dash-ctl button,
+.news-nav button {
+  border: 1px solid var(--bd);
+  box-shadow: var(--raise-hi), var(--raise);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.actionbutton:hover,
+.sp-tab:hover,
+.sp-controls button:hover,
+.dash-ctl button:hover,
+.news-nav button:hover { transform: translateY(-1px); }
+.actionbutton:active,
+.sp-tab:active,
+.sp-controls button:active,
+.dash-ctl button:active,
+.news-nav button:active { transform: none; box-shadow: var(--inset); }
+
+/* raised: cards and panels, no dark outlines */
+.dash-card,
+.sp-now,
+.sp-lib,
+#sp-devices,
+#sp-msg,
+.news-item,
+#zoom-control,
+#sp-setup code {
+  border: 1px solid var(--bd);
+  box-shadow: var(--raise-hi), var(--raise);
+}
+#sp-msg.error { border-color: rgba(255, 95, 125, 0.45); }
+.sp-l-immersive .sp-now { box-shadow: none; border-color: transparent; }
+.sp-l-cinema .sp-now { border-color: transparent; }
+.sp-device { border: 1px solid var(--bd); box-shadow: var(--raise-hi), var(--raise); }
+.sp-device.on { border-color: var(--pink); }
+
+/* tiles: the same hairline on every tile (no coloured outline on every third one) */
+html:not([data-theme="neon"]) .button,
+html:not([data-theme="neon"]) .button:nth-child(3n+1) { border-color: var(--bd); }
+html[data-theme$="-light"] .button { border-color: var(--bd); }
+
+/* inset: fields, selects, progress bars */
+#iptv-search,
+#iptv-list-select,
+#iptv-group,
+#iptv-sort,
+#iptv-url-form input,
+#add-app-form input[type="text"],
+.sp-idrow input,
+.dash-set-row input,
+#dash-news-source {
+  border: 1px solid transparent;
+  box-shadow: var(--inset);
+}
+.dash-bar,
+.bar,
+#zoom-control input[type="range"] { box-shadow: var(--inset); }
+#zoom-control { box-shadow: var(--raise-hi), var(--raise); }
+
+/* App icons follow the colours of each style */
+html[data-theme="minimal"] #iptv img { content: url("images/themes/minimal/iptv.svg"); }
+html[data-theme="minimal"] #spotify img { content: url("images/themes/minimal/spotify.svg"); }
+html[data-theme="minimal"] #applemusic img { content: url("images/themes/minimal/applemusic.svg"); }
+html[data-theme="cover"] #iptv img { content: url("images/themes/cover/iptv.svg"); }
+html[data-theme="cover"] #spotify img { content: url("images/themes/cover/spotify.svg"); }
+html[data-theme="cover"] #applemusic img { content: url("images/themes/cover/applemusic.svg"); }
+html[data-theme="android-dark"] #iptv img { content: url("images/themes/android-dark/iptv.svg"); }
+html[data-theme="android-dark"] #spotify img { content: url("images/themes/android-dark/spotify.svg"); }
+html[data-theme="android-dark"] #applemusic img { content: url("images/themes/android-dark/applemusic.svg"); }
+html[data-theme="android-light"] #iptv img { content: url("images/themes/android-light/iptv.svg"); }
+html[data-theme="android-light"] #spotify img { content: url("images/themes/android-light/spotify.svg"); }
+html[data-theme="android-light"] #applemusic img { content: url("images/themes/android-light/applemusic.svg"); }
+html[data-theme="ios-dark"] #iptv img { content: url("images/themes/ios-dark/iptv.svg"); }
+html[data-theme="ios-dark"] #spotify img { content: url("images/themes/ios-dark/spotify.svg"); }
+html[data-theme="ios-dark"] #applemusic img { content: url("images/themes/ios-dark/applemusic.svg"); }
+html[data-theme="ios-light"] #iptv img { content: url("images/themes/ios-light/iptv.svg"); }
+html[data-theme="ios-light"] #spotify img { content: url("images/themes/ios-light/spotify.svg"); }
+html[data-theme="ios-light"] #applemusic img { content: url("images/themes/ios-light/applemusic.svg"); }
+
+/* Same optical size for every logo; icons with their own background look like app icons */
+.button > .logo-container > img { max-width: 88%; max-height: 64%; }
+#netflix img, #iptv img, #spotify img, #applemusic img, #dazn img, #twitch img { max-width: 72%; max-height: 72%; }
+#airtesla img, #skytg24 img { border-radius: 18%; max-width: 76%; max-height: 76%; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); }
+#skytg24 img { max-width: 88%; max-height: 40%; border-radius: 10px; }
+/* Same icon size and alignment inside every button */
+.actionbutton em,
+.sp-controls em,
+.dash-ctl em,
+.news-nav em { display: inline-block; width: 1.25em; text-align: center; font-size: 1em; line-height: 1; }
+#toolbar .actionbutton em { width: auto; font-size: 1.15rem; }

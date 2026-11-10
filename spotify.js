@@ -33,6 +33,7 @@
   let layout = 'vinyl';
   let lastItemId = null;
   let shelfLoaded = false;
+  let meId = '';
   const LAYOUT_KEY = 'TeslaTheaterSpotifyLayout';
   const LAYOUTS = ['vinyl', 'immersive', 'cinema'];
 
@@ -624,13 +625,16 @@
     return b;
   }
 
-  function trackRows(tracks, contextUri) {
+  // Plays a track inside a context (playlist, album, liked songs), the same way the
+  // playlists do. A plain list of URIs is only the last resort.
+  function trackRows(tracks, contextUri, ctxFor) {
     const box = byId('sp-list');
     const usable = tracks.filter(t => t && t.uri && !t.uri.startsWith('spotify:local'));
     usable.forEach((t, i) => {
       box.appendChild(row(imageOf(t, true), t.name, artistsOf(t), () => {
-        if (contextUri) {
-          command('/me/player/play', 'PUT', { context_uri: contextUri, offset: { uri: t.uri } });
+        const ctx = contextUri || (ctxFor && ctxFor(t)) || (t.album && t.album.uri);
+        if (ctx) {
+          command('/me/player/play', 'PUT', { context_uri: ctx, offset: { uri: t.uri } });
         } else {
           command('/me/player/play', 'PUT', { uris: usable.slice(i, i + 100).map(x => x.uri) });
         }
@@ -674,12 +678,21 @@
         });
       } else if (tab === 'liked') {
         const d = await api('/me/tracks?limit=50');
-        build = () => trackRows(((d && d.items) || []).map(x => x.track), null);
+        if (!meId) {
+          try {
+            const me = await api('/me');
+            meId = me && me.id;
+          } catch (e) { /* the album is used instead */ }
+        }
+        const collection = meId ? 'spotify:user:' + meId + ':collection' : '';
+        build = () => trackRows(((d && d.items) || []).map(x => x.track), null, () => collection);
       } else {
         const d = await api('/me/player/recently-played?limit=50');
         const seen = new Set();
-        const tracks = ((d && d.items) || []).map(x => x.track).filter(t => t && !seen.has(t.uri) && seen.add(t.uri));
-        build = () => trackRows(tracks, null);
+        const tracks = ((d && d.items) || [])
+          .map(x => x.track && Object.assign({}, x.track, { _ctx: x.context && /^(album|playlist)$/.test(x.context.type) ? x.context.uri : '' }))
+          .filter(t => t && !seen.has(t.uri) && seen.add(t.uri));
+        build = () => trackRows(tracks, null, t => t._ctx);
       }
       if (token !== listToken) {
         return;
