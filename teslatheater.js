@@ -191,7 +191,7 @@ function resizeTiles() {
   const ratio = 0.16;      // space between tiles (and from the edges) relative to the tile size
   const maxSize = 240;
   const absoluteMin = 40;
-  const zoom = Math.min(1, zoomFactor);
+  const zoom = 1;
 
   // Try every possible column count and keep the layout that yields the largest tile when
   // the spacing is the same everywhere: between tiles and from the box edges.
