@@ -215,6 +215,10 @@
     return json;
   }
 
+  function detail(e) {
+    return e && e.status ? ' (Spotify: ' + e.status + (e.reason ? ' ' + e.reason : '') + (e.message ? ' · ' + e.message : '') + ')' : '';
+  }
+
   function fail(e) {
     if (e && e.auth) {
       logout();
@@ -222,15 +226,15 @@
       return;
     }
     if (e && e.status === 403) {
-      setMsg('Spotify non consente questa azione (serve Premium, oppure non è permessa per questo elemento).', true);
+      setMsg('Spotify non consente questa azione (serve Premium, oppure non è permessa per questo elemento).' + detail(e), true);
       return;
     }
     if (e && (e.status === 404 || e.reason === 'NO_ACTIVE_DEVICE')) {
-      setMsg('Nessun dispositivo Spotify attivo: apri Spotify sull\'auto o sul telefono, oppure scegli un dispositivo.', true);
+      setMsg('Nessun dispositivo Spotify attivo: apri Spotify sull\'auto o sul telefono, oppure scegli un dispositivo.' + detail(e), true);
       showDevices();
       return;
     }
-    setMsg((e && e.message) || 'Errore di rete.', true);
+    setMsg(((e && e.message) || 'Errore di rete.') + detail(e), true);
   }
 
   function setMsg(text, isError) {
@@ -275,10 +279,30 @@
         await api(path, { method: method || 'PUT', body });
       }
       setMsg('');
+      if (path === '/me/player/play') {
+        setTimeout(verifyPlayback, 1800);
+      }
     } catch (e) {
       fail(e);
     }
     setTimeout(poll, 350);
+  }
+
+  // Spotify accepts the command even when the target device is asleep or gone: check that
+  // something is really playing, otherwise say where the command went and offer the devices.
+  async function verifyPlayback() {
+    if (!open || !st.access) {
+      return;
+    }
+    try {
+      const p = await api('/me/player');
+      if (p && p.is_playing && p.item) {
+        return;
+      }
+      const name = p && p.device ? p.device.name : 'il dispositivo scelto';
+      setMsg('Il comando è stato inviato a «' + name + '» ma la musica non parte. Apri Spotify su quel dispositivo (o sull\'auto) oppure scegline un altro.', true);
+      showDevices();
+    } catch (e) { /* the regular poll reports real errors */ }
   }
 
   // ---------- now playing ----------
