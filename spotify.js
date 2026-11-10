@@ -352,7 +352,12 @@
   }
 
   function tick() {
-    if (seeking || !player || !player.item) {
+    if (!player || !player.item) {
+      byId('sp-seek').value = 0;
+      byId('sp-pos').textContent = '0:00';
+      return;
+    }
+    if (seeking) {
       return;
     }
     const pos = currentProgress();
