@@ -627,6 +627,11 @@
 
   window.openSpotify = openSpotify;
   window.spotifyReset = reset;
+  // Used by the home dashboard for the "now playing" card.
+  window.spotifyApi = {
+    connected: () => { load(); return !!st.access; },
+    call: (path, opt) => api(path, opt)
+  };
 
   // Coming back from the Spotify login page: finish the login and open the player.
   document.addEventListener('DOMContentLoaded', async () => {

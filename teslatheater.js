@@ -188,7 +188,7 @@ function resizeTiles() {
   const absoluteMax = 320;
 
   const availWidth = $apps.width();
-  const availHeight = Math.max(window.innerHeight - $apps.offset().top - 32, minSize);
+  const availHeight = Math.max(window.innerHeight - $apps.offset().top - 100, minSize);
 
   let best = minSize;
   // Try every possible column count and keep the layout that yields the largest tile.
@@ -353,6 +353,9 @@ function resetDefaults() {
   }
   if (typeof spotifyReset === 'function') {
     spotifyReset();
+  }
+  if (typeof dashReset === 'function') {
+    dashReset();
   }
   document.cookie = 'TeslaTheaterStatus=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
   zoomFactor = 1;

@@ -1361,3 +1361,160 @@ body.spotify-open {
     grid-template-rows: minmax(0, 1.1fr) minmax(0, 1fr);
   }
 }
+
+/* ---------- Home dashboard ---------- */
+#dash {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "now clock weather" "settings settings settings";
+  gap: 16px;
+  max-width: 1500px;
+  margin: 14px auto 0;
+  padding: 0 72px;
+}
+#dash-now { grid-area: now; }
+#dash-clock { grid-area: clock; }
+#dash-weather { grid-area: weather; }
+#dash-settings { grid-area: settings; }
+#dash-settings.hidden { display: none; }
+.dash-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 14px 18px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--ink);
+}
+#dash-now { cursor: pointer; }
+#dash-cover {
+  width: 108px;
+  height: 108px;
+  flex: none;
+  object-fit: cover;
+  border-radius: 12px;
+  background: var(--bg-deep);
+  box-shadow: 0 0 18px var(--pink-glow);
+}
+#dash-cover.empty { box-shadow: none; border: 1px solid var(--line); }
+.dash-now-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+#dash-track {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#dash-artist { color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-bar { height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; }
+#dash-prog { height: 100%; width: 0; background: var(--pink); }
+.dash-ctl { display: flex; align-items: center; gap: 12px; }
+.dash-ctl.hidden, #dash-connect.hidden { display: none; }
+.dash-ctl button {
+  width: 46px; height: 46px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.dash-ctl .dash-play {
+  width: 56px; height: 56px;
+  color: #1a0a20;
+  background: var(--pink);
+  border-color: var(--pink);
+  box-shadow: 0 0 14px var(--pink-glow);
+}
+#dash-clock { flex-direction: column; justify-content: center; gap: 2px; }
+#dash-time {
+  font-family: var(--font-display);
+  font-size: 3.4rem;
+  line-height: 1;
+  color: var(--cyan);
+  text-shadow: 0 0 14px var(--cyan-glow);
+}
+#dash-date { color: var(--ink-muted); text-transform: capitalize; }
+#dash-wicon { font-size: 2.4rem; color: var(--pink); }
+.dash-wtext { display: flex; flex-direction: column; min-width: 0; }
+#dash-temp { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; }
+#dash-wdesc { display: flex; flex-direction: column; }
+#dash-wdesc small { color: var(--ink-muted); }
+#dash-settings { flex-direction: column; align-items: stretch; gap: 10px; }
+.dash-set-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dash-set-row strong { min-width: 64px; color: var(--cyan); }
+.dash-set-row input {
+  flex: 1 1 220px;
+  padding: 10px 16px;
+  color: var(--ink);
+  background: var(--bg-deep);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  font: inherit;
+}
+#dash-city-msg { color: var(--ink-muted); font-size: 0.9rem; }
+
+/* Style: Minimale */
+html[data-theme="minimal"] {
+  --bg-deep: #0e0e10;
+  --bg-panel: #1a1a1d;
+  --bg-panel-hover: #242428;
+  --sky-1: #161618;
+  --sky-2: #0e0e10;
+  --pink: #e82127;
+  --pink-glow: rgba(232, 33, 39, 0.3);
+  --cyan: #f2f2f2;
+  --cyan-glow: rgba(255, 255, 255, 0.12);
+  --ink: #f2f2f2;
+  --ink-muted: #8a8a90;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-pink: rgba(232, 33, 39, 0.4);
+}
+html[data-theme="minimal"] #dash {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "clock weather" "now now" "settings settings";
+}
+html[data-theme="minimal"] #dash-time { font-size: 4.6rem; text-shadow: none; }
+html[data-theme="minimal"] #dash-cover { width: 76px; height: 76px; border-radius: 8px; box-shadow: none; }
+html[data-theme="minimal"] .dash-card { border-radius: 14px; border-color: transparent; }
+html[data-theme="minimal"] .dash-now-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 20px; }
+html[data-theme="minimal"] .dash-bar { grid-column: 1; }
+html[data-theme="minimal"] .dash-ctl, html[data-theme="minimal"] #dash-connect { grid-column: 2; grid-row: 1 / span 3; }
+
+/* Style: Cover */
+html[data-theme="cover"] {
+  --bg-deep: #2a1233;
+  --bg-panel: #3a1a47;
+  --bg-panel-hover: #4a2559;
+  --sky-1: #3a1a47;
+  --sky-2: #2a1233;
+  --pink: #f08a3c;
+  --pink-glow: rgba(240, 138, 60, 0.4);
+  --cyan: #ffd9a8;
+  --cyan-glow: rgba(255, 217, 168, 0.25);
+  --ink: #ffffff;
+  --ink-muted: #d6b8e0;
+  --line: rgba(255, 255, 255, 0.14);
+  --line-pink: rgba(240, 138, 60, 0.4);
+}
+html[data-theme="cover"] #dash {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-areas: "now clock" "now weather" "settings settings";
+}
+html[data-theme="cover"] #dash-cover { width: 190px; height: 190px; border-radius: 18px; }
+html[data-theme="cover"] #dash-track { font-size: 2rem; white-space: normal; }
+html[data-theme="cover"] .dash-card { border-radius: 22px; border-color: transparent; }
+
+@media (max-width: 900px), (max-height: 560px) {
+  #dash, html[data-theme="minimal"] #dash, html[data-theme="cover"] #dash {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "now now" "clock weather" "settings settings";
+    padding: 0 12px;
+    gap: 8px;
+  }
+  #dash-cover, html[data-theme="cover"] #dash-cover, html[data-theme="minimal"] #dash-cover { width: 72px; height: 72px; }
+  #dash-time, html[data-theme="minimal"] #dash-time { font-size: 2.2rem; }
+  #dash-track, html[data-theme="cover"] #dash-track { font-size: 1.2rem; }
+}

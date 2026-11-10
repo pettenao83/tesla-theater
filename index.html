@@ -33,11 +33,21 @@
   <!-- Font awesome -->
   <script src="https://kit.fontawesome.com/39e55326bb.js" crossorigin="anonymous"></script>
 
+  <script>
+    try {
+      var savedDash = JSON.parse(window.localStorage.getItem('TeslaTheaterDash') || '{}');
+      if (['neon', 'minimal', 'cover'].indexOf(savedDash.theme) >= 0) {
+        document.documentElement.setAttribute('data-theme', savedDash.theme);
+      }
+    } catch (e) { /* ignore */ }
+  </script>
+
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=27">
-  <script src="teslatheater.js?v=27"></script>
-  <script src="iptv.js?v=27"></script>
-  <script src="spotify.js?v=27"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=28">
+  <script src="teslatheater.js?v=28"></script>
+  <script src="iptv.js?v=28"></script>
+  <script src="spotify.js?v=28"></script>
+  <script src="dashboard.js?v=28"></script>
 </head>
 <body>
 
@@ -70,8 +80,48 @@
         <button id="export-btn" type="button" class="actionbutton secondary"><em class="fas fa-upload"></em> Esporta</button>
         <button id="import-btn" type="button" class="actionbutton secondary"><em class="fas fa-download"></em> Importa</button>
         <button id="reset-defaults-btn" type="button" class="actionbutton secondary"><em class="fas fa-arrow-rotate-left"></em> Ripristina</button>
+        <button id="dash-settings-btn" type="button" class="actionbutton secondary"><em class="fas fa-palette"></em> Stile</button>
         <button id="lock-btn" type="button" class="actionbutton secondary"><em class="fas fa-lock"></em> Blocca</button>
       </div>
+
+      <section id="dash" aria-label="Dashboard">
+        <div id="dash-now" class="dash-card">
+          <img id="dash-cover" class="empty" alt="" />
+          <div class="dash-now-main">
+            <div id="dash-track">Spotify non collegato</div>
+            <div id="dash-artist"></div>
+            <div class="dash-bar"><div id="dash-prog"></div></div>
+            <div id="dash-ctl" class="dash-ctl hidden">
+              <button id="dash-prev" type="button" aria-label="Precedente"><em class="fas fa-backward-step"></em></button>
+              <button id="dash-play" type="button" class="dash-play" aria-label="Riproduci"><em class="fas fa-play"></em></button>
+              <button id="dash-next" type="button" aria-label="Successivo"><em class="fas fa-forward-step"></em></button>
+            </div>
+            <button id="dash-connect" type="button" class="actionbutton hidden"><em class="fas fa-link"></em> Collega Spotify</button>
+          </div>
+        </div>
+        <div id="dash-clock" class="dash-card">
+          <div id="dash-time">--:--</div>
+          <div id="dash-date"></div>
+        </div>
+        <div id="dash-weather" class="dash-card">
+          <em id="dash-wicon" class="fas fa-cloud"></em>
+          <div class="dash-wtext"><span id="dash-temp">--°</span><span id="dash-wdesc"><span id="dash-wtext"></span><small id="dash-city"></small></span></div>
+        </div>
+        <div id="dash-settings" class="dash-card hidden">
+          <div class="dash-set-row">
+            <strong>Stile</strong>
+            <button type="button" class="dash-theme actionbutton secondary" data-theme="neon">Neon</button>
+            <button type="button" class="dash-theme actionbutton secondary" data-theme="minimal">Minimale</button>
+            <button type="button" class="dash-theme actionbutton secondary" data-theme="cover">Cover</button>
+          </div>
+          <div class="dash-set-row">
+            <strong>Meteo</strong>
+            <input type="text" id="dash-city-input" placeholder="Cerca una città" autocomplete="off" />
+            <button type="button" id="dash-city-search" class="actionbutton secondary"><em class="fas fa-magnifying-glass"></em> Cerca</button>
+            <span id="dash-city-msg"></span>
+          </div>
+        </div>
+      </section>
     </header>
 
     <div id="add-app-form" class="hidden">
@@ -182,7 +232,7 @@
 
       <div id="sp-main" class="sp-main hidden">
         <div class="sp-now">
-          <div class="sp-cover-wrap"><img id="sp-cover" class="empty" alt="Copertina" /></div>
+          <div class="sp-cover-wrap"><img id="sp-cover" class="empty" alt="" /></div>
           <div class="sp-info">
             <div id="sp-track">Nessuna riproduzione</div>
             <div id="sp-artist"></div>
