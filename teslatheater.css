@@ -1662,3 +1662,63 @@ html[data-theme$="-light"] #dash-now {
     0 10px 20px rgba(0, 0, 0, 0.10),
     0 24px 48px rgba(0, 0, 0, 0.12);
 }
+
+/* Light styles: logos adapt (dark-ink versions in images/light/), so no dark plate for the built-in apps */
+html[data-theme$="-light"] :is(
+  #netflix,
+  #youtube,
+  #primevideo,
+  #plex,
+  #disneyplus,
+  #nowtv,
+  #dazn,
+  #paramountplus,
+  #discoveryplus,
+  #twitch,
+  #raiplay,
+  #mediaset,
+  #iptv,
+  #spotify,
+  #applemusic,
+  #skytg24,
+  #airtesla) {
+  padding: 14%;
+}
+html[data-theme$="-light"] :is(
+  #netflix,
+  #youtube,
+  #primevideo,
+  #plex,
+  #disneyplus,
+  #nowtv,
+  #dazn,
+  #paramountplus,
+  #discoveryplus,
+  #twitch,
+  #raiplay,
+  #mediaset,
+  #iptv,
+  #spotify,
+  #applemusic,
+  #skytg24,
+  #airtesla) > .logo-container {
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+}
+html[data-theme$="-light"] #netflix img { content: url("images/light/netflix.png"); }
+html[data-theme$="-light"] #youtube img { content: url("images/light/youtube.png"); }
+html[data-theme$="-light"] #primevideo img { content: url("images/light/primevideo.png"); }
+html[data-theme$="-light"] #plex img { content: url("images/light/plex.png"); }
+html[data-theme$="-light"] #disneyplus img { content: url("images/light/disneyplus.png"); }
+html[data-theme$="-light"] #nowtv img { content: url("images/light/nowtv.png"); }
+html[data-theme$="-light"] #dazn img { content: url("images/light/dazn.png"); }
+html[data-theme$="-light"] #paramountplus img { content: url("images/light/paramountplus.png"); }
+html[data-theme$="-light"] #discoveryplus img { content: url("images/light/discoveryplus.png"); }
+html[data-theme$="-light"] #twitch img { content: url("images/light/twitch.png"); }
+html[data-theme$="-light"] #raiplay img { content: url("images/light/raiplay.png"); }
+html[data-theme$="-light"] #mediaset img { content: url("images/light/mediaset.png"); }
+html[data-theme$="-light"] #iptv img { content: url("images/light/iptv.svg"); }
+html[data-theme$="-light"] #spotify img { content: url("images/light/spotify.svg"); }
+html[data-theme$="-light"] #applemusic img { content: url("images/light/applemusic.svg"); }
