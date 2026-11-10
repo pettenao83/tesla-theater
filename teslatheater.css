@@ -979,31 +979,36 @@ body.iptv-open {
   z-index: 3;
 }
 
-/* Small browser window (Tesla browser not in full screen): the channel list must never collapse */
-@media (max-width: 820px) {
-  #iptv-view:not(.iptv-focus) .iptv-player-wrap {
-    max-height: 40vh;
-  }
-  .iptv-side {
-    min-height: 160px;
-  }
-}
-@media (max-width: 820px) and (orientation: landscape) {
-  /* wide-but-short window: list on the left, video on the right, like on a big screen */
-  #iptv-view:not(.iptv-focus) .iptv-main {
-    grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+/* Small browser window (Tesla browser not in full screen): the video fills the window and
+   the channel list slides in over it with the "Canali" button, then goes away again. */
+@media (max-width: 900px), (max-height: 520px) {
+  #iptv-view.iptv-focus .iptv-main {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
   }
-  #iptv-view:not(.iptv-focus) .iptv-stage {
-    order: 0;
+  #iptv-view.iptv-focus .iptv-stage {
+    flex: 1;
     min-height: 0;
   }
-  #iptv-view:not(.iptv-focus) .iptv-player-wrap {
+  #iptv-view.iptv-focus .iptv-player-wrap {
     flex: 1;
     aspect-ratio: auto;
     max-height: none;
   }
-  .iptv-side {
-    min-height: 0;
+  #iptv-view.iptv-focus.iptv-list-open .iptv-side {
+    display: flex;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(360px, 88%);
+    max-height: none;
+    z-index: 5;
+    background: var(--bg-deep);
+    border-color: var(--cyan);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 14px var(--cyan-glow);
   }
 }

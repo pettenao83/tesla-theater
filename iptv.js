@@ -454,11 +454,42 @@
   }
 
   // Hides the channel list so the video takes the whole width (per device).
+  const SMALL_QUERY = '(max-width: 900px), (max-height: 520px)';
+  function isSmall() {
+    return window.matchMedia(SMALL_QUERY).matches;
+  }
+  function savedFocus() {
+    try {
+      return window.localStorage.getItem(FOCUS_KEY) === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+  // Small window: the list is a drawer over the video, opened by the same button.
+  function setDrawer(open) {
+    byId('iptv-view').classList.toggle('iptv-list-open', open);
+    syncToggleButton();
+  }
+  function syncToggleButton() {
+    const view = byId('iptv-view');
+    const btn = byId('iptv-toggle-channels');
+    const small = isSmall();
+    const open = view.classList.contains('iptv-list-open');
+    const focus = view.classList.contains('iptv-focus');
+    btn.querySelector('span').textContent = small
+      ? (open ? 'Chiudi canali' : 'Canali')
+      : (focus ? 'Mostra canali' : 'Nascondi canali');
+    btn.classList.toggle('active', small ? open : focus);
+  }
+  function applyLayout() {
+    byId('iptv-view').classList.remove('iptv-list-open');
+    setFocus(isSmall() || savedFocus(), false);
+  }
+
   function setFocus(on, remember) {
     byId('iptv-view').classList.toggle('iptv-focus', on);
     const btn = byId('iptv-toggle-channels');
-    btn.querySelector('span').textContent = on ? 'Mostra canali' : 'Nascondi canali';
-    btn.classList.toggle('active', on);
+    syncToggleButton();
     // With the list hidden the channel name moves into the top bar, like a button.
     const now = byId('iptv-now');
     const target = on ? byId('iptv-toggle-channels').parentNode : document.querySelector('.iptv-stage');
@@ -1052,11 +1083,19 @@
       setAudioOnly(window.localStorage.getItem(AUDIO_KEY) === '1', false);
     } catch (e) { /* ignore */ }
     byId('iptv-toggle-channels').addEventListener('click', () => {
-      setFocus(!byId('iptv-view').classList.contains('iptv-focus'), true);
+      if (isSmall()) {
+        setDrawer(!byId('iptv-view').classList.contains('iptv-list-open'));
+      } else {
+        setFocus(!byId('iptv-view').classList.contains('iptv-focus'), true);
+      }
     });
-    try {
-      setFocus(window.localStorage.getItem(FOCUS_KEY) === '1', false);
-    } catch (e) { /* ignore */ }
+    applyLayout();
+    window.matchMedia(SMALL_QUERY).addEventListener('change', applyLayout);
+    document.querySelector('.iptv-stage').addEventListener('click', () => {
+      if (isSmall()) {
+        setDrawer(false);
+      }
+    });
     byId('iptv-channels').addEventListener('click', e => {
       if (e.target.closest('.iptv-more')) {
         renderChannelChunk(false);
@@ -1081,6 +1120,9 @@
       const row = e.target.closest('.iptv-channel');
       if (row) {
         playChannel(Number(row.dataset.index));
+        if (isSmall()) {
+          setDrawer(false);
+        }
       }
     });
   }
