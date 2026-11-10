@@ -34,9 +34,10 @@
   <script src="https://kit.fontawesome.com/39e55326bb.js" crossorigin="anonymous"></script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=26">
-  <script src="teslatheater.js?v=26"></script>
-  <script src="iptv.js?v=26"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=27">
+  <script src="teslatheater.js?v=27"></script>
+  <script src="iptv.js?v=27"></script>
+  <script src="spotify.js?v=27"></script>
 </head>
 <body>
 
@@ -141,6 +142,81 @@
             </div>
           </div>
           <p id="iptv-now">Seleziona un canale</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="spotify-view" class="hidden" aria-label="Spotify">
+      <div class="sp-bar">
+        <button id="sp-home" type="button" class="actionbutton"><em class="fas fa-house"></em> Home</button>
+        <span class="sp-title">Spotify</span>
+        <button id="sp-devices-btn" type="button" class="actionbutton secondary hidden"><em class="fas fa-volume-high"></em> <span id="sp-device-name">Dispositivi</span></button>
+        <button id="sp-logout" type="button" class="actionbutton secondary hidden"><em class="fas fa-right-from-bracket"></em> Esci</button>
+      </div>
+      <p id="sp-msg" class="hidden"></p>
+      <div id="sp-devices" class="hidden"></div>
+
+      <div id="sp-setup" class="hidden">
+        <div id="sp-step-id">
+          <h2>Collega il tuo Spotify</h2>
+          <ol>
+            <li>Apri <strong>developer.spotify.com/dashboard</strong> e accedi con il tuo account Spotify.</li>
+            <li>Premi <strong>Create app</strong>: nome e descrizione a piacere. Nelle API da usare scegli <strong>Web API</strong>.</li>
+            <li>In <strong>Redirect URIs</strong> aggiungi esattamente questo indirizzo: <code id="sp-redirect"></code></li>
+            <li>Salva, poi apri <strong>Settings</strong> e copia il <strong>Client ID</strong> qui sotto.</li>
+          </ol>
+          <div class="sp-idrow">
+            <input type="text" id="sp-client-id" placeholder="Client ID (32 caratteri)" autocomplete="off" autocapitalize="off" spellcheck="false" />
+            <button id="sp-save-id" type="button" class="actionbutton"><em class="fas fa-check"></em> Salva</button>
+          </div>
+        </div>
+        <div id="sp-step-login" class="hidden">
+          <h2>Accedi con Spotify</h2>
+          <p>Ti porto sulla pagina di Spotify per autorizzare l'accesso, poi torni qui. Serve Spotify Premium per i comandi.</p>
+          <div class="sp-idrow">
+            <button id="sp-login-btn" type="button" class="actionbutton"><em class="fas fa-right-to-bracket"></em> Accedi</button>
+            <button id="sp-change-id" type="button" class="actionbutton secondary">Cambia Client ID</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="sp-main" class="sp-main hidden">
+        <div class="sp-now">
+          <div class="sp-cover-wrap"><img id="sp-cover" class="empty" alt="Copertina" /></div>
+          <div class="sp-info">
+            <div id="sp-track">Nessuna riproduzione</div>
+            <div id="sp-artist"></div>
+          </div>
+          <div class="sp-seekrow">
+            <span id="sp-pos">0:00</span>
+            <input type="range" id="sp-seek" min="0" max="0" value="0" step="1000" aria-label="Posizione" />
+            <span id="sp-dur">0:00</span>
+          </div>
+          <div class="sp-controls">
+            <button id="sp-shuffle" type="button" aria-label="Casuale"><em class="fas fa-shuffle"></em></button>
+            <button id="sp-prev" type="button" aria-label="Precedente"><em class="fas fa-backward-step"></em></button>
+            <button id="sp-play" type="button" class="sp-play" aria-label="Riproduci"><em class="fas fa-play"></em></button>
+            <button id="sp-next" type="button" aria-label="Successivo"><em class="fas fa-forward-step"></em></button>
+            <button id="sp-repeat" type="button" aria-label="Ripeti"><em class="fas fa-repeat"></em></button>
+          </div>
+          <div id="sp-volrow" class="sp-volrow hidden">
+            <em class="fas fa-volume-low"></em>
+            <input type="range" id="sp-vol" min="0" max="100" value="50" aria-label="Volume" />
+            <em class="fas fa-volume-high"></em>
+          </div>
+        </div>
+        <div class="sp-lib">
+          <div id="sp-tabs" class="sp-tabs">
+            <button type="button" class="sp-tab active" data-tab="playlists">Playlist</button>
+            <button type="button" class="sp-tab" data-tab="liked">Brani preferiti</button>
+            <button type="button" class="sp-tab" data-tab="recent">Recenti</button>
+          </div>
+          <div id="sp-crumb" class="sp-crumb hidden">
+            <button id="sp-back" type="button" class="actionbutton secondary"><em class="fas fa-arrow-left"></em> Indietro</button>
+            <span id="sp-crumb-name"></span>
+            <button id="sp-crumb-play" type="button" class="actionbutton"><em class="fas fa-play"></em> Riproduci</button>
+          </div>
+          <div id="sp-list"></div>
         </div>
       </div>
     </section>

@@ -2,6 +2,7 @@ const DEFAULT_SITES = {
   "netflix": { "name": "Netflix", "img": "images/netflix.png", "url": "https://www.netflix.com/" },
   "youtube": { "name": "YouTube", "img": "images/youtube.png", "url": "https://www.youtube.com/" },
   "iptv": { "name": "IPTV", "img": "images/iptv.svg", "url": "#iptv", "internal": "iptv" },
+  "spotify": { "name": "Spotify", "img": "images/spotify.svg", "url": "#spotify", "internal": "spotify" },
   "applemusic": { "name": "Apple Music", "img": "images/applemusic.svg", "url": "https://music.apple.com/" },
   "primevideo": { "name": "Prime Video", "img": "images/primevideo.png", "url": "https://www.primevideo.com/" },
   "plex": { "name": "Plex", "img": "images/plex.png", "url": "https://app.plex.tv/" },
@@ -81,6 +82,10 @@ function open() {
   // Built-in pages (e.g. the IPTV player) open inside the launcher itself.
   if ($(this).attr('data-internal') === 'iptv' && typeof openIptv === 'function') {
     openIptv();
+    return;
+  }
+  if ($(this).attr('data-internal') === 'spotify' && typeof openSpotify === 'function') {
+    openSpotify();
     return;
   }
 
@@ -345,6 +350,9 @@ function resetDefaults() {
   window.localStorage.removeItem('TeslaTheaterIptv');
   if (typeof iptvReset === 'function') {
     iptvReset();
+  }
+  if (typeof spotifyReset === 'function') {
+    spotifyReset();
   }
   document.cookie = 'TeslaTheaterStatus=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
   zoomFactor = 1;

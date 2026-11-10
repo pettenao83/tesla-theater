@@ -1012,3 +1012,352 @@ body.iptv-open {
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 14px var(--cyan-glow);
   }
 }
+
+/* ---------- Spotify remote ---------- */
+body.spotify-open {
+  padding-bottom: 0;
+  min-height: 0;
+}
+#spotify-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 1600px;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  padding: 14px 20px 20px;
+  background: var(--bg-deep);
+  overflow: hidden;
+}
+#spotify-view.hidden {
+  display: none;
+}
+.sp-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sp-title {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+  color: var(--cyan);
+  text-shadow: 0 0 12px var(--cyan-glow);
+}
+#sp-msg {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--pink);
+}
+#sp-msg.error {
+  color: var(--danger);
+}
+#sp-devices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--cyan);
+  border-radius: 14px;
+  box-shadow: 0 0 14px var(--cyan-glow);
+}
+#sp-devices p {
+  margin: 0;
+  color: var(--ink-muted);
+}
+.sp-device {
+  padding: 12px 16px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--bg-deep);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  cursor: pointer;
+}
+.sp-device.on {
+  border-color: var(--pink);
+  color: var(--pink);
+}
+#sp-setup {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 10px 6px;
+  overflow-y: auto;
+  color: var(--ink);
+  line-height: 1.5;
+}
+#sp-setup h2 {
+  font-family: var(--font-display);
+  color: var(--pink);
+}
+#sp-setup code {
+  display: inline-block;
+  padding: 2px 8px;
+  color: var(--cyan);
+  background: var(--bg-panel);
+  border-radius: 6px;
+  word-break: break-all;
+}
+.sp-idrow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sp-idrow input {
+  flex: 1 1 280px;
+  padding: 12px 16px;
+  color: var(--ink);
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  font: inherit;
+}
+.sp-main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(300px, 42%) minmax(0, 1fr);
+  gap: 20px;
+}
+.sp-main.hidden,
+#sp-setup.hidden,
+#sp-devices.hidden {
+  display: none;
+}
+.sp-now {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 0;
+  min-width: 0;
+  padding: 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.sp-cover-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#sp-cover {
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 0 28px var(--pink-glow);
+}
+#sp-cover.empty {
+  width: min(60%, 260px);
+  background: var(--bg-deep);
+  box-shadow: 0 0 14px var(--line);
+}
+.sp-info {
+  width: 100%;
+  text-align: center;
+}
+#sp-track {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#sp-artist {
+  color: var(--ink-muted);
+  font-size: 1rem;
+}
+.sp-seekrow,
+.sp-volrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+}
+.sp-volrow.hidden {
+  display: none;
+}
+.sp-seekrow input,
+.sp-volrow input {
+  flex: 1;
+  accent-color: var(--pink);
+  height: 28px;
+}
+.sp-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sp-controls button {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.sp-controls button.on {
+  color: var(--pink);
+  border-color: var(--pink);
+  box-shadow: 0 0 10px var(--pink-glow);
+}
+.sp-controls button small {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  font-size: 0.6rem;
+}
+.sp-controls .sp-play {
+  width: 72px;
+  height: 72px;
+  font-size: 1.5rem;
+  color: #1a0a20;
+  background: var(--pink);
+  border-color: var(--pink);
+  box-shadow: 0 0 18px var(--pink-glow);
+}
+.sp-lib {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.sp-tabs,
+.sp-crumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.sp-crumb.hidden,
+.sp-tabs.hidden {
+  display: none;
+}
+.sp-crumb span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink);
+  font-weight: 600;
+}
+.sp-tab {
+  padding: 10px 18px;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  font: inherit;
+  cursor: pointer;
+}
+.sp-tab.active {
+  color: #1a0a20;
+  background: var(--pink);
+  border-color: var(--pink);
+}
+#sp-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 95, 209, 0.7) transparent;
+}
+.sp-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 12px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.sp-row:hover,
+.sp-row:focus-visible {
+  background: var(--bg-panel-hover);
+  outline: none;
+}
+.sp-row img {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  object-fit: cover;
+  background: var(--bg-deep);
+  border-radius: 8px;
+}
+.sp-row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sp-row-text strong,
+.sp-row-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sp-row-text small {
+  color: var(--ink-muted);
+}
+.sp-empty {
+  padding: 20px;
+  color: var(--ink-muted);
+}
+@media (max-width: 900px), (max-height: 560px) {
+  #spotify-view {
+    padding: 10px 12px 12px;
+    gap: 8px;
+  }
+  .sp-main {
+    grid-template-columns: minmax(220px, 40%) minmax(0, 1fr);
+    gap: 10px;
+  }
+  .sp-now {
+    gap: 8px;
+    padding: 10px;
+  }
+  #sp-track {
+    font-size: 1.2rem;
+  }
+  .sp-controls button {
+    width: 44px;
+    height: 44px;
+  }
+  .sp-controls .sp-play {
+    width: 56px;
+    height: 56px;
+  }
+}
+@media (max-width: 640px) and (orientation: portrait) {
+  .sp-main {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+}
