@@ -31,6 +31,7 @@
   let open = false;
   let listToken = 0;
 
+  const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   const byId = id => document.getElementById(id);
 
   function el(tag, cls, text) {
@@ -326,8 +327,8 @@
       if (cover.getAttribute('src') !== url) {
         cover.src = url;
       }
-    } else {
-      cover.removeAttribute('src');
+    } else if (cover.getAttribute('src') !== BLANK) {
+      cover.src = BLANK;
     }
     byId('sp-track').textContent = item ? item.name : 'Nessuna riproduzione';
     byId('sp-artist').textContent = item
@@ -344,7 +345,7 @@
     byId('sp-shuffle').classList.toggle('on', !!(player && player.shuffle_state));
     const repeat = (player && player.repeat_state) || 'off';
     byId('sp-repeat').classList.toggle('on', repeat !== 'off');
-    byId('sp-repeat').innerHTML = '<em class="fas fa-repeat"></em>' + (repeat === 'track' ? '<small>1</small>' : '');
+    byId('sp-repeat').innerHTML = '<em class="fas fa-retweet"></em>' + (repeat === 'track' ? '<small>1</small>' : '');
     const vol = byId('sp-vol');
     const dev = player && player.device;
     byId('sp-volrow').classList.toggle('hidden', !dev || dev.volume_percent == null || dev.supports_volume === false);

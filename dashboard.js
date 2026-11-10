@@ -13,6 +13,7 @@
   let weatherTimer = null;
   let started = false;
 
+  const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   const byId = id => document.getElementById(id);
 
   function load() {
@@ -143,8 +144,8 @@
       if (cover.getAttribute('src') !== url) {
         cover.src = url;
       }
-    } else {
-      cover.removeAttribute('src');
+    } else if (cover.getAttribute('src') !== BLANK) {
+      cover.src = BLANK;
     }
     if (!sp) {
       byId('dash-track').textContent = 'Spotify non collegato';
