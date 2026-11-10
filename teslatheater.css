@@ -2466,3 +2466,33 @@ html[data-theme] #dash-wicon { font-size: 2rem; }
   .marquee { padding: 4px 12px 0; }
   .marquee h1 { font-size: 1.3rem; }
 }
+
+/* Header: title on the left, the buttons right next to it */
+#app-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: center;
+}
+.marquee { grid-column: 1; grid-row: 1; text-align: left; padding: 12px 8px 10px 24px; }
+.marquee h1 { justify-content: flex-start; font-size: clamp(1.5rem, 2.2vw, 2rem); }
+#toolbar {
+  grid-column: 2;
+  grid-row: 1;
+  justify-content: flex-start;
+  max-width: none;
+  margin: 0;
+  padding: 12px 24px 10px 12px;
+}
+#dash,
+html[data-theme="minimal"] #dash,
+html[data-theme="cover"] #dash { grid-column: 1 / -1; grid-row: 2; }
+@media (max-width: 700px) {
+  #app-header { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); }
+  .marquee { grid-column: 1; padding: 8px 12px 0; }
+  #toolbar { grid-column: 1; grid-row: 2; padding: 6px 12px 8px; }
+  #dash, html[data-theme="minimal"] #dash, html[data-theme="cover"] #dash { grid-row: 3; }
+}
+#dash,
+html[data-theme="minimal"] #dash,
+html[data-theme="cover"] #dash { align-self: stretch; }
