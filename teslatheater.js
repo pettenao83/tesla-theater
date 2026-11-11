@@ -79,6 +79,14 @@ function open() {
     return;
   }
 
+  // remember the last apps opened (shown in the "recent" tile of the home)
+  try {
+    const rid = $(this).attr('id');
+    let recent = JSON.parse(window.localStorage.getItem('TeslaTheaterRecent') || '[]');
+    recent = [rid].concat(recent.filter(x => x !== rid)).slice(0, 3);
+    window.localStorage.setItem('TeslaTheaterRecent', JSON.stringify(recent));
+  } catch (e) { /* ignore */ }
+
   // Built-in pages (e.g. the IPTV player) open inside the launcher itself.
   if ($(this).attr('data-internal') === 'iptv' && typeof openIptv === 'function') {
     openIptv();
@@ -207,58 +215,25 @@ function fitHome() {
 function resizeTiles() {
   fitHome();
   const $apps = $('#apps');
-  const $kids = $apps.children('.button');
-  const count = $kids.length;
   const el = $apps[0];
-  if (!count || !el) {
+  if (!el || !$apps.children('.button').length) {
     return;
   }
   const W = el.clientWidth;
-  const H = el.clientHeight;
-  if (W <= 0 || H <= 0) {
+  if (W <= 0 || el.clientHeight <= 0) {
     return; // the home is hidden (another page is open)
   }
-
-  const ratio = 0.16;      // space between tiles (and from the edges) relative to the tile size
-  const maxSize = 240;
-  const absoluteMin = 40;
-  const zoom = 1;
-
-  // Try every possible column count and keep the layout that yields the largest tile when
-  // the spacing is the same everywhere: between tiles and from the box edges.
-  let best = { size: absoluteMin, cols: 1 };
-  for (let cols = 1; cols <= count; cols++) {
-    const rows = Math.ceil(count / cols);
-    const byWidth = W / (cols + (cols + 1) * ratio);
-    const byHeight = H / (rows + (rows + 1) * ratio);
-    const size = Math.min(byWidth, byHeight);
-    if (size > best.size) {
-      best = { size: size, cols: cols };
-    }
-  }
-
-  const size = Math.floor(Math.max(absoluteMin, Math.min(maxSize, best.size * zoom)));
-  const cols = best.cols;
-  const rows = Math.ceil(count / cols);
-  // The leftover space is shared evenly, so edges and gaps are equal (never too airy).
-  // One gap for both directions, so the grid looks regular; the box centres it.
-  const gap = Math.max(6, Math.min((W - cols * size) / (cols + 1), (H - rows * size) / (rows + 1), size * 0.5));
-  const gx = gap;
-  const gy = gap;
-
-  el.style.padding = '0';
-  el.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`;
-  el.style.columnGap = `${Math.round(gx)}px`;
-  el.style.rowGap = `${Math.round(gy)}px`;
+  // One column that scrolls: every tile has the width of the rail.
+  const pad = 10;
+  const size = Math.max(40, Math.min(160, Math.floor(W - pad * 2 - 14)));
+  el.style.padding = pad + 'px';
+  el.style.gridTemplateColumns = `${size}px`;
+  el.style.columnGap = '0';
+  el.style.rowGap = `${pad}px`;
+  el.style.justifyContent = 'center';
+  el.style.alignContent = 'start';
   document.documentElement.style.setProperty('--tile-size', `${size}px`);
-
-  // An incomplete last row is centred under the others.
-  const rem = count % cols;
-  const shift = rem ? Math.round(((cols - rem) * (size + gx)) / 2) : 0;
-  $kids.css('margin-left', '');
-  if (shift) {
-    $kids.slice(count - rem).css('margin-left', `${shift}px`);
-  }
+  $apps.children('.button').css('margin-left', '');
 }
 
 let resizeTimer;

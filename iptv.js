@@ -31,6 +31,7 @@
   const DASH_SRC = 'https://cdn.jsdelivr.net/npm/dashjs@4.7.4/dist/dash.all.min.js';
 
   let state = { lists: [], activeId: null, offered: [] };
+  let pendingUrl = null;  // channel to start as soon as the list is loaded (home shortcut)
   let channels = [];      // channels of the active list: [name, url, logo, group]
   let filtered = [];      // indexes into `channels` matching search + group
   let shown = 0;          // how many of `filtered` are rendered
@@ -649,6 +650,13 @@
     renderLists();
     renderGroups();
     applyFilter();
+    if (pendingUrl) {
+      const wanted = channels.findIndex(c => c[1] === pendingUrl);
+      pendingUrl = null;
+      if (wanted >= 0) {
+        playChannel(wanted);
+      }
+    }
     if (!byId('iptv-status').classList.contains('error')) {
       countStatus();
     }
@@ -1010,6 +1018,9 @@
       return;
     }
     currentIndex = index;
+    try {
+      window.localStorage.setItem('TeslaTheaterIptvLast', JSON.stringify({ name: channel[0], url: channel[1], at: Date.now() }));
+    } catch (e) { /* ignore */ }
     document.querySelectorAll('#iptv-channels .iptv-channel.playing')
       .forEach(el => el.classList.remove('playing'));
     const row = document.querySelector(`#iptv-channels .iptv-channel[data-index="${index}"]`);
@@ -1221,6 +1232,10 @@
   }
 
   window.openIptv = openIptv;
+  window.iptvPlayUrl = function (url) {
+    pendingUrl = url;
+    openIptv();
+  };
   window.iptvExportData = exportData;
   window.iptvReset = reset;
 })();

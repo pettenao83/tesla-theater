@@ -50,11 +50,11 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=71">
-  <script src="teslatheater.js?v=71"></script>
-  <script src="iptv.js?v=71"></script>
-  <script src="spotify.js?v=71"></script>
-  <script src="dashboard.js?v=71"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=74">
+  <script src="teslatheater.js?v=74"></script>
+  <script src="iptv.js?v=74"></script>
+  <script src="spotify.js?v=74"></script>
+  <script src="dashboard.js?v=74"></script>
 </head>
 <body>
 
@@ -112,6 +112,27 @@
           <div class="dash-wtext"><span id="dash-temp">--°</span><span id="dash-wdesc"><span id="dash-wtext"></span><small id="dash-city"></small></span></div>
         </div>
         </div>
+        </div>
+        <div id="dash-forecast" class="dash-card dash-col">
+          <div class="tl">Prossimi giorni</div>
+          <div id="fc-days" class="fc-days"></div>
+        </div>
+        <div id="dash-recent" class="dash-card dash-col">
+          <div class="tl">Usate di recente</div>
+          <div id="recent-apps" class="recent-apps"></div>
+        </div>
+        <div id="dash-channels" class="dash-card dash-col">
+          <div class="tl">Canali preferiti</div>
+          <div id="ch-fav" class="ch-fav"></div>
+          <button id="ch-last" type="button" class="ch-last hidden"></button>
+        </div>
+        <div id="dash-calendar" class="dash-card dash-col">
+          <div id="cal-title" class="tl"></div>
+          <div id="cal-grid" class="cal-grid"></div>
+        </div>
+        <div id="dash-sun" class="dash-card">
+          <div class="sun-col"><div class="tl">Sole</div><div id="sun-times" class="sun-line"></div></div>
+          <div class="sun-col"><div class="tl">Aria e vento</div><div id="air-wind" class="sun-line"></div></div>
         </div>
         <div id="apps" class="container"></div>
         <div id="dash-news" class="dash-card">
