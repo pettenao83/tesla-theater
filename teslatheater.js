@@ -174,32 +174,32 @@ function buildPage(sites) {
   resizeTiles();
 }
 
-// Home, Spotify and IPTV keep the same layout at every window size: below a comfortable
-// size (1100x700) the whole page is scaled down, it never rearranges itself.
+// Home, Spotify and IPTV are laid out on a virtual page of fixed height (1100px) whose width
+// follows the window only between 1.3:1 and 1.9:1. The page is then scaled to fit: it never
+// rearranges or overflows, whatever the size of the window; outside those proportions it is
+// centred with empty bands.
 function fitHome() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const z = Math.max(0.3, Math.min(1, vw / 1100, vh / 700));
-  // "1vh" of the virtual page, for the sizes that depend on the height
-  document.documentElement.style.setProperty('--vh', (vh / z / 100) + 'px');
+  const H = 1100;
+  const aspect = Math.min(1.9, Math.max(1.3, vw / vh));
+  const W = Math.round(H * aspect);
+  const z = Math.min(vw / W, vh / H);
+  // "1vh" of the virtual page: constant, so every size that uses it is stable
+  document.documentElement.style.setProperty('--vh', (H / 100) + 'px');
   ['app-header', 'spotify-view', 'iptv-view'].forEach(function (id) {
     const el = document.getElementById(id);
     if (!el) {
       return;
     }
-    if (z >= 1) {
-      el.style.transform = '';
-      el.style.width = '';
-      el.style.height = '';
-      el.style.maxWidth = '';
-      el.style.margin = '';
-      return;
-    }
-    el.style.transformOrigin = '0 0';
-    el.style.width = (vw / z) + 'px';
-    el.style.height = (vh / z) + 'px';
+    el.style.position = 'fixed';
+    el.style.left = Math.round((vw - W * z) / 2) + 'px';
+    el.style.top = Math.round((vh - H * z) / 2) + 'px';
+    el.style.width = W + 'px';
+    el.style.height = H + 'px';
     el.style.maxWidth = 'none';
     el.style.margin = '0';
+    el.style.transformOrigin = '0 0';
     el.style.transform = 'scale(' + z + ')';
   });
 }
