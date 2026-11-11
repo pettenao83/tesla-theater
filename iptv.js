@@ -477,9 +477,12 @@
     const small = isSmall();
     const open = view.classList.contains('iptv-list-open');
     const focus = view.classList.contains('iptv-focus');
-    btn.querySelector('span').textContent = small
+    const label = small
       ? (open ? 'Chiudi canali' : 'Canali')
       : (focus ? 'Mostra canali' : 'Nascondi canali');
+    btn.querySelector('span').textContent = label;
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
     btn.classList.toggle('active', small ? open : focus);
   }
   function applyLayout() {
@@ -519,6 +522,8 @@
     const btn = byId('iptv-audio-btn');
     btn.classList.toggle('active', on);
     btn.querySelector('span').textContent = on ? 'Mostra video' : 'Solo audio';
+    btn.title = on ? 'Mostra video' : 'Solo audio';
+    btn.setAttribute('aria-label', btn.title);
     byId('iptv-audio-card').classList.toggle('hidden', !on);
     applyAudioQuality();
     if (remember) {

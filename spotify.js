@@ -413,7 +413,10 @@
     const seek = byId('sp-seek');
     seek.max = item ? item.duration_ms : 0;
     seek.disabled = !item;
-    byId('sp-device-name').textContent = (player && player.device && player.device.name) || 'Dispositivi';
+    const devName = (player && player.device && player.device.name) || 'Dispositivi';
+    byId('sp-device-name').textContent = devName;
+    byId('sp-devices-btn').title = devName;
+    byId('sp-devices-btn').setAttribute('aria-label', devName);
     const playing = !!(player && player.is_playing);
     byId('spotify-view').classList.toggle('sp-playing', playing);
     byId('sp-play').innerHTML = '<em class="fas fa-' + (playing ? 'pause' : 'play') + '"></em>';
@@ -523,12 +526,11 @@
         api('/me/player/recently-played?limit=5').catch(() => null)
       ]);
       const curId = player && player.item && player.item.id;
-      const next = ((q && q.queue) || []).slice(0, 4);
+      const next = ((q && q.queue) || []).slice(0, 1);
       const before = ((h && h.items) || [])
         .map(x => x.track && Object.assign({}, x.track, { _ctx: x.context && /^(album|playlist)$/.test(x.context.type) ? x.context.uri : '' }))
         .filter(t => t && t.id !== curId)
-        .slice(0, 2)
-        .reverse();
+        .slice(0, 1);
       box.textContent = '';
       if (!next.length && !before.length) {
         box.classList.add('hidden');
@@ -554,12 +556,12 @@
         return g;
       };
       if (before.length) {
-        box.appendChild(group('Precedenti', before, t => {
+        box.appendChild(group('Precedente', before, t => {
           command('/me/player/play', 'PUT', { context_uri: t._ctx || (t.album && t.album.uri), offset: { uri: t.uri } });
         }));
       }
       if (next.length) {
-        box.appendChild(group('Prossimi', next, (t, i) => skipTo(i)));
+        box.appendChild(group('Successivo', next, (t, i) => skipTo(i)));
       }
       box.classList.remove('hidden');
       // keep only the tiles that fit the width: first the farthest next ones, then the oldest previous

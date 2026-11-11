@@ -2350,3 +2350,32 @@ html[data-theme="cover"] #dash { align-self: stretch; }
 }
 .dash-accent:hover { transform: translateY(-2px) scale(1.06); }
 .dash-accent.active { border-color: var(--ink); box-shadow: 0 0 0 3px var(--bg-panel), 0 0 0 5px var(--ink); }
+
+/* IPTV and Spotify bars: icon buttons only, like the home (the names are tooltips) */
+.iptv-bar .lbl,
+.sp-bar .lbl,
+.iptv-prefs .lbl { display: none; }
+.iptv-bar .actionbutton,
+.sp-bar .actionbutton,
+.sp-layouts .actionbutton {
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex: none;
+}
+.iptv-bar .actionbutton em,
+.sp-bar .actionbutton em { width: auto; }
+.iptv-prefs .actionbutton { width: 44px; height: 44px; padding: 0; justify-content: center; flex: none; font-size: 1.05rem; }
+
+/* one previous and one next track, a bit larger */
+.sp-next { flex: 0 0 120px; width: 120px; }
+.sp-next span { font-size: 0.85rem; }
+
+/* IPTV and Spotify use the whole window */
+#iptv-view,
+#spotify-view { max-width: none; margin: 0; width: 100%; }
+#iptv-view { padding: 12px 20px 16px; }
+#spotify-view { padding: 12px 20px 16px; }
+.iptv-main { grid-template-columns: minmax(300px, 22%) minmax(0, 1fr); }

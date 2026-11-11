@@ -42,11 +42,11 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=55">
-  <script src="teslatheater.js?v=55"></script>
-  <script src="iptv.js?v=55"></script>
-  <script src="spotify.js?v=55"></script>
-  <script src="dashboard.js?v=55"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=58">
+  <script src="teslatheater.js?v=58"></script>
+  <script src="iptv.js?v=58"></script>
+  <script src="spotify.js?v=58"></script>
+  <script src="dashboard.js?v=58"></script>
 </head>
 <body>
 
@@ -167,14 +167,14 @@
 
     <section id="iptv-view" class="hidden" aria-label="IPTV">
       <div class="iptv-bar">
-        <button id="iptv-home" type="button" class="actionbutton"><em class="fas fa-home"></em> Home</button>
+        <button id="iptv-home" type="button" class="actionbutton" title="Home" aria-label="Home"><em class="fas fa-home"></em><span class="lbl" class="lbl">Home</span></button>
         <select id="iptv-list-select" aria-label="Lista attiva"></select>
-        <button id="iptv-toggle-channels" type="button" class="actionbutton secondary" title="Nascondi o mostra l'elenco dei canali"><em class="fas fa-columns"></em> <span>Nascondi canali</span></button>
-        <button id="iptv-audio-btn" type="button" class="actionbutton secondary" title="Nasconde il video e lascia solo l'audio"><em class="fas fa-headphones"></em> <span>Solo audio</span></button>
-        <button id="iptv-add-file" type="button" class="actionbutton secondary"><em class="fas fa-file-upload"></em> Carica file</button>
-        <button id="iptv-add-url" type="button" class="actionbutton secondary"><em class="fas fa-link"></em> Da indirizzo</button>
-        <button id="iptv-refresh" type="button" class="actionbutton secondary hidden"><em class="fas fa-sync-alt"></em> Aggiorna</button>
-        <button id="iptv-delete" type="button" class="actionbutton secondary hidden"><em class="fas fa-trash"></em> Elimina lista</button>
+        <button id="iptv-toggle-channels" type="button" class="actionbutton secondary" title="Nascondi o mostra l'elenco dei canali"><em class="fas fa-columns"></em><span class="lbl">Nascondi canali</span></button>
+        <button id="iptv-audio-btn" type="button" class="actionbutton secondary" title="Nasconde il video e lascia solo l'audio"><em class="fas fa-headphones"></em><span class="lbl">Solo audio</span></button>
+        <button id="iptv-add-file" type="button" class="actionbutton secondary" title="Carica file" aria-label="Carica file"><em class="fas fa-file-upload"></em><span class="lbl" class="lbl">Carica file</span></button>
+        <button id="iptv-add-url" type="button" class="actionbutton secondary" title="Da indirizzo" aria-label="Da indirizzo"><em class="fas fa-link"></em><span class="lbl" class="lbl">Da indirizzo</span></button>
+        <button id="iptv-refresh" type="button" class="actionbutton secondary hidden" title="Aggiorna" aria-label="Aggiorna"><em class="fas fa-sync-alt"></em><span class="lbl" class="lbl">Aggiorna</span></button>
+        <button id="iptv-delete" type="button" class="actionbutton secondary hidden" title="Elimina lista" aria-label="Elimina lista"><em class="fas fa-trash"></em><span class="lbl" class="lbl">Elimina lista</span></button>
         <input type="file" id="iptv-file" class="hidden" accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/x-mpegurl,application/vnd.apple.mpegurl,text/plain" />
       </div>
 
@@ -199,8 +199,8 @@
               <option value="name">Nome A–Z</option>
               <option value="group">Per gruppo</option>
             </select>
-            <button id="iptv-edit" type="button" class="actionbutton secondary" title="Riordina i preferiti"><em class="fas fa-arrows-alt-v"></em> Preferiti</button>
-            <button id="iptv-save-prefs" type="button" class="actionbutton hidden" title="Scarica il file da pubblicare per tutti"><em class="fas fa-save"></em> Salva per tutti</button>
+            <button id="iptv-edit" type="button" class="actionbutton secondary" title="Preferiti" aria-label="Preferiti"><em class="fas fa-arrows-alt-v"></em><span class="lbl" class="lbl">Preferiti</span></button>
+            <button id="iptv-save-prefs" type="button" class="actionbutton hidden" title="Salva per tutti" aria-label="Salva per tutti"><em class="fas fa-save"></em><span class="lbl" class="lbl">Salva per tutti</span></button>
           </div>
           <div id="iptv-channels"></div>
         </aside>
@@ -221,16 +221,16 @@
 
     <section id="spotify-view" class="hidden" aria-label="Spotify">
       <div class="sp-bar">
-        <button id="sp-home" type="button" class="actionbutton"><em class="fas fa-home"></em> Home</button>
+        <button id="sp-home" type="button" class="actionbutton" title="Home" aria-label="Home"><em class="fas fa-home"></em><span class="lbl" class="lbl">Home</span></button>
         <span class="sp-title">Spotify</span>
         <div class="sp-layouts" role="group" aria-label="Aspetto del player">
-          <button type="button" class="sp-layout actionbutton secondary" data-layout="vinyl"><em class="fas fa-compact-disc"></em> Vinile</button>
-          <button type="button" class="sp-layout actionbutton secondary" data-layout="immersive"><em class="fas fa-image"></em> Immersivo</button>
-          <button type="button" class="sp-layout actionbutton secondary" data-layout="cinema"><em class="fas fa-film"></em> Cinema</button>
+          <button type="button" class="sp-layout actionbutton secondary" data-layout="vinyl" title="Vinile" aria-label="Vinile"><em class="fas fa-compact-disc"></em><span class="lbl" class="lbl">Vinile</span></button>
+          <button type="button" class="sp-layout actionbutton secondary" data-layout="immersive" title="Immersivo" aria-label="Immersivo"><em class="fas fa-image"></em><span class="lbl" class="lbl">Immersivo</span></button>
+          <button type="button" class="sp-layout actionbutton secondary" data-layout="cinema" title="Cinema" aria-label="Cinema"><em class="fas fa-film"></em><span class="lbl" class="lbl">Cinema</span></button>
         </div>
-        <button id="sp-lib-btn" type="button" class="actionbutton secondary hidden"><em class="fas fa-list"></em> Libreria</button>
-        <button id="sp-devices-btn" type="button" class="actionbutton secondary hidden"><em class="fas fa-volume-up"></em> <span id="sp-device-name">Dispositivi</span></button>
-        <button id="sp-logout" type="button" class="actionbutton secondary hidden"><em class="fas fa-sign-out-alt"></em> Esci</button>
+        <button id="sp-lib-btn" type="button" class="actionbutton secondary hidden" title="Libreria" aria-label="Libreria"><em class="fas fa-list"></em><span class="lbl" class="lbl">Libreria</span></button>
+        <button id="sp-devices-btn" type="button" class="actionbutton secondary hidden"><em class="fas fa-volume-up"></em><span class="lbl" id="sp-device-name">Dispositivi</span></button>
+        <button id="sp-logout" type="button" class="actionbutton secondary hidden" title="Esci" aria-label="Esci"><em class="fas fa-sign-out-alt"></em><span class="lbl" class="lbl">Esci</span></button>
       </div>
       <p id="sp-msg" class="hidden"></p>
       <div id="sp-devices" class="hidden"></div>
