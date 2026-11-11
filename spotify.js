@@ -510,6 +510,7 @@
     setTimeout(() => { lastItemId = null; }, 600);
   }
 
+  // Previous and next tracks, as fixed-size tiles: the ones before on the left, the ones after on the right.
   async function refreshQueue() {
     const box = byId('sp-queue');
     if (layout !== 'immersive' || !st.access) {
@@ -517,29 +518,65 @@
       return;
     }
     try {
-      const q = await api('/me/player/queue');
-      const next = ((q && q.queue) || []).slice(0, 6);
+      const [q, h] = await Promise.all([
+        api('/me/player/queue').catch(() => null),
+        api('/me/player/recently-played?limit=5').catch(() => null)
+      ]);
+      const curId = player && player.item && player.item.id;
+      const next = ((q && q.queue) || []).slice(0, 4);
+      const before = ((h && h.items) || [])
+        .map(x => x.track && Object.assign({}, x.track, { _ctx: x.context && /^(album|playlist)$/.test(x.context.type) ? x.context.uri : '' }))
+        .filter(t => t && t.id !== curId)
+        .slice(0, 2)
+        .reverse();
       box.textContent = '';
-      if (!next.length) {
+      if (!next.length && !before.length) {
         box.classList.add('hidden');
         return;
       }
-      box.appendChild(el('div', 'sp-queue-label', 'Prossimi'));
-      const row = el('div', 'sp-queue-row');
-      next.forEach((t, i) => {
-        const b = el('button', 'sp-next');
-        b.type = 'button';
-        b.title = t.name;
-        const im = el('img');
-        im.alt = '';
-        im.src = imageOf(t, true);
-        b.appendChild(im);
-        b.appendChild(el('span', null, t.name));
-        b.addEventListener('click', () => skipTo(i));
-        row.appendChild(b);
-      });
-      box.appendChild(row);
+      const group = (title, tracks, onPick) => {
+        const g = el('div', 'sp-q-group');
+        g.appendChild(el('div', 'sp-queue-label', title));
+        const row = el('div', 'sp-queue-row');
+        tracks.forEach((t, i) => {
+          const b = el('button', 'sp-next');
+          b.type = 'button';
+          b.title = t.name;
+          const im = el('img');
+          im.alt = '';
+          im.src = imageOf(t, true);
+          b.appendChild(im);
+          b.appendChild(el('span', null, t.name));
+          b.addEventListener('click', () => onPick(t, i));
+          row.appendChild(b);
+        });
+        g.appendChild(row);
+        return g;
+      };
+      if (before.length) {
+        box.appendChild(group('Precedenti', before, t => {
+          command('/me/player/play', 'PUT', { context_uri: t._ctx || (t.album && t.album.uri), offset: { uri: t.uri } });
+        }));
+      }
+      if (next.length) {
+        box.appendChild(group('Prossimi', next, (t, i) => skipTo(i)));
+      }
       box.classList.remove('hidden');
+      // keep only the tiles that fit the width: first the farthest next ones, then the oldest previous
+      const rows = box.querySelectorAll('.sp-queue-row');
+      while (box.scrollWidth > box.clientWidth + 1) {
+        const nextRow = rows[rows.length - 1];
+        const prevRow = rows.length > 1 ? rows[0] : null;
+        if (nextRow && nextRow.children.length > 2) {
+          nextRow.lastChild.remove();
+        } else if (prevRow && prevRow.children.length > 1) {
+          prevRow.firstChild.remove();
+        } else if (nextRow && nextRow.children.length > 1) {
+          nextRow.lastChild.remove();
+        } else {
+          break;
+        }
+      }
     } catch (e) {
       box.classList.add('hidden');
     }

@@ -8,7 +8,7 @@
   const KEY = 'TeslaTheaterDash';
   const THEMES = ['neon', 'minimal', 'cover', 'android-dark', 'android-light', 'ios-dark', 'ios-light'];
   const DEFAULT_CITY = { name: 'Spinea (Venezia)', lat: 45.49, lon: 12.15 };
-  const cfg = { theme: 'ios-light', city: DEFAULT_CITY, news: 'ansa' };
+  const cfg = { theme: 'ios-light', accent: '', city: DEFAULT_CITY, news: 'ansa' };
   let player = null;
   let weatherTimer = null;
   let started = false;
@@ -21,6 +21,9 @@
       const saved = JSON.parse(window.localStorage.getItem(KEY) || '{}');
       if (THEMES.includes(saved.theme)) {
         cfg.theme = saved.theme;
+      }
+      if (typeof saved.accent === 'string' && /^#[0-9a-f]{6}$/i.test(saved.accent)) {
+        cfg.accent = saved.accent;
       }
       if (typeof saved.news === 'string' && NEWS_SOURCES[saved.news]) {
         cfg.news = saved.news;
@@ -43,11 +46,103 @@
     }
   }
 
+  // ---------- accent colour ----------
+
+  const ACCENTS = [
+    ['', 'Predefinito'],
+    ['#0a84ff', 'Blu'],
+    ['#7c5cff', 'Viola'],
+    ['#ff4fa3', 'Rosa'],
+    ['#e82127', 'Rosso'],
+    ['#ff8a1f', 'Arancio'],
+    ['#f2b705', 'Giallo'],
+    ['#2fbf71', 'Verde'],
+    ['#14b8b8', 'Turchese']
+  ];
+
+  function rgba(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+  // The three own icons are drawn here so they take the accent colour of the style.
+  function iconSvg(name, a, b, t) {
+    const head = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">';
+    const g = '<g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="10">';
+    let body = '';
+    if (name === 'iptv') {
+      body = g + '<path d="M96 50 L128 84 L160 50" stroke="' + a + '"/><rect x="28" y="84" width="200" height="132" rx="22" stroke="' + b + '"/></g>' +
+        '<text x="128" y="172" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="58" letter-spacing="2" fill="' + t + '">IPTV</text>';
+    } else if (name === 'spotify') {
+      body = g + '<circle cx="128" cy="128" r="86" stroke="' + b + '"/><path d="M78 104 Q128 86 178 108" stroke="' + a + '"/><path d="M86 132 Q128 118 170 134" stroke="' + a + '"/><path d="M94 158 Q128 148 160 160" stroke="' + a + '"/></g>';
+    } else {
+      body = g + '<path d="M104 186 V66 L196 46 V166" stroke="' + a + '"/><path d="M104 98 L196 78" stroke="' + a + '"/><ellipse cx="80" cy="190" rx="26" ry="20" stroke="' + b + '"/><ellipse cx="172" cy="170" rx="26" ry="20" stroke="' + b + '"/></g>';
+    }
+    return 'url("data:image/svg+xml,' + encodeURIComponent(head + body + '</svg>') + '")';
+  }
+
+  function renderIcons() {
+    const cs = window.getComputedStyle(document.documentElement);
+    const a = cs.getPropertyValue('--pink').trim();
+    const b = cs.getPropertyValue('--cyan').trim();
+    const t = cs.getPropertyValue('--ink').trim();
+    ['iptv', 'spotify', 'applemusic'].forEach(id => {
+      const img = document.querySelector('#' + id + ' img');
+      if (img) {
+        img.style.content = iconSvg(id, a, b, t);
+      }
+    });
+  }
+
+  function applyAccent() {
+    const root = document.documentElement.style;
+    if (cfg.accent) {
+      const n = parseInt(cfg.accent.slice(1), 16);
+      const lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+      root.setProperty('--pink', cfg.accent);
+      root.setProperty('--pink-glow', rgba(cfg.accent, 0.35));
+      root.setProperty('--line-pink', rgba(cfg.accent, 0.35));
+      root.setProperty('--on-pink', lum > 0.62 ? '#1a0a20' : '#ffffff');
+    } else {
+      ['--pink', '--pink-glow', '--line-pink', '--on-pink'].forEach(p => root.removeProperty(p));
+    }
+    document.querySelectorAll('.dash-accent').forEach(b => {
+      b.classList.toggle('active', (b.dataset.accent || '') === cfg.accent);
+    });
+    renderIcons();
+  }
+
+  function buildAccents() {
+    const box = byId('dash-accents');
+    box.textContent = '';
+    ACCENTS.forEach(a => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'dash-accent';
+      b.dataset.accent = a[0];
+      b.title = a[1];
+      b.setAttribute('aria-label', a[1]);
+      if (a[0]) {
+        b.style.background = a[0];
+      } else {
+        b.classList.add('auto');
+        b.innerHTML = '<em class="fas fa-magic"></em>';
+      }
+      b.addEventListener('click', () => {
+        cfg.accent = a[0];
+        save();
+        applyAccent();
+      });
+      box.appendChild(b);
+    });
+  }
+
   function applyTheme() {
     document.documentElement.dataset.theme = cfg.theme;
     document.querySelectorAll('.dash-theme').forEach(b => {
       b.classList.toggle('active', b.dataset.theme === cfg.theme);
     });
+    applyAccent();
     relayout();
   }
 
@@ -454,7 +549,9 @@
     started = true;
     load();
     bind();
+    buildAccents();
     applyTheme();
+    new MutationObserver(renderIcons).observe(byId('apps'), { childList: true });
     tickClock();
     setInterval(tickClock, 10000);
     loadWeather();
@@ -478,6 +575,7 @@
       window.localStorage.removeItem(KEY);
     } catch (e) { /* ignore */ }
     cfg.theme = 'ios-light';
+    cfg.accent = '';
     cfg.city = DEFAULT_CITY;
     cfg.news = 'ansa';
     try {

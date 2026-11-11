@@ -719,31 +719,7 @@ a:focus-visible {
   letter-spacing: 0.03em;
 }
 
-@media (max-width: 820px) {
-  #iptv-view {
-    height: auto;
-    min-height: 100vh;
-    padding: 12px;
-  }
 
-  .iptv-main {
-    grid-template-columns: 1fr;
-  }
-
-  .iptv-stage {
-    order: -1;
-  }
-
-  .iptv-player-wrap {
-    flex: none;
-    aspect-ratio: 16 / 9;
-    min-height: 0;
-  }
-
-  .iptv-side {
-    max-height: 55vh;
-  }
-}
 
 /* IPTV: favourites and sort */
 .iptv-prefs {
@@ -870,40 +846,9 @@ body.iptv-open {
 #iptv-view {
   overflow: hidden;
 }
-@media (max-width: 820px) {
-  /* hidden channel list: the video still fits the screen on phones / narrow windows */
-  #iptv-view.iptv-focus {
-    height: 100vh;
-    height: 100dvh;
-    min-height: 0;
-    overflow: hidden;
-  }
-  #iptv-view.iptv-focus .iptv-main,
-  #iptv-view.iptv-focus .iptv-stage {
-    flex: 1;
-    min-height: 0;
-  }
-  #iptv-view.iptv-focus .iptv-player-wrap {
-    flex: 1;
-    aspect-ratio: auto;
-  }
-}
 
-@media (max-width: 820px) {
-  /* narrow screens, list shown: video on top, channel list scrolls inside the remaining space */
-  #iptv-view {
-    height: 100vh;
-    height: 100dvh;
-    min-height: 0;
-  }
-  .iptv-main {
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-  .iptv-side {
-    max-height: none;
-    min-height: 0;
-  }
-}
+
+
 
 /* Neon scrollbars (channel list and any other scrolling area) */
 #iptv-channels,
@@ -981,37 +926,7 @@ body.iptv-open {
 
 /* Small browser window (Tesla browser not in full screen): the video fills the window and
    the channel list slides in over it with the "Canali" button, then goes away again. */
-@media (max-width: 900px), (max-height: 520px) {
-  #iptv-view.iptv-focus .iptv-main {
-    position: relative;
-    flex: 1;
-    min-height: 0;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr);
-  }
-  #iptv-view.iptv-focus .iptv-stage {
-    flex: 1;
-    min-height: 0;
-  }
-  #iptv-view.iptv-focus .iptv-player-wrap {
-    flex: 1;
-    aspect-ratio: auto;
-    max-height: none;
-  }
-  #iptv-view.iptv-focus.iptv-list-open .iptv-side {
-    display: flex;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: min(360px, 88%);
-    max-height: none;
-    z-index: 5;
-    background: var(--bg-deep);
-    border-color: var(--cyan);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 14px var(--cyan-glow);
-  }
-}
+
 
 /* ---------- Spotify remote ---------- */
 body.spotify-open {
@@ -1330,37 +1245,8 @@ body.spotify-open {
   padding: 20px;
   color: var(--ink-muted);
 }
-@media (max-width: 900px), (max-height: 560px) {
-  #spotify-view {
-    padding: 10px 12px 12px;
-    gap: 8px;
-  }
-  .sp-main {
-    grid-template-columns: minmax(220px, 40%) minmax(0, 1fr);
-    gap: 10px;
-  }
-  .sp-now {
-    gap: 8px;
-    padding: 10px;
-  }
-  #sp-track {
-    font-size: 1.2rem;
-  }
-  .sp-controls button {
-    width: 44px;
-    height: 44px;
-  }
-  .sp-controls .sp-play {
-    width: 56px;
-    height: 56px;
-  }
-}
-@media (max-width: 640px) and (orientation: portrait) {
-  .sp-main {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1.6fr) minmax(0, 1fr);
-  }
-}
+
+
 
 /* ---------- Home dashboard ---------- */
 #dash {
@@ -1769,9 +1655,9 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
 .sp-queue, .sp-shelf { display: none; }
 
 /* Vinile: a record spins out of the cover while the music plays */
-@media not all and (max-width: 640px) and (orientation: portrait) {
+
   .sp-l-vinyl .sp-main { grid-template-columns: minmax(300px, 50%) minmax(0, 1fr); }
-}
+
 .sp-l-vinyl .sp-cover-wrap { container-type: size; justify-content: flex-start; padding-left: 3cqw; }
 .sp-l-vinyl .sp-art { width: min(72cqw, 100cqh); height: auto; aspect-ratio: 1; max-width: none; }
 .sp-art { isolation: isolate; }
@@ -1801,7 +1687,7 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
 @keyframes sp-spin { to { transform: rotate(360deg); } }
 
 /* Immersivo e Cinema: cover on the left, everything else on the right */
-@media not all and (max-width: 640px) and (orientation: portrait) {
+
   .sp-l-immersive .sp-main,
   .sp-l-cinema .sp-main { grid-template-columns: minmax(0, 1fr); }
   .sp-l-immersive .sp-lib,
@@ -1836,7 +1722,7 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
   .sp-l-cinema #sp-track { font-size: 2.4rem; line-height: 1.1; white-space: normal; }
   .sp-l-immersive #sp-artist,
   .sp-l-cinema #sp-artist { font-size: 1.15rem; }
-}
+
 
 /* Immersivo: the background takes the colour of the cover */
 #spotify-view.sp-l-immersive {
@@ -1845,7 +1731,7 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
   color: #fff;
   transition: background 0.6s ease;
 }
-.sp-l-immersive .sp-art { max-width: min(100%, 66vh); height: auto; width: 100%; align-self: center; }
+.sp-l-immersive .sp-art { max-width: min(100%, calc(var(--vh, 1vh) * 66)); height: auto; width: 100%; align-self: center; }
 .sp-l-immersive #sp-cover { border-radius: 16px; box-shadow: 0 22px 44px rgba(0, 0, 0, 0.5); }
 .sp-l-immersive .sp-title,
 .sp-l-immersive #sp-track { color: #fff; text-shadow: none; }
@@ -1910,12 +1796,7 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
 .sp-card img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; background: var(--bg-deep); }
 .sp-card span { display: block; margin-top: 6px; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-@media (max-height: 560px) {
-  .sp-queue, .sp-shelf { display: none !important; }
-  .sp-l-immersive .sp-now, .sp-l-cinema .sp-now { padding-bottom: 8px; }
-  .sp-l-immersive #sp-track, .sp-l-cinema #sp-track { font-size: 1.5rem; }
-  .sp-l-immersive .sp-art { max-width: min(100%, 70vh); }
-}
+
 
 /* No horizontal separator lines in the header; the zoom control is as tall as the buttons */
 #toolbar { border-bottom: 0; }
@@ -2011,7 +1892,7 @@ html[data-theme$="-light"] .sp-row {
 .sp-card img { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35); }
 
 /* Player details: tidy column, depth on controls, queue as clickable cards */
-@media not all and (max-width: 640px) and (orientation: portrait) {
+
   .sp-l-immersive .sp-now > :not(.sp-cover-wrap),
   .sp-l-cinema .sp-now > :not(.sp-cover-wrap) { max-width: 780px; }
   .sp-l-immersive .sp-volrow,
@@ -2022,7 +1903,7 @@ html[data-theme$="-light"] .sp-row {
   .sp-l-cinema #sp-track { font-size: 3rem; }
   .sp-l-immersive #sp-artist,
   .sp-l-cinema #sp-artist { margin-top: 4px; opacity: 0.85; }
-}
+
 .sp-controls button {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.30), 0 8px 16px rgba(0, 0, 0, 0.25);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -2066,7 +1947,7 @@ html[data-theme$="-light"] .sp-row {
 .sp-card:hover, .sp-card:focus-visible { transform: translateY(-4px); outline: none; }
 .sp-card img { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.30), 0 10px 18px rgba(0, 0, 0, 0.30); }
 .sp-l-cinema #sp-cover { box-shadow: 14px 0 30px rgba(0, 0, 0, 0.35); }
-@media (max-height: 560px) { .sp-queue { display: none !important; } }
+
 
 /* Spotify messages must be noticeable */
 #sp-msg {
@@ -2082,18 +1963,7 @@ html[data-theme$="-light"] .sp-row {
 .sp-l-immersive .sp-now { box-shadow: none; }
 
 /* Narrow portrait window: Immersivo and Cinema stack the cover above the details */
-@media (max-width: 640px) and (orientation: portrait) {
-  .sp-l-immersive .sp-cover-wrap,
-  .sp-l-cinema .sp-cover-wrap { flex: 0 0 auto; padding: 0; }
-  .sp-l-immersive .sp-art,
-  .sp-l-cinema .sp-art { width: min(100%, 24vh); height: auto; aspect-ratio: 1; max-width: none; }
-  .sp-l-cinema #sp-cover,
-  .sp-l-cinema #sp-cover.empty { border-radius: 14px; }
-  .sp-l-cinema .sp-now { padding: 12px; }
-  .sp-l-immersive #sp-track, .sp-l-cinema #sp-track { font-size: 1.6rem; white-space: normal; }
-  .sp-queue, .sp-shelf { display: none !important; }
-  .sp-l-immersive .sp-now, .sp-l-cinema .sp-now { justify-content: flex-start; gap: 8px; }
-}
+
 
 /* Home news feed: card with three headlines */
 #dash-news { grid-area: news; flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px 14px; }
@@ -2429,3 +2299,54 @@ html[data-theme="cover"] #dash { grid-column: 1 / -1; grid-row: 2; }
 #dash,
 html[data-theme="minimal"] #dash,
 html[data-theme="cover"] #dash { align-self: stretch; }
+
+/* Previous / next tracks: tiles of one fixed size, never stretched */
+.sp-queue-row { gap: 10px; flex-wrap: nowrap; }
+.sp-l-immersive .sp-queue { display: flex; gap: 28px; align-items: flex-start; }
+.sp-l-immersive .sp-queue.hidden { display: none; }
+.sp-q-group { display: flex; flex-direction: column; min-width: 0; }
+.sp-next { flex: 0 0 88px; width: 88px; max-width: none; }
+
+/* Fixed text sizes: a very long song title can never move the cover or the controls */
+#spotify-view.sp-l-immersive #sp-track,
+#spotify-view.sp-l-cinema #sp-track {
+  font-size: 2.4rem;
+  line-height: 1.15;
+  height: 2.3em;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+#spotify-view.sp-l-vinyl #sp-track {
+  font-size: 1.7rem;
+  line-height: 1.2;
+  height: 1.2em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#spotify-view #sp-artist {
+  height: 1.4em;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#spotify-view .sp-info { min-width: 0; }
+
+/* Accent colour picker */
+.dash-accents { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dash-accent {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--bd);
+  cursor: pointer;
+  color: var(--ink-muted);
+  background: var(--bg-deep);
+  box-shadow: var(--raise-hi), var(--raise);
+  transition: transform 0.15s ease;
+}
+.dash-accent:hover { transform: translateY(-2px) scale(1.06); }
+.dash-accent.active { border-color: var(--ink); box-shadow: 0 0 0 3px var(--bg-panel), 0 0 0 5px var(--ink); }

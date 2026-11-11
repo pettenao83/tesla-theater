@@ -174,26 +174,34 @@ function buildPage(sites) {
   resizeTiles();
 }
 
-// The home keeps the same layout at every window size: below a comfortable size
-// (1100x700) the whole page is simply scaled down, it never rearranges itself.
+// Home, Spotify and IPTV keep the same layout at every window size: below a comfortable
+// size (1100x700) the whole page is scaled down, it never rearranges itself.
 function fitHome() {
-  const el = document.getElementById('app-header');
-  if (!el) {
-    return;
-  }
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const z = Math.max(0.3, Math.min(1, vw / 1100, vh / 700));
-  if (z >= 1) {
-    el.style.transform = '';
-    el.style.width = '';
-    el.style.height = '';
-    return;
-  }
-  el.style.transformOrigin = '0 0';
-  el.style.width = (vw / z) + 'px';
-  el.style.height = (vh / z) + 'px';
-  el.style.transform = 'scale(' + z + ')';
+  // "1vh" of the virtual page, for the sizes that depend on the height
+  document.documentElement.style.setProperty('--vh', (vh / z / 100) + 'px');
+  ['app-header', 'spotify-view', 'iptv-view'].forEach(function (id) {
+    const el = document.getElementById(id);
+    if (!el) {
+      return;
+    }
+    if (z >= 1) {
+      el.style.transform = '';
+      el.style.width = '';
+      el.style.height = '';
+      el.style.maxWidth = '';
+      el.style.margin = '';
+      return;
+    }
+    el.style.transformOrigin = '0 0';
+    el.style.width = (vw / z) + 'px';
+    el.style.height = (vh / z) + 'px';
+    el.style.maxWidth = 'none';
+    el.style.margin = '0';
+    el.style.transform = 'scale(' + z + ')';
+  });
 }
 
 function resizeTiles() {

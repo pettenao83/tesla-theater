@@ -454,7 +454,8 @@
   }
 
   // Hides the channel list so the video takes the whole width (per device).
-  const SMALL_QUERY = '(max-width: 900px), (max-height: 520px)';
+  // The layout never changes with the window size: the whole page is scaled instead.
+  const SMALL_QUERY = '(min-width: 99999px)';
   function isSmall() {
     return window.matchMedia(SMALL_QUERY).matches;
   }
