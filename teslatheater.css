@@ -2619,3 +2619,6 @@ html[data-theme] .dash-ctl .dash-play { width: calc(var(--vh, 1vh) * 6.2); heigh
 .sun-item .aqi-good { color: #30d158; }
 .sun-item .aqi-mid { color: #f2b705; }
 .sun-item .aqi-bad { color: #ff453a; }
+
+/* home music tile: shuffle / repeat state */
+.dash-ctl button.on { color: var(--pink); border-color: var(--pink); }

@@ -673,6 +673,10 @@
       ? ((item.artists && item.artists.map(a => a.name).join(', ')) || (item.show && item.show.publisher) || '')
       : 'Avvia Spotify sull\'auto o sul telefono.';
     const playing = !!(player && player.is_playing);
+    byId('dash-shuffle').classList.toggle('on', !!(player && player.shuffle_state));
+    const rep = (player && player.repeat_state) || 'off';
+    byId('dash-repeat').classList.toggle('on', rep !== 'off');
+    byId('dash-repeat').title = rep === 'track' ? 'Ripeti il brano' : rep === 'context' ? 'Ripeti la playlist' : 'Ripeti';
     byId('dash-play').innerHTML = '<em class="fas fa-' + (playing ? 'pause' : 'play') + '"></em>';
     byId('dash-play').setAttribute('aria-label', playing ? 'Pausa' : 'Riproduci');
     tickProgress();
@@ -735,7 +739,8 @@
         openSpotify();
       }
     });
-    byId('dash-play').addEventListener('click', () => {
+    byId('dash-play').addEventListener('click', e => {
+      e.stopPropagation();
       if (player && player.is_playing) {
         player.is_playing = false;
         renderNow();
@@ -749,8 +754,33 @@
         control('/me/player/play');
       }
     });
-    byId('dash-next').addEventListener('click', () => control('/me/player/next', 'POST'));
-    byId('dash-prev').addEventListener('click', () => control('/me/player/previous', 'POST'));
+    byId('dash-next').addEventListener('click', e => {
+      e.stopPropagation();
+      control('/me/player/next', 'POST');
+    });
+    byId('dash-prev').addEventListener('click', e => {
+      e.stopPropagation();
+      control('/me/player/previous', 'POST');
+    });
+    byId('dash-shuffle').addEventListener('click', e => {
+      e.stopPropagation();
+      const on = !(player && player.shuffle_state);
+      if (player) {
+        player.shuffle_state = on;
+        renderNow();
+      }
+      control('/me/player/shuffle?state=' + on);
+    });
+    byId('dash-repeat').addEventListener('click', e => {
+      e.stopPropagation();
+      const order = ['off', 'context', 'track'];
+      const next = order[(order.indexOf((player && player.repeat_state) || 'off') + 1) % 3];
+      if (player) {
+        player.repeat_state = next;
+        renderNow();
+      }
+      control('/me/player/repeat?state=' + next);
+    });
     byId('dash-settings-btn').addEventListener('click', () => {
       byId('dash-settings').classList.toggle('hidden');
       byId('dash-settings-btn').classList.toggle('active');

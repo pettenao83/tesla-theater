@@ -50,11 +50,11 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=75">
-  <script src="teslatheater.js?v=75"></script>
-  <script src="iptv.js?v=75"></script>
-  <script src="spotify.js?v=75"></script>
-  <script src="dashboard.js?v=75"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=76">
+  <script src="teslatheater.js?v=76"></script>
+  <script src="iptv.js?v=76"></script>
+  <script src="spotify.js?v=76"></script>
+  <script src="dashboard.js?v=76"></script>
 </head>
 <body>
 
@@ -95,9 +95,11 @@
             <div id="dash-artist"></div>
             <div class="dash-bar"><div id="dash-prog"></div></div>
             <div id="dash-ctl" class="dash-ctl hidden">
+              <button id="dash-shuffle" type="button" aria-label="Casuale"><em class="fas fa-random"></em></button>
               <button id="dash-prev" type="button" aria-label="Precedente"><em class="fas fa-step-backward"></em></button>
               <button id="dash-play" type="button" class="dash-play" aria-label="Riproduci"><em class="fas fa-play"></em></button>
               <button id="dash-next" type="button" aria-label="Successivo"><em class="fas fa-step-forward"></em></button>
+              <button id="dash-repeat" type="button" aria-label="Ripeti"><em class="fas fa-retweet"></em></button>
             </div>
             <button id="dash-connect" type="button" class="actionbutton hidden"><em class="fas fa-link"></em> Collega Spotify</button>
           </div>
