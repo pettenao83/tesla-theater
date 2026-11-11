@@ -2622,3 +2622,8 @@ html[data-theme] .dash-ctl .dash-play { width: calc(var(--vh, 1vh) * 6.2); heigh
 
 /* home music tile: shuffle / repeat state */
 .dash-ctl button.on { color: var(--pink); border-color: var(--pink); }
+
+/* the music tile is laid out the same way in every style (Minimale used to centre it) */
+html[data-theme] .dash-now-main { display: flex; flex-direction: column; align-items: stretch; justify-content: center; text-align: left; }
+html[data-theme] .dash-bar { width: 100%; grid-column: auto; }
+html[data-theme] .dash-ctl { justify-content: flex-start; }
