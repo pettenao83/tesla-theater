@@ -216,22 +216,44 @@ function resizeTiles() {
   fitHome();
   const $apps = $('#apps');
   const el = $apps[0];
-  if (!el || !$apps.children('.button').length) {
+  const n = $apps.children('.button').length;
+  if (!el || !n) {
     return;
   }
   const W = el.clientWidth;
-  if (W <= 0 || el.clientHeight <= 0) {
+  const H = el.clientHeight;
+  if (W <= 0 || H <= 0) {
     return; // the home is hidden (another page is open)
   }
-  // One column that scrolls: every tile has the width of the rail.
+  // One column. The tiles are as large as the column allows; when they all fit, the leftover
+  // height is shared evenly between them; with many apps they shrink down to a minimum size
+  // and, only after that, the column scrolls.
   const pad = 10;
-  const size = Math.max(40, Math.min(160, Math.floor(W - pad * 2 - 14)));
+  const gapMin = 8;
+  const minSize = 70;
+  const widthSize = Math.min(160, W - pad * 2);
+  const fit = (H - pad * 2 - (n - 1) * gapMin) / n;
+  let size;
+  let gap;
+  let scroll = false;
+  if (fit >= widthSize) {
+    size = Math.floor(widthSize);
+    gap = n > 1 ? Math.min(size * 0.5, (H - pad * 2 - n * size) / (n - 1)) : 0;
+  } else if (fit >= minSize) {
+    size = Math.floor(fit);
+    gap = gapMin;
+  } else {
+    size = Math.floor(Math.min(160, W - pad * 2 - 14));
+    gap = 10;
+    scroll = true;
+  }
+  el.style.overflowY = scroll ? 'auto' : 'hidden';
   el.style.padding = pad + 'px';
   el.style.gridTemplateColumns = `${size}px`;
   el.style.columnGap = '0';
-  el.style.rowGap = `${pad}px`;
+  el.style.rowGap = `${Math.round(gap)}px`;
   el.style.justifyContent = 'center';
-  el.style.alignContent = 'start';
+  el.style.alignContent = scroll ? 'start' : 'center';
   document.documentElement.style.setProperty('--tile-size', `${size}px`);
   $apps.children('.button').css('margin-left', '');
 }
