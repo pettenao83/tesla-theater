@@ -36,17 +36,25 @@
   <script>
     try {
       var savedDash = JSON.parse(window.localStorage.getItem('TeslaTheaterDash') || '{}');
-      var okThemes = ['neon', 'minimal', 'cover', 'android-dark', 'android-light', 'ios-dark', 'ios-light'];
-      document.documentElement.setAttribute('data-theme', okThemes.indexOf(savedDash.theme) >= 0 ? savedDash.theme : 'ios-light');
-    } catch (e) { /* ignore */ }
+      var st = savedDash.theme || 'ios';
+      var md = savedDash.mode || 'auto';
+      var legacy = /^(android|ios)-(dark|light)$/.exec(st);
+      if (legacy) { st = legacy[1]; md = legacy[2]; }
+      if (['neon', 'minimal', 'cover', 'android', 'ios'].indexOf(st) < 0) { st = 'ios'; }
+      if (st === 'android' || st === 'ios') {
+        var dark = md === 'dark' || (md === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        st = st + '-' + (dark ? 'dark' : 'light');
+      }
+      document.documentElement.setAttribute('data-theme', st);
+    } catch (e) { document.documentElement.setAttribute('data-theme', 'ios-light'); }
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=65">
-  <script src="teslatheater.js?v=65"></script>
-  <script src="iptv.js?v=65"></script>
-  <script src="spotify.js?v=65"></script>
-  <script src="dashboard.js?v=65"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=66">
+  <script src="teslatheater.js?v=66"></script>
+  <script src="iptv.js?v=66"></script>
+  <script src="spotify.js?v=66"></script>
+  <script src="dashboard.js?v=66"></script>
 </head>
 <body>
 
@@ -94,6 +102,7 @@
             <button id="dash-connect" type="button" class="actionbutton hidden"><em class="fas fa-link"></em> Collega Spotify</button>
           </div>
         </div>
+        <div class="dash-stack">
         <div id="dash-clock" class="dash-card">
           <div id="dash-time">--:--</div>
           <div id="dash-date"></div>
@@ -101,6 +110,7 @@
         <div id="dash-weather" class="dash-card">
           <em id="dash-wicon" class="fas fa-cloud"></em>
           <div class="dash-wtext"><span id="dash-temp">--°</span><span id="dash-wdesc"><span id="dash-wtext"></span><small id="dash-city"></small></span></div>
+        </div>
         </div>
         </div>
         <div id="apps" class="container"></div>
@@ -119,10 +129,14 @@
             <button type="button" class="dash-theme actionbutton secondary" data-theme="neon">Neon</button>
             <button type="button" class="dash-theme actionbutton secondary" data-theme="minimal">Minimale</button>
             <button type="button" class="dash-theme actionbutton secondary" data-theme="cover">Cover</button>
-            <button type="button" class="dash-theme actionbutton secondary" data-theme="android-dark">Android scuro</button>
-            <button type="button" class="dash-theme actionbutton secondary" data-theme="android-light">Android chiaro</button>
-            <button type="button" class="dash-theme actionbutton secondary" data-theme="ios-dark">iOS scuro</button>
-            <button type="button" class="dash-theme actionbutton secondary" data-theme="ios-light">iOS chiaro</button>
+            <button type="button" class="dash-theme actionbutton secondary" data-theme="android">Android</button>
+            <button type="button" class="dash-theme actionbutton secondary" data-theme="ios">iOS</button>
+          </div>
+          <div id="dash-mode-row" class="dash-set-row">
+            <strong>Modo</strong>
+            <button type="button" class="dash-mode actionbutton secondary" data-mode="auto">Automatico (sistema)</button>
+            <button type="button" class="dash-mode actionbutton secondary" data-mode="light">Chiaro</button>
+            <button type="button" class="dash-mode actionbutton secondary" data-mode="dark">Scuro</button>
           </div>
           <div class="dash-set-row">
             <strong>Colore</strong>

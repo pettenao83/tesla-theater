@@ -282,7 +282,7 @@ a:focus-visible {
   border-radius: 14px;
   width: 100%;
   max-width: 320px;
-  box-shadow: 0 0 20px rgba(255, 95, 209, 0.12);
+  box-shadow: 0 0 20px var(--pink-glow);
 }
 
 #add-app-form input[type="text"] {
@@ -811,7 +811,7 @@ a:focus-visible {
   padding: 10px 18px;
   border: 1px solid var(--cyan);
   border-radius: 100px;
-  background: rgba(82, 240, 255, 0.08);
+  background: color-mix(in srgb, var(--cyan) 10%, transparent);
   color: var(--cyan);
   font-family: var(--font-body);
   font-size: 0.95rem;
@@ -864,7 +864,7 @@ body.iptv-open {
   align-items: center;
   justify-content: center;
   gap: 18px;
-  background: radial-gradient(circle at 50% 40%, rgba(255, 79, 216, 0.16), #05040f 70%);
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--pink) 16%, transparent), var(--bg-deep) 70%);
   color: var(--cyan);
   font-family: var(--font-display);
   letter-spacing: 0.06em;
@@ -884,7 +884,7 @@ body.iptv-open {
   height: 84px;
   border-radius: 50%;
   border: 1px solid var(--pink);
-  background: rgba(255, 79, 216, 0.12);
+  background: color-mix(in srgb, var(--pink) 12%, transparent);
   color: var(--pink);
   font-size: 2rem;
   cursor: pointer;
@@ -2457,3 +2457,30 @@ html[data-theme$="-light"] .iptv-item { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10
 /* IPTV: no "309 canali" line (the list name already says it), everything moves up */
 #iptv-status:not(.error):not(.warn) { display: none; }
 #iptv-view { padding: 8px 16px 12px; gap: 8px; }
+
+/* ===== Home arrangement: tall widgets row, small apps box, narrow news feed ===== */
+#dash,
+html[data-theme="minimal"] #dash,
+html[data-theme="cover"] #dash {
+  grid-template-columns: minmax(0, 2.15fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1.5fr) minmax(0, 1fr);
+}
+.dash-top { min-height: 0; align-items: stretch; }
+#dash-now { flex: 2; min-height: 0; }
+.dash-stack { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 16px; }
+.dash-stack .dash-card { flex: 1; min-height: 0; }
+.dash-card { padding: calc(var(--vh, 1vh) * 2) calc(var(--vh, 1vh) * 2.2); gap: calc(var(--vh, 1vh) * 2); }
+html[data-theme] #dash-cover { width: calc(var(--vh, 1vh) * 20); height: calc(var(--vh, 1vh) * 20); max-width: 42%; border-radius: calc(var(--vh, 1vh) * 1.6); }
+html[data-theme] #dash-track { font-size: calc(var(--vh, 1vh) * 3); line-height: 1.15; }
+html[data-theme] #dash-artist { display: block; font-size: calc(var(--vh, 1vh) * 2.1); height: auto; }
+html[data-theme] .dash-now-main { gap: calc(var(--vh, 1vh) * 1.2); justify-content: center; }
+html[data-theme] .dash-ctl { gap: calc(var(--vh, 1vh) * 1.6); }
+html[data-theme] .dash-ctl button { width: calc(var(--vh, 1vh) * 6); height: calc(var(--vh, 1vh) * 6); font-size: calc(var(--vh, 1vh) * 2.2); }
+html[data-theme] .dash-ctl .dash-play { width: calc(var(--vh, 1vh) * 7.5); height: calc(var(--vh, 1vh) * 7.5); font-size: calc(var(--vh, 1vh) * 2.8); }
+html[data-theme] #dash-time { font-size: calc(var(--vh, 1vh) * 8.5); }
+html[data-theme] #dash-date { font-size: calc(var(--vh, 1vh) * 2); }
+html[data-theme] #dash-wicon { font-size: calc(var(--vh, 1vh) * 6.5); }
+html[data-theme] #dash-temp { font-size: calc(var(--vh, 1vh) * 6.5); }
+html[data-theme] #dash-wtext { font-size: calc(var(--vh, 1vh) * 2.1); }
+html[data-theme] #dash-city { font-size: calc(var(--vh, 1vh) * 1.7); }
+#dash-clock { align-items: center; text-align: center; }

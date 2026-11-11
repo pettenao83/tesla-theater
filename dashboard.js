@@ -6,9 +6,10 @@
   'use strict';
 
   const KEY = 'TeslaTheaterDash';
-  const THEMES = ['neon', 'minimal', 'cover', 'android-dark', 'android-light', 'ios-dark', 'ios-light'];
+  const STYLES = ['neon', 'minimal', 'cover', 'android', 'ios'];
+  const MODES = ['auto', 'light', 'dark'];
   const DEFAULT_CITY = { name: 'Spinea (Venezia)', lat: 45.49, lon: 12.15 };
-  const cfg = { theme: 'ios-light', accent: '', city: DEFAULT_CITY, news: 'ansa' };
+  const cfg = { theme: 'ios', mode: 'auto', accent: '', city: DEFAULT_CITY, news: 'ansa' };
   let player = null;
   let weatherTimer = null;
   let started = false;
@@ -19,8 +20,15 @@
   function load() {
     try {
       const saved = JSON.parse(window.localStorage.getItem(KEY) || '{}');
-      if (THEMES.includes(saved.theme)) {
+      const legacy = /^(android|ios)-(dark|light)$/.exec(saved.theme || '');
+      if (legacy) {
+        cfg.theme = legacy[1];
+        cfg.mode = legacy[2];
+      } else if (STYLES.includes(saved.theme)) {
         cfg.theme = saved.theme;
+      }
+      if (MODES.includes(saved.mode)) {
+        cfg.mode = saved.mode;
       }
       if (typeof saved.accent === 'string' && /^#[0-9a-f]{6}$/i.test(saved.accent)) {
         cfg.accent = saved.accent;
@@ -137,11 +145,25 @@
     });
   }
 
+  // Android and iOS have a light and a dark look; "automatic" follows the system.
+  function resolveTheme() {
+    if (cfg.theme !== 'android' && cfg.theme !== 'ios') {
+      return cfg.theme;
+    }
+    const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = cfg.mode === 'dark' || (cfg.mode === 'auto' && sysDark);
+    return cfg.theme + '-' + (dark ? 'dark' : 'light');
+  }
+
   function applyTheme() {
-    document.documentElement.dataset.theme = cfg.theme;
+    document.documentElement.dataset.theme = resolveTheme();
     document.querySelectorAll('.dash-theme').forEach(b => {
       b.classList.toggle('active', b.dataset.theme === cfg.theme);
     });
+    document.querySelectorAll('.dash-mode').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === cfg.mode);
+    });
+    byId('dash-mode-row').classList.toggle('hidden', cfg.theme !== 'android' && cfg.theme !== 'ios');
     applyAccent();
     relayout();
   }
@@ -524,6 +546,16 @@
         applyTheme();
       });
     });
+    document.querySelectorAll('.dash-mode').forEach(b => {
+      b.addEventListener('click', () => {
+        cfg.mode = b.dataset.mode;
+        save();
+        applyTheme();
+      });
+    });
+    if (window.matchMedia) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+    }
     byId('dash-city-search').addEventListener('click', searchCity);
     const sel = byId('dash-news-source');
     sel.value = cfg.news;
@@ -574,7 +606,8 @@
     try {
       window.localStorage.removeItem(KEY);
     } catch (e) { /* ignore */ }
-    cfg.theme = 'ios-light';
+    cfg.theme = 'ios';
+    cfg.mode = 'auto';
     cfg.accent = '';
     cfg.city = DEFAULT_CITY;
     cfg.news = 'ansa';
