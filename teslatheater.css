@@ -1507,17 +1507,7 @@ html[data-theme="cover"] #dash-cover { width: 190px; height: 190px; border-radiu
 html[data-theme="cover"] #dash-track { font-size: 2rem; white-space: normal; }
 html[data-theme="cover"] .dash-card { border-radius: 22px; border-color: transparent; }
 
-@media (max-width: 900px), (max-height: 560px) {
-  #dash, html[data-theme="minimal"] #dash, html[data-theme="cover"] #dash {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas: "now now" "clock weather" "news news" "settings settings";
-    padding: 0 12px;
-    gap: 8px;
-  }
-  #dash-cover, html[data-theme="cover"] #dash-cover, html[data-theme="minimal"] #dash-cover { width: 72px; height: 72px; }
-  #dash-time, html[data-theme="minimal"] #dash-time { font-size: 2.2rem; }
-  #dash-track, html[data-theme="cover"] #dash-track { font-size: 1.2rem; }
-}
+
 
 /* ---------- Styles: Android 17 and iOS, dark and light ---------- */
 html[data-theme^="android"] {
@@ -1751,9 +1741,7 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
   padding: 9px 14px;
   flex: none;
 }
-@media (max-width: 700px) {
-  #toolbar { flex-wrap: wrap; }
-}
+
 
 /* ---------- Spotify player looks: Vinile / Immersivo / Cinema ---------- */
 #spotify-view { position: relative; }
@@ -2165,10 +2153,7 @@ html[data-theme$="-light"] .news-item { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10
   padding: 10px 16px; color: var(--ink); background: var(--bg-deep);
   border: 1px solid var(--line); border-radius: 100px; font: inherit;
 }
-@media (max-width: 900px), (max-height: 560px) {
-  .news-list { grid-template-columns: minmax(0, 1fr); }
-  .news-item:nth-child(n+2) { display: none; }
-}
+
 
 /* ===== One consistent surface language for every style =====
    raised (fuori): buttons, cards, tiles  ·  inset (dentro): fields, tracks, progress bars
@@ -2404,26 +2389,7 @@ html[data-theme] #dash-wicon { font-size: 2rem; }
 #news-dots i.on { width: 20px; background: var(--pink); }
 
 /* narrow or short window: widgets on top, a slim news strip, then the apps */
-@media (max-width: 900px), (max-height: 560px) {
-  #dash,
-  html[data-theme="minimal"] #dash,
-  html[data-theme="cover"] #dash {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto minmax(0, 1fr);
-    grid-template-areas: "top" "news" "apps";
-    padding: 0 12px 12px;
-    gap: 10px;
-    overflow-y: auto;
-  }
-  .dash-top { flex-wrap: wrap; gap: 10px; }
-  #dash-now { flex: 1 1 100%; }
-  #news-more, #news-dots, #dash-news .news-photo { display: none; }
-  #news-main { flex: none; }
-  #dash-news .news-title { font-size: 1rem; -webkit-line-clamp: 2; }
-  html[data-theme] #dash-cover { width: 60px; height: 60px; }
-  html[data-theme] #dash-time { font-size: 1.8rem; }
-  #toolbar { padding: 4px 12px 8px; }
-}
+
 
 /* No photo for the main story (e.g. ANSA): big headline and four smaller ones */
 #dash-news.nophoto #news-main { flex: none; justify-content: flex-start; padding: 6px 4px 0; }
@@ -2431,41 +2397,13 @@ html[data-theme] #dash-wicon { font-size: 2rem; }
 #dash-news.nophoto #news-more { flex: 1; justify-content: space-evenly; }
 .news-row.nothumb { padding-left: 14px; border-left: 3px solid var(--pink); }
 .news-row.nothumb .news-row-title { font-size: 1.1rem; -webkit-line-clamp: 3; }
-@media (max-width: 900px), (max-height: 560px) {
-  #dash-news.nophoto .news-title { font-size: 1rem; -webkit-line-clamp: 2; }
-  #dash-news.nophoto #news-main { padding: 0; }
-}
+
 
 /* the news card has no big picture: headline first, smaller stories fill the rest */
 #news-more { min-height: 0; overflow: hidden; }
 .news-row { flex: none; }
 #dash-news .news-photo { display: none; }
-@media (max-height: 560px) {
-  #dash, html[data-theme="minimal"] #dash, html[data-theme="cover"] #dash {
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas: "top" "apps";
-    gap: 8px;
-    padding: 0 12px 10px;
-  }
-  #dash-news { display: none; }
-  .dash-top { flex-wrap: nowrap; gap: 8px; }
-  #dash-now { flex: 2 1 0; }
-  #dash-clock, #dash-weather { flex: 1 1 0; }
-  html[data-theme] #dash-cover { width: 52px; height: 52px; }
-  html[data-theme] #dash-track { font-size: 1rem; }
-  html[data-theme] #dash-time { font-size: 1.5rem; }
-  html[data-theme] #dash-temp { font-size: 1.4rem; }
-  html[data-theme] #dash-wicon { font-size: 1.4rem; }
-  html[data-theme] .dash-ctl button { width: 30px; height: 30px; }
-  html[data-theme] .dash-ctl .dash-play { width: 34px; height: 34px; }
-  #dash-date, #dash-wdesc small, #dash-artist { display: none; }
-  .dash-card { padding: 8px 12px; }
-  #toolbar { gap: 8px; padding: 2px 12px 6px; }
-  #toolbar .actionbutton { width: 38px; height: 38px; font-size: 0.95rem; }
-  #toolbar #zoom-control { height: 38px; }
-  .marquee { padding: 4px 12px 0; }
-  .marquee h1 { font-size: 1.3rem; }
-}
+
 
 /* Header: title on the left, the buttons right next to it */
 #app-header {
@@ -2487,12 +2425,7 @@ html[data-theme] #dash-wicon { font-size: 2rem; }
 #dash,
 html[data-theme="minimal"] #dash,
 html[data-theme="cover"] #dash { grid-column: 1 / -1; grid-row: 2; }
-@media (max-width: 700px) {
-  #app-header { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); }
-  .marquee { grid-column: 1; padding: 8px 12px 0; }
-  #toolbar { grid-column: 1; grid-row: 2; padding: 6px 12px 8px; }
-  #dash, html[data-theme="minimal"] #dash, html[data-theme="cover"] #dash { grid-row: 3; }
-}
+
 #dash,
 html[data-theme="minimal"] #dash,
 html[data-theme="cover"] #dash { align-self: stretch; }
