@@ -2420,3 +2420,7 @@ button.sp-nav-btn:active { transform: none; }
 .sp-nav-text b { font-weight: 500; font-size: 0.95rem; }
 .sp-nav-text small { color: rgba(255, 255, 255, 0.72); font-size: 0.8rem; }
 .sp-nav-div { width: 1px; height: 38px; flex: none; background: rgba(255, 255, 255, 0.25); }
+
+/* more air on the right: the details block sits further from the window edge */
+#spotify-view.sp-l-immersive .sp-now { padding: 8px clamp(40px, 7vw, 140px) 8px 8px; }
+#spotify-view.sp-l-cinema .sp-now { padding: 0 clamp(24px, 5vw, 110px) 0 0; }

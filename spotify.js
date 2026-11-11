@@ -513,6 +513,43 @@
     setTimeout(() => { lastItemId = null; }, 600);
   }
 
+  // Tracks of the playlist/album being played, so the real previous track is known.
+  const ctxCache = {};
+  async function contextTracks(ctx) {
+    if (ctxCache[ctx.uri]) {
+      return ctxCache[ctx.uri];
+    }
+    const id = ctx.uri.split(':').pop();
+    const step = ctx.type === 'playlist' ? 100 : 50;
+    const out = [];
+    for (let off = 0; off < 1000; off += step) {
+      let d;
+      if (ctx.type === 'playlist') {
+        try {
+          d = await api('/playlists/' + id + '/items?limit=100&offset=' + off);
+        } catch (e) {
+          if (e.status === 404 || e.status === 400) {
+            d = await api('/playlists/' + id + '/tracks?limit=100&offset=' + off);
+          } else {
+            throw e;
+          }
+        }
+        ((d && d.items) || []).forEach(x => {
+          const t = x && (x.track || x.item || x);
+          out.push(t && t.uri ? t : null);
+        });
+      } else {
+        d = await api('/albums/' + id + '/tracks?limit=50&offset=' + off);
+        ((d && d.items) || []).forEach(t => out.push(t));
+      }
+      if (!d || !d.items || d.items.length < step) {
+        break;
+      }
+    }
+    ctxCache[ctx.uri] = out;
+    return out;
+  }
+
   // One bar under the controls: the previous track on the left, the next one on the right.
   async function refreshQueue() {
     const box = byId('sp-queue');
@@ -527,10 +564,31 @@
       ]);
       const curId = player && player.item && player.item.id;
       const next = ((q && q.queue) || [])[0];
-      const prevItem = ((h && h.items) || []).find(x => x.track && x.track.id !== curId);
-      const prev = prevItem && Object.assign({}, prevItem.track, {
-        _ctx: prevItem.context && /^(album|playlist)$/.test(prevItem.context.type) ? prevItem.context.uri : ''
-      });
+      // the real previous track of the playlist/album (when not shuffled), else the listening history
+      let prev = null;
+      const ctx = player && player.context;
+      if (curId && ctx && /^(playlist|album)$/.test(ctx.type) && !player.shuffle_state) {
+        try {
+          const list = await contextTracks(ctx);
+          const i = list.findIndex(t => t && t.id === curId);
+          let k = i - 1;
+          while (k >= 0 && !list[k]) {
+            k--;
+          }
+          if (k >= 0) {
+            prev = Object.assign({}, list[k], { _ctx: ctx.uri });
+            if (!prev.album && player.item) {
+              prev.album = player.item.album;
+            }
+          }
+        } catch (e) { /* fall back to the history */ }
+      }
+      if (!prev) {
+        const prevItem = ((h && h.items) || []).find(x => x.track && x.track.id !== curId);
+        if (prevItem) {
+          prev = Object.assign({}, prevItem.track, { _history: true });
+        }
+      }
       box.textContent = '';
       if (!next && !prev) {
         box.classList.add('hidden');
@@ -557,7 +615,13 @@
       };
       const bar = el('div', 'sp-nav-bar');
       bar.appendChild(prev
-        ? side(prev, 'prev', () => command('/me/player/play', 'PUT', { context_uri: prev._ctx || (prev.album && prev.album.uri), offset: { uri: prev.uri } }))
+        ? side(prev, 'prev', () => {
+          if (prev._history) {
+            command('/me/player/previous', 'POST');
+          } else {
+            command('/me/player/play', 'PUT', { context_uri: prev._ctx, offset: { uri: prev.uri } });
+          }
+        })
         : el('span', 'sp-nav-btn sp-nav-empty'));
       bar.appendChild(el('i', 'sp-nav-div'));
       bar.appendChild(next ? side(next, 'next', () => skipTo(0)) : el('span', 'sp-nav-btn sp-nav-empty'));
