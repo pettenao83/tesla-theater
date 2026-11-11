@@ -2484,3 +2484,24 @@ html[data-theme] #dash-temp { font-size: calc(var(--vh, 1vh) * 6.5); }
 html[data-theme] #dash-wtext { font-size: calc(var(--vh, 1vh) * 2.1); }
 html[data-theme] #dash-city { font-size: calc(var(--vh, 1vh) * 1.7); }
 #dash-clock { align-items: center; text-align: center; }
+
+/* ===== Idea 3: apps in a side rail, widgets and news on the right ===== */
+#dash,
+html[data-theme="minimal"] #dash,
+html[data-theme="cover"] #dash {
+  grid-template-columns: minmax(0, 0.55fr) minmax(0, 0.95fr) minmax(0, 0.95fr) minmax(0, 1.1fr);
+  grid-template-rows: minmax(0, 0.42fr) minmax(0, 1fr);
+  grid-template-areas: "apps clock weather news" "apps now now news";
+}
+.dash-top,
+.dash-stack { display: contents; }
+#dash-now { grid-area: now; flex: none; }
+#dash-clock { grid-area: clock; flex: none; }
+#dash-weather { grid-area: weather; flex: none; }
+#dash > #apps { grid-area: apps; }
+#dash-news { grid-area: news; }
+html[data-theme] #dash-cover { width: calc(var(--vh, 1vh) * 26); height: calc(var(--vh, 1vh) * 26); max-width: 44%; }
+html[data-theme] #dash-track { font-size: calc(var(--vh, 1vh) * 3.4); }
+html[data-theme] #dash-artist { font-size: calc(var(--vh, 1vh) * 2.3); }
+html[data-theme] .dash-ctl button { width: calc(var(--vh, 1vh) * 6.5); height: calc(var(--vh, 1vh) * 6.5); }
+html[data-theme] .dash-ctl .dash-play { width: calc(var(--vh, 1vh) * 8.2); height: calc(var(--vh, 1vh) * 8.2); }
