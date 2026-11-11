@@ -749,9 +749,7 @@ a:focus-visible {
   width: auto;
   border-bottom: 0;
 }
-.iptv-item.is-fav {
-  background: rgba(255, 79, 216, 0.05);
-}
+
 .iptv-item.fav-last {
   border-bottom: 2px solid var(--pink);
 }
@@ -2438,7 +2436,8 @@ button.sp-nav-btn:active { transform: none; }
 }
 html[data-theme$="-light"] .iptv-item { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10), 0 5px 10px rgba(0, 0, 0, 0.07); }
 .iptv-item:hover { transform: translateY(-2px); }
-.iptv-item.is-fav { background: var(--bg-panel-hover); box-shadow: inset 3px 0 0 var(--pink), var(--raise-hi), 0 1px 2px rgba(0, 0, 0, 0.22), 0 6px 12px rgba(0, 0, 0, 0.16); }
+/* favourites look like every other channel: no accent bar or tinted shadow */
+.iptv-item.is-fav { background: var(--bg-panel-hover); }
 .iptv-item.fav-last { border-bottom: 0; margin-bottom: 18px; }
 .iptv-item .iptv-channel,
 .iptv-item .iptv-channel:hover,
