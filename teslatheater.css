@@ -2453,3 +2453,7 @@ html[data-theme$="-light"] .iptv-item { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10
 .iptv-move { color: var(--ink-muted); }
 .iptv-fav:hover, .iptv-fav:focus-visible, .iptv-move:hover, .iptv-move:focus-visible { background: rgba(128, 128, 128, 0.16); }
 .iptv-player-wrap { border: 1px solid var(--bd); box-shadow: var(--raise); }
+
+/* IPTV: no "309 canali" line (the list name already says it), everything moves up */
+#iptv-status:not(.error):not(.warn) { display: none; }
+#iptv-view { padding: 8px 16px 12px; gap: 8px; }
