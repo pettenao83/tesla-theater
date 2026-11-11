@@ -2505,3 +2505,33 @@ html[data-theme] #dash-track { font-size: calc(var(--vh, 1vh) * 3.4); }
 html[data-theme] #dash-artist { font-size: calc(var(--vh, 1vh) * 2.3); }
 html[data-theme] .dash-ctl button { width: calc(var(--vh, 1vh) * 6.5); height: calc(var(--vh, 1vh) * 6.5); }
 html[data-theme] .dash-ctl .dash-play { width: calc(var(--vh, 1vh) * 8.2); height: calc(var(--vh, 1vh) * 8.2); }
+
+/* ===== Bigger everything: the virtual page is shorter, so texts and controls are larger ===== */
+#dash,
+html[data-theme="minimal"] #dash,
+html[data-theme="cover"] #dash {
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 0.9fr) minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 14px;
+  padding: 0 20px 20px;
+}
+#dash-news .news-title { font-size: 2.1rem; }
+#dash-news.nophoto .news-title { font-size: 2.2rem; }
+.news-row-title { font-size: 1.12rem; }
+.news-row.nothumb .news-row-title { font-size: 1.2rem; }
+#dash-news .news-meta { font-size: 0.9rem; }
+#dash-news .news-chip, #dash-news .news-age { font-size: 0.95rem; }
+html[data-theme] #dash-artist { font-size: calc(var(--vh, 1vh) * 2.5); }
+html[data-theme] #dash-date { font-size: calc(var(--vh, 1vh) * 2.4); }
+html[data-theme] #dash-wtext { font-size: calc(var(--vh, 1vh) * 2.5); }
+html[data-theme] #dash-city { font-size: calc(var(--vh, 1vh) * 2); }
+#toolbar { padding-top: 10px; padding-bottom: 10px; }
+.marquee h1 { font-size: 2.1rem; }
+/* a wider rail: the app tiles are bigger */
+#dash,
+html[data-theme="minimal"] #dash,
+html[data-theme="cover"] #dash {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr) minmax(0, 0.85fr) minmax(0, 1.05fr);
+}
+/* Cinema shelf: playlist cards sized from the page height so the shelf always fits */
+.sp-card { flex: 0 0 calc(var(--vh, 1vh) * 14); }
+.sp-shelf-row { gap: calc(var(--vh, 1vh) * 1.4); }

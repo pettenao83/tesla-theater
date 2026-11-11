@@ -174,14 +174,14 @@ function buildPage(sites) {
   resizeTiles();
 }
 
-// Home, Spotify and IPTV are laid out on a virtual page of fixed height (1100px) whose width
+// Home, Spotify and IPTV are laid out on a virtual page of fixed height (820px) whose width
 // follows the window only between 1.3:1 and 1.9:1. The page is then scaled to fit: it never
 // rearranges or overflows, whatever the size of the window; outside those proportions it is
 // centred with empty bands.
 function fitHome() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const H = 1100;
+  const H = 820;
   const aspect = Math.min(1.9, Math.max(1.3, vw / vh));
   const W = Math.round(H * aspect);
   const z = Math.min(vw / W, vh / H);
