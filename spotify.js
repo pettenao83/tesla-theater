@@ -513,7 +513,7 @@
     setTimeout(() => { lastItemId = null; }, 600);
   }
 
-  // Previous and next tracks, as fixed-size tiles: the ones before on the left, the ones after on the right.
+  // One bar under the controls: the previous track on the left, the next one on the right.
   async function refreshQueue() {
     const box = byId('sp-queue');
     if (layout !== 'immersive' || !st.access) {
@@ -526,59 +526,43 @@
         api('/me/player/recently-played?limit=5').catch(() => null)
       ]);
       const curId = player && player.item && player.item.id;
-      const next = ((q && q.queue) || []).slice(0, 1);
-      const before = ((h && h.items) || [])
-        .map(x => x.track && Object.assign({}, x.track, { _ctx: x.context && /^(album|playlist)$/.test(x.context.type) ? x.context.uri : '' }))
-        .filter(t => t && t.id !== curId)
-        .slice(0, 1);
+      const next = ((q && q.queue) || [])[0];
+      const prevItem = ((h && h.items) || []).find(x => x.track && x.track.id !== curId);
+      const prev = prevItem && Object.assign({}, prevItem.track, {
+        _ctx: prevItem.context && /^(album|playlist)$/.test(prevItem.context.type) ? prevItem.context.uri : ''
+      });
       box.textContent = '';
-      if (!next.length && !before.length) {
+      if (!next && !prev) {
         box.classList.add('hidden');
         return;
       }
-      const group = (title, tracks, onPick) => {
-        const g = el('div', 'sp-q-group');
-        g.appendChild(el('div', 'sp-queue-label', title));
-        const row = el('div', 'sp-queue-row');
-        tracks.forEach((t, i) => {
-          const b = el('button', 'sp-next');
-          b.type = 'button';
-          b.title = t.name;
-          const im = el('img');
-          im.alt = '';
-          im.src = imageOf(t, true);
-          b.appendChild(im);
-          b.appendChild(el('span', null, t.name));
-          b.addEventListener('click', () => onPick(t, i));
-          row.appendChild(b);
-        });
-        g.appendChild(row);
-        return g;
-      };
-      if (before.length) {
-        box.appendChild(group('Precedente', before, t => {
-          command('/me/player/play', 'PUT', { context_uri: t._ctx || (t.album && t.album.uri), offset: { uri: t.uri } });
-        }));
-      }
-      if (next.length) {
-        box.appendChild(group('Successivo', next, (t, i) => skipTo(i)));
-      }
-      box.classList.remove('hidden');
-      // keep only the tiles that fit the width: first the farthest next ones, then the oldest previous
-      const rows = box.querySelectorAll('.sp-queue-row');
-      while (box.scrollWidth > box.clientWidth + 1) {
-        const nextRow = rows[rows.length - 1];
-        const prevRow = rows.length > 1 ? rows[0] : null;
-        if (nextRow && nextRow.children.length > 2) {
-          nextRow.lastChild.remove();
-        } else if (prevRow && prevRow.children.length > 1) {
-          prevRow.firstChild.remove();
-        } else if (nextRow && nextRow.children.length > 1) {
-          nextRow.lastChild.remove();
+      const side = (t, dir, onPick) => {
+        const b = el('button', 'sp-nav-btn sp-nav-' + dir);
+        b.type = 'button';
+        b.title = t.name;
+        const arrow = el('em', 'fas fa-chevron-' + (dir === 'prev' ? 'left' : 'right'));
+        const im = el('img');
+        im.alt = '';
+        im.src = imageOf(t, true);
+        const tx = el('span', 'sp-nav-text');
+        tx.appendChild(el('b', null, t.name));
+        tx.appendChild(el('small', null, artistsOf(t)));
+        if (dir === 'prev') {
+          [arrow, im, tx].forEach(n => b.appendChild(n));
         } else {
-          break;
+          [tx, im, arrow].forEach(n => b.appendChild(n));
         }
-      }
+        b.addEventListener('click', onPick);
+        return b;
+      };
+      const bar = el('div', 'sp-nav-bar');
+      bar.appendChild(prev
+        ? side(prev, 'prev', () => command('/me/player/play', 'PUT', { context_uri: prev._ctx || (prev.album && prev.album.uri), offset: { uri: prev.uri } }))
+        : el('span', 'sp-nav-btn sp-nav-empty'));
+      bar.appendChild(el('i', 'sp-nav-div'));
+      bar.appendChild(next ? side(next, 'next', () => skipTo(0)) : el('span', 'sp-nav-btn sp-nav-empty'));
+      box.appendChild(bar);
+      box.classList.remove('hidden');
     } catch (e) {
       box.classList.add('hidden');
     }
