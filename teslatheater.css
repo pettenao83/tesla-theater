@@ -2820,3 +2820,9 @@ html[data-theme="neon"] .sp-l-vinyl .sp-vinyl::after { text-shadow: 0 0 10px var
 
 /* PIN field: dots without being a password field */
 .pin-mask { -webkit-text-security: disc; text-security: disc; }
+
+.yt-tabs { display: flex; gap: calc(var(--vh,1vh)*1.2); margin-top: calc(var(--vh,1vh)*1.4); overflow-x: auto; }
+.yt-tab { flex: none; padding: calc(var(--vh,1vh)*1.2) calc(var(--vh,1vh)*2.4); font: inherit; font-size: calc(var(--vh,1vh)*2.1); color: var(--ink); background: var(--bg-panel); border: 1px solid var(--line); border-radius: 999px; cursor: pointer; }
+.yt-tab.active { background: var(--pink); color: var(--on-pink, #fff); border-color: transparent; }
+.yt-card.channel img { border-radius: 50%; width: 60%; margin: 0 auto; aspect-ratio: 1; }
+.yt-card.channel { text-align: center; }

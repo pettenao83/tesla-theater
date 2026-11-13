@@ -54,15 +54,90 @@
   }
 
   function toItem(it) {
-    const id = typeof it.id === 'string' ? it.id : (it.id && it.id.videoId);
     const sn = it.snippet || {};
+    const id = typeof it.id === 'string' ? it.id : ((it.id && it.id.videoId) || (sn.resourceId && sn.resourceId.videoId));
     const th = sn.thumbnails || {};
     return {
       id,
       title: decode(sn.title),
-      channel: decode(sn.channelTitle),
-      thumb: (th.medium || th.high || th.default || {}).url || ''
+      channel: decode(sn.videoOwnerChannelTitle || sn.channelTitle),
+      thumb: (th.medium || th.high || th.default || {}).url || '',
+      date: sn.publishedAt || ''
     };
+  }
+
+  const call = (path, params) => window.musicApi.call(path, params);
+  const uploads = {};   // channelId -> uploads playlist id
+
+  const thumbOf = sn => {
+    const th = (sn && sn.thumbnails) || {};
+    return (th.medium || th.high || th.default || {}).url || '';
+  };
+
+  async function uploadsOf(ids) {
+    const need = ids.filter(i => !uploads[i]);
+    for (let k = 0; k < need.length; k += 50) {
+      const d = await call('/channels', { part: 'contentDetails', id: need.slice(k, k + 50).join(','), maxResults: '50' });
+      (d.items || []).forEach(c => {
+        uploads[c.id] = c.contentDetails.relatedPlaylists.uploads;
+      });
+    }
+    return ids.map(i => uploads[i]).filter(Boolean);
+  }
+
+  const tabs = {
+    popular: () => call('/videos', { part: 'snippet', chart: 'mostPopular', regionCode: 'IT', maxResults: '24' }).then(d => ({ items: (d.items || []).map(toItem) })),
+    liked: () => call('/playlistItems', { part: 'snippet', playlistId: 'LL', maxResults: '48' }).then(d => ({ items: (d.items || []).map(toItem) })),
+    subs: async () => {
+      const d = await call('/subscriptions', { part: 'snippet', mine: 'true', maxResults: '50', order: 'alphabetical' });
+      return {
+        items: (d.items || []).map(it => ({
+          kind: 'channel',
+          id: it.snippet.resourceId.channelId,
+          title: decode(it.snippet.title),
+          channel: '',
+          thumb: thumbOf(it.snippet)
+        })),
+        empty: 'Non risulti iscritto a nessun canale.'
+      };
+    },
+    lists: async () => {
+      const d = await call('/playlists', { part: 'snippet', mine: 'true', maxResults: '50' });
+      return {
+        items: (d.items || []).map(it => ({ kind: 'playlist', id: it.id, title: decode(it.snippet.title), channel: '', thumb: thumbOf(it.snippet) })),
+        empty: 'Nessuna playlist.'
+      };
+    },
+    feed: async () => {
+      const d = await call('/subscriptions', { part: 'snippet', mine: 'true', maxResults: '50', order: 'relevance' });
+      const ids = (d.items || []).map(it => it.snippet.resourceId.channelId).slice(0, 20);
+      const pls = await uploadsOf(ids);
+      const parts = await Promise.all(pls.map(pl => call('/playlistItems', { part: 'snippet', playlistId: pl, maxResults: '3' }).catch(() => ({ items: [] }))));
+      const all = [].concat(...parts.map(x => x.items || [])).map(toItem).filter(v => v.id);
+      all.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      return { items: all.slice(0, 36), empty: 'Nessuna novità dai tuoi canali.' };
+    }
+  };
+
+  async function openContainer(it) {
+    if (it.kind === 'channel') {
+      const pl = (await uploadsOf([it.id]))[0];
+      if (!pl) {
+        throw new Error('Canale non disponibile.');
+      }
+      const d = await call('/playlistItems', { part: 'snippet', playlistId: pl, maxResults: '36' });
+      return { items: (d.items || []).map(toItem) };
+    }
+    const d = await call('/playlistItems', { part: 'snippet', playlistId: it.id, maxResults: '48' });
+    return { items: (d.items || []).map(toItem) };
+  }
+
+  function openTab(name) {
+    document.querySelectorAll('.yt-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+    byId('yt-view').classList.remove('playing');
+    byId('yt-back').classList.add('hidden');
+    stopPlayer();
+    run(tabs[name]());
   }
 
   function render() {
@@ -84,7 +159,12 @@
       box.className = 'yt-txt';
       box.append(t, c);
       card.append(img, box);
-      card.addEventListener('click', () => play(i));
+      if (v.kind) {
+        card.classList.add('container', v.kind);
+        card.addEventListener('click', () => run(openContainer(v)));
+      } else {
+        card.addEventListener('click', () => play(i));
+      }
       list.appendChild(card);
     });
   }
@@ -106,7 +186,7 @@
     msg((e && e.message) || 'Errore di rete.', true);
   }
 
-  async function show(promise) {
+  async function run(promise) {
     const my = ++token;
     msg('Carico…', false);
     try {
@@ -114,21 +194,18 @@
       if (my !== token) {
         return;
       }
-      items = (d.items || []).map(toItem).filter(v => v.id);
+      items = (d.items || []).filter(v => v.id);
       idx = -1;
       render();
-      msg(items.length ? '' : 'Nessun risultato.', false);
+      msg(items.length ? '' : (d.empty || 'Nessun risultato.'), false);
     } catch (e) {
       fail(e);
     }
   }
 
-  function popular() {
-    return window.musicApi.call('/videos', { part: 'snippet', chart: 'mostPopular', regionCode: 'IT', maxResults: '24' });
-  }
-
   function search(q) {
-    return window.musicApi.call('/search', { part: 'snippet', q, type: 'video', maxResults: '24', safeSearch: 'moderate' });
+    return call('/search', { part: 'snippet', q, type: 'video', maxResults: '24', safeSearch: 'moderate' })
+      .then(d => ({ items: (d.items || []).map(toItem) }));
   }
 
   async function play(i) {
@@ -196,6 +273,7 @@
     bound = true;
     byId('yt-home').addEventListener('click', closeYoutube);
     byId('yt-back').addEventListener('click', back);
+    document.querySelectorAll('.yt-tab').forEach(b => b.addEventListener('click', () => openTab(b.dataset.tab)));
     byId('yt-login').addEventListener('click', () => window.musicApi.login());
     byId('yt-form').addEventListener('submit', e => {
       e.preventDefault();
@@ -204,7 +282,8 @@
         byId('yt-view').classList.remove('playing');
         byId('yt-back').classList.add('hidden');
         stopPlayer();
-        show(search(q));
+        document.querySelectorAll('.yt-tab').forEach(b => b.classList.remove('active'));
+        run(search(q));
       }
     });
   }
@@ -226,7 +305,7 @@
       return;
     }
     if (!items.length) {
-      show(popular());
+      openTab('popular');
     }
   }
 
