@@ -114,11 +114,12 @@
       const n = parseInt(cfg.accent.slice(1), 16);
       const lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
       root.setProperty('--pink', cfg.accent);
+      root.setProperty('--tint', cfg.accent);
       root.setProperty('--pink-glow', rgba(cfg.accent, 0.35));
       root.setProperty('--line-pink', rgba(cfg.accent, 0.35));
       root.setProperty('--on-pink', lum > 0.62 ? '#1a0a20' : '#ffffff');
     } else {
-      ['--pink', '--pink-glow', '--line-pink', '--on-pink'].forEach(p => root.removeProperty(p));
+      ['--pink', '--pink-glow', '--line-pink', '--on-pink', '--tint'].forEach(p => root.removeProperty(p));
     }
     document.querySelectorAll('.dash-accent').forEach(b => {
       b.classList.toggle('active', (b.dataset.accent || '') === cfg.accent);

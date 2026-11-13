@@ -1345,20 +1345,23 @@ html[data-theme="minimal"] .dash-ctl, html[data-theme="minimal"] #dash-connect {
 
 /* Style: Cover */
 html[data-theme="cover"] {
-  --bg-deep: #2a1233;
-  --bg-panel: #3a1a47;
-  --bg-panel-hover: #4a2559;
-  --sky-1: #3a1a47;
-  --sky-2: #2a1233;
+  /* the surfaces are tinted by --tint: violet by default, the accent colour once one is chosen */
+  --tint: #8a4fd0;
+  --bg-deep: color-mix(in srgb, var(--tint) 22%, #0d0710);
+  --bg-panel: color-mix(in srgb, var(--tint) 32%, #0c0610);
+  --bg-panel-hover: color-mix(in srgb, var(--tint) 40%, #0c0610);
+  --sky-1: var(--bg-panel);
+  --sky-2: var(--bg-deep);
   --pink: #f08a3c;
-  --pink-glow: rgba(240, 138, 60, 0.4);
-  --cyan: #ffd9a8;
-  --cyan-glow: rgba(255, 217, 168, 0.25);
+  --pink-glow: color-mix(in srgb, var(--pink) 40%, transparent);
+  --cyan: color-mix(in srgb, var(--pink) 35%, #ffffff);
+  --cyan-glow: color-mix(in srgb, var(--pink) 25%, transparent);
   --ink: #ffffff;
-  --ink-muted: #d6b8e0;
+  --ink-muted: color-mix(in srgb, var(--tint) 35%, #ffffff);
   --line: rgba(255, 255, 255, 0.14);
-  --line-pink: rgba(240, 138, 60, 0.4);
+  --line-pink: color-mix(in srgb, var(--pink) 40%, transparent);
 }
+
 html[data-theme="cover"] #dash {
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   grid-template-areas: "now clock" "now weather" "news news" "settings settings";
@@ -2710,3 +2713,27 @@ html[data-theme] .dash-ctl .dash-play { width: calc(var(--vh, 1vh) * 8.4); heigh
 #dash-news.nophoto #news-main { flex: none; }
 #dash-news.nophoto .news-title { font-size: 2.2rem; -webkit-line-clamp: 5; }
 #dash-news.nophoto #news-more { flex: 1; justify-content: space-evenly; }
+
+/* ===== Neon: the accents glow ===== */
+html[data-theme="neon"] { --glow-a: 0 0 6px var(--pink), 0 0 20px var(--pink-glow); }
+html[data-theme="neon"] .actionbutton.active,
+html[data-theme="neon"] .actionbutton:not(.secondary),
+html[data-theme="neon"] .sp-tab.active,
+html[data-theme="neon"] .sp-controls .sp-play,
+html[data-theme="neon"] .dash-ctl .dash-play,
+html[data-theme="neon"] .now-chip.active,
+html[data-theme="neon"] .sp-layout.active { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), var(--glow-a); }
+html[data-theme="neon"] .sp-controls button.on,
+html[data-theme="neon"] .dash-ctl button.on { border-color: var(--pink); box-shadow: 0 0 10px var(--pink-glow), inset 0 0 8px var(--pink-glow); }
+html[data-theme="neon"] .dash-accent.active { box-shadow: 0 0 0 3px var(--bg-panel), 0 0 0 5px var(--pink), 0 0 16px var(--pink-glow); }
+html[data-theme="neon"] #dash-prog,
+html[data-theme="neon"] .news-dots i.on { box-shadow: 0 0 8px var(--pink), 0 0 16px var(--pink-glow); }
+html[data-theme="neon"] .news-chip { color: var(--pink); border-color: var(--pink); box-shadow: 0 0 10px var(--pink-glow), inset 0 0 8px var(--pink-glow); }
+html[data-theme="neon"] .news-row.nothumb { border-left-color: var(--pink); box-shadow: -4px 0 10px -4px var(--pink-glow); }
+html[data-theme="neon"] .iptv-item:has(.iptv-channel.playing) { box-shadow: var(--glow-a); }
+html[data-theme="neon"] #ytmusic img,
+html[data-theme="neon"] #iptv img,
+html[data-theme="neon"] #applemusic img { filter: drop-shadow(0 0 5px var(--pink-glow)) drop-shadow(0 0 12px var(--pink-glow)); }
+html[data-theme="neon"] *::-webkit-scrollbar-thumb { box-shadow: 0 0 8px var(--pink-glow); }
+html[data-theme="neon"] .sp-title,
+html[data-theme="neon"] .sp-l-vinyl .sp-vinyl::after { text-shadow: 0 0 10px var(--pink-glow); }
