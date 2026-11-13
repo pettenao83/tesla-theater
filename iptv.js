@@ -980,6 +980,63 @@
     return 'Impossibile riprodurre questo canale: può essere offline, in un formato che il browser non supporta (es. MKV/AVI) oppure non accessibile da questo sito (CORS). Prova un altro canale.';
   }
 
+  // --- Audio / video sync: the audio can be delayed (Web Audio) when it runs ahead of the picture ---
+  const SYNC_KEY = 'TeslaTheaterIptvSync';
+  let syncMap = {};
+  let audioCtx = null;
+  let delayNode = null;
+  let syncMs = 0;
+
+  function loadSync() {
+    try {
+      syncMap = JSON.parse(window.localStorage.getItem(SYNC_KEY) || '{}') || {};
+    } catch (e) {
+      syncMap = {};
+    }
+  }
+
+  function ensureAudioGraph() {
+    if (audioCtx) {
+      return true;
+    }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) {
+      return false;
+    }
+    audioCtx = new AC();
+    const src = audioCtx.createMediaElementSource(byId('iptv-video'));
+    delayNode = audioCtx.createDelay(2);
+    src.connect(delayNode);
+    delayNode.connect(audioCtx.destination);
+    return true;
+  }
+
+  function applyDelay(ms) {
+    syncMs = ms;
+    byId('iptv-sync-val').textContent = (ms > 0 ? '+' : '') + ms + ' ms';
+    if ((ms > 0 || audioCtx) && ensureAudioGraph()) {
+      delayNode.delayTime.value = ms / 1000;
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+  }
+
+  function setChannelDelay(ms) {
+    const ch = channels[currentIndex];
+    applyDelay(ms);
+    if (ch) {
+      if (ms > 0) {
+        syncMap[ch[1]] = ms;
+      } else {
+        delete syncMap[ch[1]];
+      }
+      try {
+        window.localStorage.setItem(SYNC_KEY, JSON.stringify(syncMap));
+      } catch (e) { /* ignore */ }
+    }
+  }
+
   async function startPlayback(url) {
     const token = ++playToken;
     stopPlayback();
@@ -1030,6 +1087,7 @@
     byId('iptv-now').textContent = channel[0];
     byId('iptv-audio-name').textContent = channel[0];
     startPlayback(channel[1]);
+    applyDelay(syncMap[channel[1]] || 0);
   }
 
   // --- View ----------------------------------------------------------------
@@ -1086,6 +1144,15 @@
     byId('iptv-audio-btn').addEventListener('click', () => {
       setAudioOnly(!byId('iptv-view').classList.contains('iptv-audio'), true);
     });
+    loadSync();
+    byId('iptv-sync-btn').addEventListener('click', () => {
+      byId('iptv-sync').classList.toggle('hidden');
+      byId('iptv-sync-btn').classList.toggle('active');
+      byId('iptv-sync-val').textContent = (syncMs > 0 ? '+' : '') + syncMs + ' ms';
+    });
+    byId('iptv-sync-minus').addEventListener('click', () => setChannelDelay(Math.max(0, syncMs - 50)));
+    byId('iptv-sync-plus').addEventListener('click', () => setChannelDelay(Math.min(1500, syncMs + 50)));
+    byId('iptv-sync-reset').addEventListener('click', () => setChannelDelay(0));
     byId('iptv-audio-play').addEventListener('click', () => {
       const video = byId('iptv-video');
       if (video.paused) {

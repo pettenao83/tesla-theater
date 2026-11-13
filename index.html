@@ -50,11 +50,11 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=84">
-  <script src="teslatheater.js?v=84"></script>
-  <script src="iptv.js?v=84"></script>
-  <script src="music.js?v=84"></script>
-  <script src="dashboard.js?v=84"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=85">
+  <script src="teslatheater.js?v=85"></script>
+  <script src="iptv.js?v=85"></script>
+  <script src="music.js?v=85"></script>
+  <script src="dashboard.js?v=85"></script>
 </head>
 <body>
 
@@ -175,11 +175,23 @@
         <select id="iptv-list-select" aria-label="Lista attiva"></select>
         <button id="iptv-toggle-channels" type="button" class="actionbutton secondary" title="Nascondi o mostra l'elenco dei canali"><em class="fas fa-columns"></em><span class="lbl">Nascondi canali</span></button>
         <button id="iptv-audio-btn" type="button" class="actionbutton secondary" title="Nasconde il video e lascia solo l'audio"><em class="fas fa-headphones"></em><span class="lbl">Solo audio</span></button>
+        <button id="iptv-sync-btn" type="button" class="actionbutton secondary" title="Sincronia audio e video" aria-label="Sincronia audio e video"><em class="fas fa-sliders-h"></em><span class="lbl">Sincronia</span></button>
         <button id="iptv-add-file" type="button" class="actionbutton secondary" title="Carica file" aria-label="Carica file"><em class="fas fa-file-upload"></em><span class="lbl" class="lbl">Carica file</span></button>
         <button id="iptv-add-url" type="button" class="actionbutton secondary" title="Da indirizzo" aria-label="Da indirizzo"><em class="fas fa-link"></em><span class="lbl" class="lbl">Da indirizzo</span></button>
         <button id="iptv-refresh" type="button" class="actionbutton secondary hidden" title="Aggiorna" aria-label="Aggiorna"><em class="fas fa-sync-alt"></em><span class="lbl" class="lbl">Aggiorna</span></button>
         <button id="iptv-delete" type="button" class="actionbutton secondary hidden" title="Elimina lista" aria-label="Elimina lista"><em class="fas fa-trash"></em><span class="lbl" class="lbl">Elimina lista</span></button>
         <input type="file" id="iptv-file" class="hidden" accept=".m3u,.m3u8,.txt,audio/x-mpegurl,application/x-mpegurl,application/vnd.apple.mpegurl,text/plain" />
+      </div>
+
+      <div id="iptv-sync" class="iptv-sync hidden">
+        <strong>Audio in anticipo sul video?</strong>
+        <span>Ritarda l'audio finché le labbra corrispondono. Si ricorda per questo canale.</span>
+        <div class="iptv-sync-row">
+          <button id="iptv-sync-minus" type="button" class="actionbutton secondary" aria-label="Meno ritardo">−</button>
+          <output id="iptv-sync-val">0 ms</output>
+          <button id="iptv-sync-plus" type="button" class="actionbutton secondary" aria-label="Più ritardo">+</button>
+          <button id="iptv-sync-reset" type="button" class="actionbutton secondary">Azzera</button>
+        </div>
       </div>
 
       <form id="iptv-url-form" class="hidden">

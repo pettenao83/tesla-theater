@@ -2737,3 +2737,27 @@ html[data-theme="neon"] #applemusic img { filter: drop-shadow(0 0 5px var(--pink
 html[data-theme="neon"] *::-webkit-scrollbar-thumb { box-shadow: 0 0 8px var(--pink-glow); }
 html[data-theme="neon"] .sp-title,
 html[data-theme="neon"] .sp-l-vinyl .sp-vinyl::after { text-shadow: 0 0 10px var(--pink-glow); }
+
+/* IPTV: audio / video sync popover */
+.iptv-sync {
+  position: absolute;
+  top: 70px;
+  left: 330px;
+  z-index: 60;
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  color: var(--ink);
+  background: var(--bg-panel);
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  box-shadow: var(--raise-hi), 0 14px 34px rgba(0, 0, 0, 0.4);
+  font-size: 0.9rem;
+}
+.iptv-sync.hidden { display: none; }
+.iptv-sync span { color: var(--ink-muted); }
+.iptv-sync-row { display: flex; align-items: center; gap: 10px; }
+.iptv-sync-row output { min-width: 84px; text-align: center; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.iptv-sync-row .actionbutton { height: 40px; min-width: 40px; padding: 0 14px; font-size: 1.1rem; }
