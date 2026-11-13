@@ -492,6 +492,9 @@
       if (music() && music().place) {
         setTimeout(music().place, 50);
       }
+      if (window.ytCard) {
+        setTimeout(window.ytCard.place, 80);
+      }
       try {
         window.localStorage.setItem('TeslaTheaterHomeMode', m);
       } catch (e) { /* ignore */ }

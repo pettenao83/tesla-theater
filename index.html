@@ -50,14 +50,16 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=95">
-  <script src="teslatheater.js?v=95"></script>
-  <script src="iptv.js?v=95"></script>
-  <script src="music.js?v=95"></script>
-  <script src="dashboard.js?v=95"></script>
-  <script src="youtube.js?v=95"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=96">
+  <script src="teslatheater.js?v=96"></script>
+  <script src="iptv.js?v=96"></script>
+  <script src="music.js?v=96"></script>
+  <script src="dashboard.js?v=96"></script>
+  <script src="youtube.js?v=96"></script>
 </head>
 <body>
+
+  <div id="yt-host" style="position:fixed;left:-3000px;top:0;width:320px;height:180px;"><div id="yt-player"></div></div>
 
   <div id="lock-screen">
     <form id="lock-form">
@@ -261,7 +263,7 @@
       <p id="yt-msg" class="hidden"></p>
       <div class="yt-main">
         <div class="yt-stage-wrap">
-          <div id="yt-stage"><div id="yt-player"></div></div>
+          <div id="yt-stage"></div>
           <div class="yt-meta"><b id="yt-title"></b><span id="yt-channel"></span><a id="yt-ext" target="_blank" rel="noopener">Apri su YouTube</a></div>
         </div>
         <div id="yt-list" class="yt-list"></div>

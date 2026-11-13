@@ -2848,3 +2848,8 @@ html[data-theme="neon"] .sp-l-vinyl .sp-vinyl::after { text-shadow: 0 0 10px var
 .dash-yt-nowtxt span { font-size: calc(var(--vh,1vh)*1.8); opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .yt-meta a { color: var(--accent-text, var(--pink)); font-size: calc(var(--vh,1vh)*2); text-decoration: underline; }
+
+.dash-yt-vid { flex: 1 1 0; min-height: 0; border-radius: calc(var(--vh,1vh)*1.6); background: #000; }
+.dash-yt-nowrow { flex: none; display: flex; align-items: center; gap: calc(var(--vh,1vh)*1.2); }
+.dash-yt-nowrow .actionbutton { width: calc(var(--vh,1vh)*6); height: calc(var(--vh,1vh)*6); padding: 0; justify-content: center; flex: none; }
+.dash-yt-bar { gap: calc(var(--vh,1vh)*1.2); }

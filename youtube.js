@@ -170,6 +170,7 @@
       }
       list.appendChild(card);
     });
+    setTimeout(place, 0);
   }
 
   function needLogin() {
@@ -245,6 +246,7 @@
       return;
     }
     idx = i;
+    listMode = false;
     byId('yt-title').textContent = v.title;
     byId('yt-channel').textContent = v.channel;
     byId('yt-ext').href = 'https://www.youtube.com/watch?v=' + v.id;
@@ -253,6 +255,8 @@
     byId('yt-view').classList.add('playing');
     byId('yt-back').classList.remove('hidden');
     render();
+    refreshCard();
+    setTimeout(place, 50);
     try {
       await loadYT();
     } catch (e) {
@@ -332,6 +336,7 @@
     byId('spotify-view').classList.add('hidden');
     byId('app-root').classList.remove('hidden');
     byId('yt-view').classList.remove('hidden');
+    setTimeout(place, 100);
     byId('yt-login').classList.add('hidden');
     if (!window.musicApi.loggedIn()) {
       needLogin();
@@ -391,37 +396,85 @@
     }
   }
 
+  let listMode = false;
+
+  function icon(name, label, fn, cls) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'actionbutton ' + (cls || 'secondary');
+    b.setAttribute('aria-label', label);
+    b.title = label;
+    b.innerHTML = '<em class="fas fa-' + name + '"></em>';
+    b.addEventListener('click', e => { e.stopPropagation(); fn(); });
+    return b;
+  }
+
+  // The player lives in a fixed host outside the scaled pages and is laid over
+  // whichever area is on screen: the YouTube view, the home card, or nowhere (sound only).
+  function place() {
+    const host = byId('yt-host');
+    if (!host) {
+      return;
+    }
+    let target = null;
+    if (!byId('yt-view').classList.contains('hidden')) {
+      target = idx >= 0 ? byId('yt-stage') : null;
+    } else if (byId('dash-now').classList.contains('mode-video') && !listMode && idx >= 0) {
+      target = byId('dash-yt-vid');
+    }
+    const panelOpen = !!document.querySelector('#dash-settings:not(.hidden), #add-app-form:not(.hidden)');
+    const f = host.querySelector('iframe');
+    if (target && !panelOpen && target.offsetWidth > 0) {
+      const r = target.getBoundingClientRect();
+      host.style.cssText = 'position:fixed;z-index:60;left:' + r.left + 'px;top:' + r.top + 'px;width:' + r.width + 'px;height:' + r.height + 'px;border-radius:14px;overflow:hidden;background:#000;';
+      if (f) {
+        f.style.width = '100%';
+        f.style.height = '100%';
+      }
+    } else {
+      host.style.cssText = 'position:fixed;left:-3000px;top:0;width:320px;height:180px;';
+      if (f) {
+        f.style.width = '320px';
+        f.style.height = '180px';
+      }
+    }
+  }
+
   async function renderCard(host) {
     cardHost = host;
     host.innerHTML = '';
     const now = idx >= 0 ? items[idx] : null;
-    if (now) {
-      const np = document.createElement('div');
-      np.className = 'dash-yt-now';
-      const im = document.createElement('img');
-      im.alt = '';
-      im.src = now.thumb;
+    if (now && !listMode) {
+      const vid = document.createElement('div');
+      vid.id = 'dash-yt-vid';
+      vid.className = 'dash-yt-vid';
+      const row = document.createElement('div');
+      row.className = 'dash-yt-nowrow';
       const tx = document.createElement('div');
       tx.className = 'dash-yt-nowtxt';
       const tt = document.createElement('b');
       tt.textContent = now.title;
       const ch = document.createElement('span');
-      ch.textContent = (isPlaying ? 'In riproduzione · ' : 'In pausa · ') + now.channel;
+      ch.textContent = now.channel;
       tx.append(tt, ch);
-      const pb = document.createElement('button');
-      pb.type = 'button';
-      pb.className = 'actionbutton';
-      pb.setAttribute('aria-label', 'Riproduci / pausa');
-      pb.innerHTML = '<em class="fas fa-' + (isPlaying ? 'pause' : 'play') + '"></em>';
-      pb.addEventListener('click', e => { e.stopPropagation(); toggleCard(); });
-      np.append(im, tx, pb);
-      np.addEventListener('click', e => { e.stopPropagation(); openYoutube(); });
-      host.appendChild(np);
+      row.append(
+        tx,
+        icon(isPlaying ? 'pause' : 'play', 'Riproduci / pausa', toggleCard, 'dash-yt-play'),
+        icon('th-large', 'Altri video', () => { listMode = true; renderCard(host); }),
+        icon('expand', 'Schermo intero', () => openYoutube()),
+        icon('times', 'Chiudi video', () => { stopPlayer(); idx = -1; renderCard(host); })
+      );
+      host.append(vid, row);
+      requestAnimationFrame(place);
+      return;
     }
     const grid = document.createElement('div');
     grid.className = 'dash-yt-grid';
     const bar = document.createElement('div');
     bar.className = 'dash-yt-bar';
+    if (now) {
+      bar.appendChild(icon('arrow-left', 'Torna al video', () => { listMode = false; renderCard(host); }));
+    }
     const all = document.createElement('button');
     all.type = 'button';
     all.className = 'actionbutton secondary';
@@ -429,6 +482,7 @@
     all.addEventListener('click', e => { e.stopPropagation(); openYoutube(); });
     bar.appendChild(all);
     host.append(grid, bar);
+    requestAnimationFrame(place);
     window.musicApi.init();
     if (!window.musicApi.loggedIn()) {
       grid.innerHTML = '<p class="dash-yt-note">Accedi con Google per vedere i video dei tuoi canali.</p>';
@@ -447,7 +501,11 @@
         const t = document.createElement('span');
         t.textContent = v.title;
         c.append(img, t);
-        c.addEventListener('click', e => { e.stopPropagation(); openYoutube(list, i); });
+        c.addEventListener('click', e => {
+          e.stopPropagation();
+          items = list;
+          play(i);
+        });
         grid.appendChild(c);
       });
     } catch (e) {
@@ -455,12 +513,15 @@
     }
   }
 
-  window.ytCard = { render: renderCard, pause: pauseCard };
+  window.ytCard = { render: renderCard, pause: pauseCard, place };
+  window.addEventListener('resize', () => setTimeout(place, 150));
 
   function closeYoutube() {
     // the video keeps playing (sound only) and shows up in the home "Video" card
     byId('yt-view').classList.add('hidden');
+    listMode = false;
     refreshCard();
+    place();
     $('#app-header, #apps').removeClass('hidden');
     if (typeof resizeTiles === 'function') {
       resizeTiles();
