@@ -549,11 +549,11 @@
       return;
     }
     let d = '';
-    const n = 220;
+    const n = 180;
     for (let i = 0; i <= n; i++) {
       const t = i / n;
       const a = t * Math.PI * 2 * 4;
-      const r = 36 + t * 56 + (i % 2 ? 2.6 : -2.6);
+      const r = 34 + t * 58 + (i % 2 ? 4.2 : -4.2);
       d += (i ? 'L' : 'M') + (100 + r * Math.cos(a)).toFixed(1) + ' ' + (100 + r * Math.sin(a)).toFixed(1);
     }
     const ns = 'http://www.w3.org/2000/svg';
