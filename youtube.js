@@ -240,113 +240,53 @@
     }, 8000);
   }
 
-  let ytCanvasCtx = null;
-let ytCanvas = document.getElementById('yt-canvas');
-
-// Inizializza il contesto canvas una volta all'avvio
-window.onload = function() {
-    if(ytCanvas) {
-        ytCanvasCtx = ytCanvas.getContext('2d');
-    }
-};
-
-async function play(i) {
+  async function play(i) {
     const v = items[i];
-    if (!v) return;
-
-    idx = i;
-
-    // Mostra il canvas a tutto schermo
-    if(ytCanvas) {
-        ytCanvas.style.display = 'block';
-        ytCanvas.style.width = '100%';
-        ytCanvas.style.height = '100%';
+    if (!v) {
+      return;
     }
-
+    idx = i;
+    listMode = false;
+    byId('yt-title').textContent = v.title;
+    byId('yt-channel').textContent = v.channel;
+    byId('yt-ext').href = 'https://www.youtube.com/watch?v=' + v.id;
     msg('', false);
     watchStart(i);
-
+    byId('yt-view').classList.add('playing');
+    byId('yt-back').classList.remove('hidden');
+    render();
+    refreshCard();
+    setTimeout(place, 50);
     try {
-        await loadYT();
+      await loadYT();
     } catch (e) {
-        msg(e.message, true);
-        return;
+      msg(e.message, true);
+      return;
     }
-
     if (!yt) {
-        await new Promise(resolve => {
-            yt = new window.YT.Player('yt-player', {
-                width: '100%',
-                height: '100%',
-                videoId: v.id,
-                playerVars: {
-                    playsinline: 1,
-                    rel: 0,
-                    autoplay: 1,
-                    origin: window.location.origin,
-                    modestbranding: 1,
-                    controls: 0,
-                    // Importante: disabilita i controlli nativi per evitare conflitti
-                    disablekb: 1
-                },
-                events: {
-                    onReady: () => {
-                        resolve();
-                        // Avvia il loop di rendering del canvas
-                        requestAnimationFrame(renderVideoFrame);
-                    },
-                    onStateChange: e => {
-                        isPlaying = e.data === window.YT.PlayerState.PLAYING;
-                        refreshCard();
-
-                        // Se riparte dopo una pausa, riavvia il loop canvas
-                        if (e.data === window.YT.PlayerState.PLAYING) {
-                            requestAnimationFrame(renderVideoFrame);
-                        } else {
-                            // Ferma il loop se è in pausa o finito
-                            cancelAnimationFrame(renderLoopId);
-                        }
-
-                        if (e.data === window.YT.PlayerState.ENDED && idx + 1 < items.length) {
-                            play(idx + 1);
-                        }
-                    },
-                    onError: e => onPlayerError(e.data)
-                }
-            });
+      await new Promise(resolve => {
+        yt = new window.YT.Player('yt-player', {
+          width: '100%',
+          height: '100%',
+          videoId: v.id,
+          playerVars: { playsinline: 1, rel: 0, autoplay: 1, origin: window.location.origin },
+          events: {
+            onReady: () => resolve(),
+            onStateChange: e => {
+              isPlaying = e.data === window.YT.PlayerState.PLAYING;
+              refreshCard();
+              if (e.data === window.YT.PlayerState.ENDED && idx + 1 < items.length) {
+                play(idx + 1);
+              }
+            },
+            onError: e => onPlayerError(e.data)
+          }
         });
-        return;
+      });
+      return;
     }
-
     yt.loadVideoById(v.id);
-}
-
-// Funzione che legge i pixel dall'iframe nascosto e li dipinge sul canvas visibile
-let renderLoopId = null;
-
-function renderVideoFrame() {
-    if (!yt || !ytCanvas || !ytCanvasCtx) return;
-
-    // Ottieni l'elemento iframe creato da YouTube
-    const iframe = document.querySelector('#yt-player iframe');
-    if (!iframe) {
-        renderLoopId = requestAnimationFrame(renderVideoFrame);
-        return;
-    }
-
-    // Disegna il contenuto dell'iframe sul canvas
-    // Nota: Questo richiede che l'iframe sia nello stesso dominio o abbia CORS abilitato.
-    // Di solito YouTube permette la lettura dei pixel se l'iframe è sullo stesso DOM.
-    try {
-        ytCanvasCtx.drawImage(iframe, 0, 0, ytCanvas.width, ytCanvas.height);
-    } catch (e) {
-        // Se c'è un errore CORS (raro su Tesla con iframe cross-origin gestiti bene),
-        // prova a fallbackare sull'immagine di copertina o ignora.
-    }
-
-    // Richiama il prossimo frame
-    renderLoopId = requestAnimationFrame(renderVideoFrame);
-}
+  }
 
   function stopPlayer() {
     if (yt && yt.stopVideo) {
