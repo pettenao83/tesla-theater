@@ -50,11 +50,12 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=87">
-  <script src="teslatheater.js?v=87"></script>
-  <script src="iptv.js?v=87"></script>
-  <script src="music.js?v=87"></script>
-  <script src="dashboard.js?v=87"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=89">
+  <script src="teslatheater.js?v=89"></script>
+  <script src="iptv.js?v=89"></script>
+  <script src="music.js?v=89"></script>
+  <script src="dashboard.js?v=89"></script>
+  <script src="position.js?v=89"></script>
 </head>
 <body>
 
@@ -232,6 +233,33 @@
           </div>
           <p id="iptv-now">Seleziona un canale</p>
         </div>
+      </div>
+    </section>
+
+    <section id="pos-view" class="hidden" aria-label="Posizione">
+      <div class="sp-bar">
+        <button id="pos-home" type="button" class="actionbutton" title="Home" aria-label="Home"><em class="fas fa-home"></em><span class="lbl">Home</span></button>
+        <span class="sp-title">Posizione</span>
+        <button id="pos-follow" type="button" class="actionbutton secondary active" title="Segui la posizione" aria-label="Segui"><em class="fas fa-location-arrow"></em><span class="lbl">Segui</span></button>
+        <button id="pos-retry" type="button" class="actionbutton secondary" title="Riprova" aria-label="Riprova"><em class="fas fa-redo"></em><span class="lbl">Riprova</span></button>
+      </div>
+      <div class="pos-main">
+        <div class="pos-info">
+          <p id="pos-status" class="pos-status wait">In attesa…</p>
+          <dl>
+            <dt>Latitudine</dt><dd id="pos-lat">–</dd>
+            <dt>Longitudine</dt><dd id="pos-lon">–</dd>
+            <dt>Precisione</dt><dd id="pos-acc">–</dd>
+            <dt>Velocità</dt><dd id="pos-speed">–</dd>
+            <dt>Direzione</dt><dd id="pos-head">–</dd>
+            <dt>Altitudine</dt><dd id="pos-alt">–</dd>
+            <dt>Aggiornamenti</dt><dd id="pos-count">0</dd>
+            <dt>Ultimo</dt><dd id="pos-age">mai</dd>
+            <dt>Permesso</dt><dd id="pos-perm">–</dd>
+            <dt>Connessione sicura</dt><dd id="pos-secure">–</dd>
+          </dl>
+        </div>
+        <div id="pos-map" class="pos-map"></div>
       </div>
     </section>
 

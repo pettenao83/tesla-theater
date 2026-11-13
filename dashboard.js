@@ -79,6 +79,8 @@
     if (name === 'iptv') {
       body = g + '<path d="M96 50 L128 84 L160 50" stroke="' + a + '"/><rect x="28" y="84" width="200" height="132" rx="22" stroke="' + b + '"/></g>' +
         '<text x="128" y="172" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="58" letter-spacing="2" fill="' + t + '">IPTV</text>';
+    } else if (name === 'position') {
+      body = g + '<path d="M128 224 C80 160 60 130 60 100 A68 68 0 0 1 196 100 C196 130 176 160 128 224 Z" stroke="' + b + '"/><circle cx="128" cy="100" r="24" stroke="' + a + '"/></g>';
     } else if (name === 'ytmusic') {
       body = g + '<circle cx="128" cy="128" r="86" stroke="' + b + '"/><path d="M108 92 L170 128 L108 164 Z" stroke="' + a + '"/></g>';
     } else {
@@ -102,7 +104,7 @@
     const a = resolveColor((cs.getPropertyValue('--accent-text') || cs.getPropertyValue('--pink')).trim());
     const b = resolveColor(cs.getPropertyValue('--cyan').trim());
     const t = resolveColor(cs.getPropertyValue('--ink').trim());
-    ['iptv', 'ytmusic', 'applemusic'].forEach(id => {
+    ['iptv', 'ytmusic', 'position', 'applemusic'].forEach(id => {
       const img = document.querySelector('#' + id + ' img');
       if (img) {
         img.style.content = iconSvg(id, a, b, t);
