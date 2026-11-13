@@ -557,7 +557,7 @@
     for (let i = 0; i <= n; i++) {
       const t = i / n;
       const a = t * Math.PI * 2 * turns;
-      const r = 31 + t * 65.5;
+      const r = 31 + t * 68;
       d += (i ? 'L' : 'M') + (100 + r * Math.cos(a)).toFixed(2) + ' ' + (100 + r * Math.sin(a)).toFixed(2);
     }
     const ns = 'http://www.w3.org/2000/svg';
