@@ -2817,3 +2817,6 @@ html[data-theme="neon"] .sp-l-vinyl .sp-vinyl::after { text-shadow: 0 0 10px var
 #yt-view.playing .yt-card img { width: 42%; flex: none; }
 #yt-view.playing .yt-card .yt-txt { min-width: 0; }
 .yt-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+/* PIN field: dots without being a password field */
+.pin-mask { -webkit-text-security: disc; text-security: disc; }

@@ -50,20 +50,20 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=91">
-  <script src="teslatheater.js?v=91"></script>
-  <script src="iptv.js?v=91"></script>
-  <script src="music.js?v=91"></script>
-  <script src="dashboard.js?v=91"></script>
-  <script src="youtube.js?v=91"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=92">
+  <script src="teslatheater.js?v=92"></script>
+  <script src="iptv.js?v=92"></script>
+  <script src="music.js?v=92"></script>
+  <script src="dashboard.js?v=92"></script>
+  <script src="youtube.js?v=92"></script>
 </head>
 <body>
 
   <div id="lock-screen">
     <form id="lock-form">
-      <h1><img src="images/tesla-white.png" class="inline" alt="Tesla"/><span class="cyan">Theater</span></h1>
+      <h1><span class="cyan">Theater</span></h1>
       <p class="lock-tagline">Inserisci il codice per accedere</p>
-      <input type="password" inputmode="numeric" id="lock-pin" placeholder="Codice di accesso" autocomplete="off" />
+      <input type="text" inputmode="numeric" id="lock-pin" class="pin-mask" placeholder="Codice di accesso" autocomplete="off" autocapitalize="off" spellcheck="false" />
       <button type="submit" id="lock-submit" class="actionbutton">Sblocca</button>
       <p id="lock-error" class="hidden">Codice errato, riprova.</p>
     </form>
