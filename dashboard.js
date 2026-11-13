@@ -54,6 +54,8 @@
 
   const ACCENTS = [
     ['', 'Predefinito'],
+    ['#3a3a3c', 'Grafite'],
+    ['#d4d7de', 'Argento'],
     ['#0a84ff', 'Blu'],
     ['#7c5cff', 'Viola'],
     ['#ff4fa3', 'Rosa'],
@@ -97,7 +99,7 @@
 
   function renderIcons() {
     const cs = window.getComputedStyle(document.documentElement);
-    const a = resolveColor(cs.getPropertyValue('--pink').trim());
+    const a = resolveColor((cs.getPropertyValue('--accent-text') || cs.getPropertyValue('--pink')).trim());
     const b = resolveColor(cs.getPropertyValue('--cyan').trim());
     const t = resolveColor(cs.getPropertyValue('--ink').trim());
     ['iptv', 'ytmusic', 'applemusic'].forEach(id => {
@@ -108,22 +110,46 @@
     });
   }
 
+  function mixHex(hex, withHex, t) {
+    const x = parseInt(hex.slice(1), 16);
+    const y = parseInt(withHex.slice(1), 16);
+    const ch = s => Math.round(((x >> s) & 255) * (1 - t) + ((y >> s) & 255) * t);
+    return 'rgb(' + ch(16) + ',' + ch(8) + ',' + ch(0) + ')';
+  }
+
   function applyAccent() {
     const root = document.documentElement.style;
     if (cfg.accent) {
       const n = parseInt(cfg.accent.slice(1), 16);
       const lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+      const dark = !(document.documentElement.dataset.theme || '').endsWith('-light');
       root.setProperty('--pink', cfg.accent);
       root.setProperty('--tint', cfg.accent);
       root.setProperty('--pink-glow', rgba(cfg.accent, 0.35));
       root.setProperty('--line-pink', rgba(cfg.accent, 0.35));
       root.setProperty('--on-pink', lum > 0.62 ? '#1a0a20' : '#ffffff');
+      // accent used as text/line colour: lightened on dark pages, darkened on light ones when needed
+      root.setProperty('--accent-text', dark && lum < 0.4 ? mixHex(cfg.accent, '#ffffff', 0.65)
+        : !dark && lum > 0.7 ? mixHex(cfg.accent, '#000000', 0.5) : cfg.accent);
     } else {
-      ['--pink', '--pink-glow', '--line-pink', '--on-pink', '--tint'].forEach(p => root.removeProperty(p));
+      ['--pink', '--pink-glow', '--line-pink', '--on-pink', '--tint', '--accent-text'].forEach(p => root.removeProperty(p));
     }
+    const preset = ACCENTS.some(a => a[0] === cfg.accent);
     document.querySelectorAll('.dash-accent').forEach(b => {
-      b.classList.toggle('active', (b.dataset.accent || '') === cfg.accent);
+      if (b.classList.contains('custom')) {
+        b.classList.toggle('active', !!cfg.accent && !preset);
+      } else {
+        b.classList.toggle('active', (b.dataset.accent || '') === cfg.accent);
+      }
     });
+    const pick = byId('dash-accent-pick');
+    const hex = byId('dash-accent-hex');
+    if (pick && cfg.accent) {
+      pick.value = cfg.accent;
+    }
+    if (hex) {
+      hex.value = cfg.accent || '';
+    }
     renderIcons();
   }
 
@@ -150,6 +176,45 @@
       });
       box.appendChild(b);
     });
+    // any colour: the system picker, or a hex code
+    const custom = document.createElement('label');
+    custom.className = 'dash-accent custom';
+    custom.title = 'Colore personalizzato';
+    custom.innerHTML = '<em class="fas fa-eye-dropper"></em>';
+    const pick = document.createElement('input');
+    pick.type = 'color';
+    pick.id = 'dash-accent-pick';
+    pick.value = cfg.accent || '#0a84ff';
+    pick.setAttribute('aria-label', 'Colore personalizzato');
+    pick.addEventListener('input', () => {
+      cfg.accent = pick.value.toLowerCase();
+      save();
+      applyAccent();
+    });
+    custom.appendChild(pick);
+    box.appendChild(custom);
+    const hex = document.createElement('input');
+    hex.type = 'text';
+    hex.id = 'dash-accent-hex';
+    hex.className = 'dash-accent-hex';
+    hex.maxLength = 7;
+    hex.placeholder = '#rrggbb';
+    hex.setAttribute('aria-label', 'Codice colore');
+    hex.addEventListener('change', () => {
+      const v = hex.value.trim().toLowerCase();
+      if (/^#[0-9a-f]{6}$/.test(v)) {
+        cfg.accent = v;
+        save();
+        applyAccent();
+      } else if (!v) {
+        cfg.accent = '';
+        save();
+        applyAccent();
+      } else {
+        hex.value = cfg.accent;
+      }
+    });
+    box.appendChild(hex);
   }
 
   // Android and iOS have a light and a dark look; "automatic" follows the system.
