@@ -550,14 +550,14 @@
     if (!host || spiralPath) {
       return;
     }
-    // a fine, smooth spiral: many tight turns from the label to the edge of the record
+    // a fine, smooth spiral: tight turns that, at the end of the song, cover the whole record from label to edge
     let d = '';
-    const n = 1400;
-    const turns = 15;
+    const n = 3400;
+    const turns = 34;
     for (let i = 0; i <= n; i++) {
       const t = i / n;
       const a = t * Math.PI * 2 * turns;
-      const r = 33 + t * 59;
+      const r = 31 + t * 64;
       d += (i ? 'L' : 'M') + (100 + r * Math.cos(a)).toFixed(2) + ' ' + (100 + r * Math.sin(a)).toFixed(2);
     }
     const ns = 'http://www.w3.org/2000/svg';
