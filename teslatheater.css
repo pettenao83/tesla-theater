@@ -2790,17 +2790,31 @@ html[data-theme="neon"] .sp-l-vinyl .sp-vinyl::after { text-shadow: 0 0 10px var
   font-size: 0.9rem;
 }
 
-/* Position test */
+/* Map */
 #pos-view { position: relative; max-width: none; margin: 0; width: 100%; padding: 12px 20px 16px; display: flex; flex-direction: column; box-sizing: border-box; }
 #pos-view.hidden { display: none; }
-.pos-main { flex: 1; min-height: 0; display: grid; grid-template-columns: calc(var(--vh,1vh)*40) 1fr; gap: calc(var(--vh,1vh)*2); margin-top: calc(var(--vh,1vh)*2); }
-.pos-info { background: var(--bg-panel); border: 1px solid var(--line); border-radius: calc(var(--vh,1vh)*2); padding: calc(var(--vh,1vh)*2.4); overflow: auto; color: var(--ink); }
-.pos-info dl { display: grid; grid-template-columns: auto 1fr; gap: calc(var(--vh,1vh)*1) calc(var(--vh,1vh)*2); margin: 0; font-size: calc(var(--vh,1vh)*2.4); }
+.pos-main { position: relative; flex: 1; min-height: 0; margin-top: calc(var(--vh,1vh)*1.6); }
+.pos-map { position: absolute; inset: 0; border-radius: calc(var(--vh,1vh)*2); overflow: hidden; border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink); }
+.pos-search { flex: 1; display: flex; gap: 8px; min-width: 0; margin: 0 8px; }
+.pos-search input { flex: 1; min-width: 0; font-size: calc(var(--vh,1vh)*2.4); padding: 0 calc(var(--vh,1vh)*2); border-radius: 999px; border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink); }
+.pos-hud, .pos-route, .pos-results, .pos-info { position: absolute; z-index: 800; background: var(--bg-panel); color: var(--ink); border: 1px solid var(--line); border-radius: calc(var(--vh,1vh)*2); box-shadow: 0 6px 20px rgba(0,0,0,.28); }
+.pos-hud { left: calc(var(--vh,1vh)*2); bottom: calc(var(--vh,1vh)*2); padding: calc(var(--vh,1vh)*1.2) calc(var(--vh,1vh)*2.4); text-align: center; }
+.pos-hud b { display: block; font-size: calc(var(--vh,1vh)*7); line-height: 1; font-variant-numeric: tabular-nums; }
+.pos-hud small { opacity: .65; font-size: calc(var(--vh,1vh)*2); }
+.pos-results { left: calc(var(--vh,1vh)*2); top: calc(var(--vh,1vh)*2); width: calc(var(--vh,1vh)*70); margin: 0; padding: 6px; list-style: none; max-height: 70%; overflow: auto; }
+.pos-results li { padding: calc(var(--vh,1vh)*1.6) calc(var(--vh,1vh)*2); font-size: calc(var(--vh,1vh)*2.2); border-radius: calc(var(--vh,1vh)*1.4); cursor: pointer; }
+.pos-results li:active, .pos-results li:hover { background: var(--tint, rgba(127,127,127,.2)); }
+.pos-route { right: calc(var(--vh,1vh)*2); bottom: calc(var(--vh,1vh)*2); display: flex; align-items: center; gap: calc(var(--vh,1vh)*2); padding: calc(var(--vh,1vh)*1.6) calc(var(--vh,1vh)*2.4); max-width: 60%; }
+.pos-route div { display: flex; flex-direction: column; min-width: 0; }
+.pos-route b { font-size: calc(var(--vh,1vh)*4); }
+.pos-route span, .pos-route small { font-size: calc(var(--vh,1vh)*2.2); opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pos-info { right: calc(var(--vh,1vh)*2); top: calc(var(--vh,1vh)*2); width: calc(var(--vh,1vh)*40); padding: calc(var(--vh,1vh)*2.2); }
+.pos-info.hidden, .pos-route.hidden, .pos-results.hidden { display: none; }
+.pos-info dl { display: grid; grid-template-columns: auto 1fr; gap: calc(var(--vh,1vh)*.8) calc(var(--vh,1vh)*2); margin: 0; font-size: calc(var(--vh,1vh)*2.2); }
 .pos-info dt { opacity: .65; }
-.pos-info dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-.pos-status { font-size: calc(var(--vh,1vh)*2.4); font-weight: 700; margin: 0 0 calc(var(--vh,1vh)*2); }
+.pos-info dd { margin: 0; text-align: right; font-weight: 600; }
+.pos-status { font-size: calc(var(--vh,1vh)*2.2); font-weight: 700; margin: 0 0 calc(var(--vh,1vh)*1.4); }
 .pos-status.ok { color: #30d158; }
 .pos-status.error { color: #ff453a; }
 .pos-status.wait { color: #ffb020; }
-.pos-map { border-radius: calc(var(--vh,1vh)*2); overflow: hidden; min-height: 0; border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink); }
 html:not([data-theme$="-light"]):not([data-theme="minimal"]) .pos-map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9); }

@@ -90,6 +90,7 @@
     set('pos-alt', c.altitude != null ? Math.round(c.altitude) + ' m' : 'n.d.');
     set('pos-count', String(count));
     tickAge();
+    byId('pos-hud-speed').textContent = c.speed != null && !isNaN(c.speed) ? Math.round(c.speed * 3.6) : '0';
     if (map && window.L) {
       const ll = [c.latitude, c.longitude];
       if (!marker) {
@@ -113,6 +114,7 @@
       3: 'Tempo scaduto: nessuna posizione ricevuta in 20 secondi.'
     }[e.code] || 'Errore di posizione.';
     status(text + (e.message ? ' (' + e.message + ')' : ''), 'error');
+    byId('pos-info').classList.remove('hidden');
   }
 
   function tickAge() {
@@ -157,11 +159,101 @@
     watchId = null;
   }
 
+  let routeLine = null;
+  let destMarker = null;
+  let dest = null;
+
+  function fmtDist(m) {
+    return m >= 1000 ? (m / 1000).toFixed(m >= 10000 ? 0 : 1) + ' km' : Math.round(m) + ' m';
+  }
+
+  function fmtTime(s) {
+    const m = Math.round(s / 60);
+    return m >= 60 ? Math.floor(m / 60) + ' h ' + (m % 60) + ' min' : m + ' min';
+  }
+
+  function clearRoute() {
+    if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+    if (destMarker) { map.removeLayer(destMarker); destMarker = null; }
+    dest = null;
+    byId('pos-route').classList.add('hidden');
+  }
+
+  async function routeTo(lat, lon, name) {
+    byId('pos-results').classList.add('hidden');
+    if (!last) {
+      status('Serve prima la posizione attuale per calcolare il percorso.', 'error');
+      byId('pos-info').classList.remove('hidden');
+      return;
+    }
+    await ensureMap();
+    clearRoute();
+    dest = { lat: lat, lon: lon };
+    const c = last.coords;
+    try {
+      const r = await fetch('https://router.project-osrm.org/route/v1/driving/' + c.longitude + ',' + c.latitude + ';' + lon + ',' + lat + '?overview=full&geometries=geojson');
+      const j = await r.json();
+      const rt = j.routes && j.routes[0];
+      if (!rt) { throw new Error('nessun percorso'); }
+      routeLine = window.L.geoJSON(rt.geometry, { style: { color: '#0a84ff', weight: 7, opacity: 0.9 } }).addTo(map);
+      destMarker = window.L.circleMarker([lat, lon], { radius: 9, weight: 3, color: '#fff', fillColor: '#ff453a', fillOpacity: 1 }).addTo(map);
+      follow = false;
+      byId('pos-follow').classList.remove('active');
+      map.fitBounds(routeLine.getBounds(), { padding: [80, 80] });
+      byId('pos-route-eta').textContent = fmtTime(rt.duration);
+      byId('pos-route-dist').textContent = fmtDist(rt.distance);
+      byId('pos-route-name').textContent = name;
+      byId('pos-route').classList.remove('hidden');
+    } catch (e) {
+      status('Percorso non disponibile (' + e.message + ').', 'error');
+      byId('pos-info').classList.remove('hidden');
+    }
+  }
+
+  async function search(q) {
+    const list = byId('pos-results');
+    list.innerHTML = '<li>Cerco…</li>';
+    list.classList.remove('hidden');
+    try {
+      let u = 'https://nominatim.openstreetmap.org/search?format=json&limit=6&accept-language=it&q=' + encodeURIComponent(q);
+      if (last) {
+        const c = last.coords;
+        u += '&viewbox=' + (c.longitude - 1) + ',' + (c.latitude + 1) + ',' + (c.longitude + 1) + ',' + (c.latitude - 1);
+      }
+      const res = await (await fetch(u)).json();
+      list.innerHTML = '';
+      if (!res.length) {
+        list.innerHTML = '<li>Nessun risultato</li>';
+        return;
+      }
+      res.forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = p.display_name;
+        li.addEventListener('click', () => routeTo(parseFloat(p.lat), parseFloat(p.lon), p.display_name.split(',')[0]));
+        list.appendChild(li);
+      });
+    } catch (e) {
+      list.innerHTML = '<li>Ricerca non disponibile</li>';
+    }
+  }
+
   function bind() {
     if (bound) {
       return;
     }
     bound = true;
+    byId('pos-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const q = byId('pos-q').value.trim();
+      if (q) { search(q); }
+    });
+    byId('pos-info-btn').addEventListener('click', () => byId('pos-info').classList.toggle('hidden'));
+    byId('pos-route-clear').addEventListener('click', () => { if (map) { clearRoute(); } });
+    byId('pos-route-open').addEventListener('click', () => {
+      if (dest) {
+        window.open('https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=' + dest.lat + ',' + dest.lon, '_blank');
+      }
+    });
     byId('pos-home').addEventListener('click', closePosition);
     byId('pos-retry').addEventListener('click', () => {
       count = 0;
