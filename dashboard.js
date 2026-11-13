@@ -1,5 +1,5 @@
 /*
- * Home dashboard: clock, weather, Spotify "now playing" with basic controls,
+ * Home dashboard: clock, weather, YouTube Music "now playing" with basic controls,
  * and a choice of looks (Neon / Minimale / Cover). Settings live in this browser.
  */
 (function () {
@@ -81,8 +81,8 @@
     if (name === 'iptv') {
       body = g + '<path d="M96 50 L128 84 L160 50" stroke="' + a + '"/><rect x="28" y="84" width="200" height="132" rx="22" stroke="' + b + '"/></g>' +
         '<text x="128" y="172" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="58" letter-spacing="2" fill="' + t + '">IPTV</text>';
-    } else if (name === 'spotify') {
-      body = g + '<circle cx="128" cy="128" r="86" stroke="' + b + '"/><path d="M78 104 Q128 86 178 108" stroke="' + a + '"/><path d="M86 132 Q128 118 170 134" stroke="' + a + '"/><path d="M94 158 Q128 148 160 160" stroke="' + a + '"/></g>';
+    } else if (name === 'ytmusic') {
+      body = g + '<circle cx="128" cy="128" r="86" stroke="' + b + '"/><path d="M108 92 L170 128 L108 164 Z" stroke="' + a + '"/></g>';
     } else {
       body = g + '<path d="M104 186 V66 L196 46 V166" stroke="' + a + '"/><path d="M104 98 L196 78" stroke="' + a + '"/><ellipse cx="80" cy="190" rx="26" ry="20" stroke="' + b + '"/><ellipse cx="172" cy="170" rx="26" ry="20" stroke="' + b + '"/></g>';
     }
@@ -94,7 +94,7 @@
     const a = cs.getPropertyValue('--pink').trim();
     const b = cs.getPropertyValue('--cyan').trim();
     const t = cs.getPropertyValue('--ink').trim();
-    ['iptv', 'spotify', 'applemusic'].forEach(id => {
+    ['iptv', 'ytmusic', 'applemusic'].forEach(id => {
       const img = document.querySelector('#' + id + ' img');
       if (img) {
         img.style.content = iconSvg(id, a, b, t);
@@ -636,150 +636,73 @@
     btn.classList.remove('hidden');
   }
 
-  // ---------- Spotify now playing ----------
+  // ---------- now playing (YouTube Music) ----------
 
-  function spotify() {
-    return window.spotifyApi && window.spotifyApi.connected() ? window.spotifyApi : null;
-  }
-
-  function fmtImage(item) {
-    const imgs = (item && ((item.album && item.album.images) || item.images)) || [];
-    return imgs.length ? imgs[0].url : '';
+  function music() {
+    return window.musicApi || null;
   }
 
   function renderNow() {
-    const sp = spotify();
-    const item = player && player.item;
-    byId('dash-connect').classList.toggle('hidden', !!sp);
-    byId('dash-ctl').classList.toggle('hidden', !sp);
+    const m = music();
+    const s = m ? m.state() : null;
+    const has = !!(s && s.has);
+    byId('dash-connect').classList.toggle('hidden', has);
+    byId('dash-ctl').classList.toggle('hidden', !has);
     const cover = byId('dash-cover');
-    const url = fmtImage(item);
-    cover.classList.toggle('empty', !url);
-    if (url) {
-      if (cover.getAttribute('src') !== url) {
-        cover.src = url;
+    if (has) {
+      cover.classList.remove('empty');
+      if (cover.dataset.id !== s.coverId) {
+        cover.dataset.id = s.coverId;
+        cover.onerror = () => {
+          cover.onerror = null;
+          cover.src = 'https://i.ytimg.com/vi/' + s.coverId + '/hqdefault.jpg';
+        };
+        cover.src = s.cover;
       }
-    } else if (cover.getAttribute('src') !== BLANK) {
-      cover.src = BLANK;
-    }
-    if (!sp) {
-      byId('dash-track').textContent = 'Spotify non collegato';
-      byId('dash-artist').textContent = 'Collegalo per vedere cosa stai ascoltando.';
-      byId('dash-prog').style.width = '0%';
-      return;
-    }
-    byId('dash-track').textContent = item ? item.name : 'Nessuna riproduzione';
-    byId('dash-artist').textContent = item
-      ? ((item.artists && item.artists.map(a => a.name).join(', ')) || (item.show && item.show.publisher) || '')
-      : 'Avvia Spotify sull\'auto o sul telefono.';
-    const playing = !!(player && player.is_playing);
-    byId('dash-shuffle').classList.toggle('on', !!(player && player.shuffle_state));
-    const rep = (player && player.repeat_state) || 'off';
-    byId('dash-repeat').classList.toggle('on', rep !== 'off');
-    byId('dash-repeat').title = rep === 'track' ? 'Ripeti il brano' : rep === 'context' ? 'Ripeti la playlist' : 'Ripeti';
-    byId('dash-play').innerHTML = '<em class="fas fa-' + (playing ? 'pause' : 'play') + '"></em>';
-    byId('dash-play').setAttribute('aria-label', playing ? 'Pausa' : 'Riproduci');
-    tickProgress();
-    relayout();
-  }
-
-  function tickProgress() {
-    if (!player || !player.item || !player.item.duration_ms) {
-      byId('dash-prog').style.width = '0%';
-      return;
-    }
-    const pos = (player.progress_ms || 0) + (player.is_playing ? Date.now() - player._at : 0);
-    byId('dash-prog').style.width = Math.min(100, (pos / player.item.duration_ms) * 100) + '%';
-  }
-
-  async function pollNow() {
-    const home = byId('dash');
-    if (document.hidden || !home || home.offsetParent === null) {
-      return;
-    }
-    const sp = spotify();
-    if (!sp) {
-      player = null;
-      renderNow();
-      return;
-    }
-    try {
-      const p = await sp.call('/me/player?additional_types=episode');
-      player = p ? Object.assign(p, { _at: Date.now() }) : null;
-    } catch (e) {
-      if (e && e.auth) {
-        player = null;
+    } else {
+      cover.classList.add('empty');
+      cover.dataset.id = '';
+      if (cover.getAttribute('src') !== BLANK) {
+        cover.src = BLANK;
       }
     }
-    renderNow();
-  }
-
-  async function control(path, method) {
-    const sp = spotify();
-    if (!sp) {
+    byId('dash-track').textContent = has ? s.title : 'Nessuna riproduzione';
+    byId('dash-artist').textContent = has ? s.artist : 'Apri YouTube Music e scegli un brano.';
+    byId('dash-prog').style.width = has && s.duration ? Math.min(100, (s.progress / s.duration) * 100) + '%' : '0%';
+    if (!has) {
       return;
     }
-    try {
-      await sp.call(path, { method: method || 'PUT' });
-    } catch (e) { /* the next poll shows the real state */ }
-    setTimeout(pollNow, 400);
+    byId('dash-shuffle').classList.toggle('on', !!s.shuffle);
+    byId('dash-repeat').classList.toggle('on', s.repeat !== 'off');
+    byId('dash-repeat').title = s.repeat === 'one' ? 'Ripeti il brano' : s.repeat === 'all' ? 'Ripeti la playlist' : 'Ripeti';
+    const icon = '<em class="fas fa-' + (s.playing ? 'pause' : 'play') + '"></em>';
+    if (byId('dash-play').dataset.icon !== icon) {
+      byId('dash-play').dataset.icon = icon;
+      byId('dash-play').innerHTML = icon;
+    }
+    byId('dash-play').setAttribute('aria-label', s.playing ? 'Pausa' : 'Riproduci');
   }
 
   function bind() {
     byId('dash-connect').addEventListener('click', () => {
-      if (typeof openSpotify === 'function') {
-        openSpotify();
+      if (music()) {
+        music().open();
       }
     });
     byId('dash-now').addEventListener('click', e => {
-      if (e.target.closest('button') || !spotify()) {
+      if (e.target.closest('button') || !music()) {
         return;
       }
-      if (typeof openSpotify === 'function') {
-        openSpotify();
-      }
+      music().open();
     });
-    byId('dash-play').addEventListener('click', e => {
-      e.stopPropagation();
-      if (player && player.is_playing) {
-        player.is_playing = false;
-        renderNow();
-        control('/me/player/pause');
-      } else {
-        if (player) {
-          player.is_playing = true;
-          player._at = Date.now();
-          renderNow();
+    [['dash-play', 'toggle'], ['dash-next', 'next'], ['dash-prev', 'prev'], ['dash-shuffle', 'shuffle'], ['dash-repeat', 'repeat']].forEach(p => {
+      byId(p[0]).addEventListener('click', e => {
+        e.stopPropagation();
+        if (music()) {
+          music()[p[1]]();
+          setTimeout(renderNow, 150);
         }
-        control('/me/player/play');
-      }
-    });
-    byId('dash-next').addEventListener('click', e => {
-      e.stopPropagation();
-      control('/me/player/next', 'POST');
-    });
-    byId('dash-prev').addEventListener('click', e => {
-      e.stopPropagation();
-      control('/me/player/previous', 'POST');
-    });
-    byId('dash-shuffle').addEventListener('click', e => {
-      e.stopPropagation();
-      const on = !(player && player.shuffle_state);
-      if (player) {
-        player.shuffle_state = on;
-        renderNow();
-      }
-      control('/me/player/shuffle?state=' + on);
-    });
-    byId('dash-repeat').addEventListener('click', e => {
-      e.stopPropagation();
-      const order = ['off', 'context', 'track'];
-      const next = order[(order.indexOf((player && player.repeat_state) || 'off') + 1) % 3];
-      if (player) {
-        player.repeat_state = next;
-        renderNow();
-      }
-      control('/me/player/repeat?state=' + next);
+      });
     });
     byId('dash-settings-btn').addEventListener('click', () => {
       byId('dash-settings').classList.toggle('hidden');
@@ -846,9 +769,7 @@
     let newsResize;
     window.addEventListener('resize', () => { clearTimeout(newsResize); newsResize = setTimeout(renderNews, 200); });
     renderNow();
-    pollNow();
-    setInterval(pollNow, 4000);
-    setInterval(tickProgress, 1000);
+    setInterval(renderNow, 1000);
     // The dashboard changes the header height, so the app tiles are sized again.
     setTimeout(relayout, 50);
     window.addEventListener('load', relayout);

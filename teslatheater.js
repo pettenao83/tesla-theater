@@ -2,7 +2,7 @@ const DEFAULT_SITES = {
   "netflix": { "name": "Netflix", "img": "images/netflix.png", "url": "https://www.netflix.com/" },
   "youtube": { "name": "YouTube", "img": "images/youtube.png", "url": "https://www.youtube.com/" },
   "iptv": { "name": "IPTV", "img": "images/iptv.svg", "url": "#iptv", "internal": "iptv" },
-  "spotify": { "name": "Spotify", "img": "images/spotify.svg", "url": "#spotify", "internal": "spotify" },
+  "ytmusic": { "name": "YouTube Music", "img": "images/ytmusic.svg", "url": "#music", "internal": "music" },
   "applemusic": { "name": "Apple Music", "img": "images/applemusic.svg", "url": "https://music.apple.com/" },
   "primevideo": { "name": "Prime Video", "img": "images/primevideo.png", "url": "https://www.primevideo.com/" },
   "plex": { "name": "Plex", "img": "images/plex.png", "url": "https://app.plex.tv/" },
@@ -92,8 +92,8 @@ function open() {
     openIptv();
     return;
   }
-  if ($(this).attr('data-internal') === 'spotify' && typeof openSpotify === 'function') {
-    openSpotify();
+  if ($(this).attr('data-internal') === 'music' && typeof openMusic === 'function') {
+    openMusic();
     return;
   }
 
@@ -182,7 +182,7 @@ function buildPage(sites) {
   resizeTiles();
 }
 
-// Home, Spotify and IPTV are laid out on a virtual page of fixed height (820px) whose width
+// Home, music and IPTV are laid out on a virtual page of fixed height (820px) whose width
 // follows the window only between 1.3:1 and 1.9:1. The page is then scaled to fit: it never
 // rearranges or overflows, whatever the size of the window; outside those proportions it is
 // centred with empty bands.
@@ -402,8 +402,8 @@ function resetDefaults() {
   if (typeof iptvReset === 'function') {
     iptvReset();
   }
-  if (typeof spotifyReset === 'function') {
-    spotifyReset();
+  if (typeof musicReset === 'function') {
+    musicReset();
   }
   if (typeof dashReset === 'function') {
     dashReset();

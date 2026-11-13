@@ -50,11 +50,11 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=77">
-  <script src="teslatheater.js?v=77"></script>
-  <script src="iptv.js?v=77"></script>
-  <script src="spotify.js?v=77"></script>
-  <script src="dashboard.js?v=77"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=78">
+  <script src="teslatheater.js?v=78"></script>
+  <script src="iptv.js?v=78"></script>
+  <script src="music.js?v=78"></script>
+  <script src="dashboard.js?v=78"></script>
 </head>
 <body>
 
@@ -91,7 +91,7 @@
         <div id="dash-now" class="dash-card">
           <img id="dash-cover" class="empty" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
           <div class="dash-now-main">
-            <div id="dash-track">Spotify non collegato</div>
+            <div id="dash-track">Nessuna riproduzione</div>
             <div id="dash-artist"></div>
             <div class="dash-bar"><div id="dash-prog"></div></div>
             <div id="dash-ctl" class="dash-ctl hidden">
@@ -101,7 +101,7 @@
               <button id="dash-next" type="button" aria-label="Successivo"><em class="fas fa-step-forward"></em></button>
               <button id="dash-repeat" type="button" aria-label="Ripeti"><em class="fas fa-retweet"></em></button>
             </div>
-            <button id="dash-connect" type="button" class="actionbutton hidden"><em class="fas fa-link"></em> Collega Spotify</button>
+            <button id="dash-connect" type="button" class="actionbutton hidden"><em class="fas fa-music"></em> Apri YouTube Music</button>
           </div>
         </div>
         <div class="dash-stack">
@@ -256,42 +256,43 @@
       </div>
     </section>
 
-    <section id="spotify-view" class="hidden" aria-label="Spotify">
+    <section id="spotify-view" class="hidden" aria-label="YouTube Music">
       <div class="sp-bar">
         <button id="sp-home" type="button" class="actionbutton" title="Home" aria-label="Home"><em class="fas fa-home"></em><span class="lbl" class="lbl">Home</span></button>
-        <span class="sp-title">Spotify</span>
+        <span class="sp-title">YouTube Music</span>
         <div class="sp-layouts" role="group" aria-label="Aspetto del player">
           <button type="button" class="sp-layout actionbutton secondary" data-layout="vinyl" title="Vinile" aria-label="Vinile"><em class="fas fa-compact-disc"></em><span class="lbl" class="lbl">Vinile</span></button>
           <button type="button" class="sp-layout actionbutton secondary" data-layout="immersive" title="Immersivo" aria-label="Immersivo"><em class="fas fa-image"></em><span class="lbl" class="lbl">Immersivo</span></button>
           <button type="button" class="sp-layout actionbutton secondary" data-layout="cinema" title="Cinema" aria-label="Cinema"><em class="fas fa-film"></em><span class="lbl" class="lbl">Cinema</span></button>
         </div>
         <button id="sp-lib-btn" type="button" class="actionbutton secondary hidden" title="Libreria" aria-label="Libreria"><em class="fas fa-list"></em><span class="lbl" class="lbl">Libreria</span></button>
-        <button id="sp-devices-btn" type="button" class="actionbutton secondary hidden"><em class="fas fa-volume-up"></em><span class="lbl" id="sp-device-name">Dispositivi</span></button>
+        <button id="sp-video-btn" type="button" class="actionbutton secondary hidden" title="Mostra il video sopra la copertina" aria-label="Video"><em class="fas fa-video"></em><span class="lbl">Video</span></button>
         <button id="sp-logout" type="button" class="actionbutton secondary hidden" title="Esci" aria-label="Esci"><em class="fas fa-sign-out-alt"></em><span class="lbl" class="lbl">Esci</span></button>
       </div>
       <p id="sp-msg" class="hidden"></p>
-      <div id="sp-devices" class="hidden"></div>
 
       <div id="sp-setup" class="hidden">
         <div id="sp-step-id">
-          <h2>Collega il tuo Spotify</h2>
+          <h2>Collega YouTube Music</h2>
+          <p>Serve un ID client gratuito di Google, da creare una volta sola:</p>
           <ol>
-            <li>Apri <strong>developer.spotify.com/dashboard</strong> e accedi con il tuo account Spotify.</li>
-            <li>Premi <strong>Create app</strong>: nome e descrizione a piacere. Nelle API da usare scegli <strong>Web API</strong>.</li>
-            <li>In <strong>Redirect URIs</strong> aggiungi esattamente questo indirizzo: <code id="sp-redirect"></code></li>
-            <li>Salva, poi apri <strong>Settings</strong> e copia il <strong>Client ID</strong> qui sotto.</li>
+            <li>Apri <strong>console.cloud.google.com</strong> e crea un progetto.</li>
+            <li>In <strong>API e servizi → Libreria</strong> abilita <strong>YouTube Data API v3</strong>.</li>
+            <li>In <strong>Schermata consenso OAuth</strong> scegli <strong>Esterno</strong> e aggiungi il tuo account Google tra gli <strong>utenti di test</strong>.</li>
+            <li>In <strong>Credenziali → Crea credenziali → ID client OAuth</strong> scegli <strong>Applicazione web</strong>. Come <strong>origine JavaScript</strong> metti <code id="sp-origin"></code> e come <strong>URI di reindirizzamento</strong> metti <code id="sp-redirect"></code></li>
+            <li>Copia l'<strong>ID client</strong> qui sotto.</li>
           </ol>
           <div class="sp-idrow">
-            <input type="text" id="sp-client-id" placeholder="Client ID (32 caratteri)" autocomplete="off" autocapitalize="off" spellcheck="false" />
+            <input type="text" id="sp-client-id" placeholder="ID client (…apps.googleusercontent.com)" autocomplete="off" autocapitalize="off" spellcheck="false" />
             <button id="sp-save-id" type="button" class="actionbutton"><em class="fas fa-check"></em> Salva</button>
           </div>
         </div>
         <div id="sp-step-login" class="hidden">
-          <h2>Accedi con Spotify</h2>
-          <p>Ti porto sulla pagina di Spotify per autorizzare l'accesso, poi torni qui. Serve Spotify Premium per i comandi.</p>
+          <h2>Accedi con Google</h2>
+          <p>Ti porto sulla pagina di Google per autorizzare la lettura delle tue playlist, poi torni qui. Google mostra un avviso "app non verificata": è la tua app, continua.</p>
           <div class="sp-idrow">
             <button id="sp-login-btn" type="button" class="actionbutton"><em class="fas fa-sign-in-alt"></em> Accedi</button>
-            <button id="sp-change-id" type="button" class="actionbutton secondary">Cambia Client ID</button>
+            <button id="sp-change-id" type="button" class="actionbutton secondary">Cambia ID client</button>
           </div>
         </div>
       </div>
@@ -315,7 +316,7 @@
             <button id="sp-next" type="button" aria-label="Successivo"><em class="fas fa-step-forward"></em></button>
             <button id="sp-repeat" type="button" aria-label="Ripeti"><em class="fas fa-retweet"></em></button>
           </div>
-          <div id="sp-volrow" class="sp-volrow hidden">
+          <div id="sp-volrow" class="sp-volrow">
             <em class="fas fa-volume-down"></em>
             <input type="range" id="sp-vol" min="0" max="100" value="50" aria-label="Volume" />
             <em class="fas fa-volume-up"></em>
@@ -326,14 +327,19 @@
         <div class="sp-lib">
           <div id="sp-tabs" class="sp-tabs">
             <button type="button" class="sp-tab active" data-tab="playlists">Playlist</button>
-            <button type="button" class="sp-tab" data-tab="liked">Brani preferiti</button>
+            <button type="button" class="sp-tab" data-tab="liked">Piaciuti</button>
             <button type="button" class="sp-tab" data-tab="recent">Recenti</button>
+            <button type="button" class="sp-tab" data-tab="search">Cerca</button>
           </div>
           <div id="sp-crumb" class="sp-crumb hidden">
             <button id="sp-back" type="button" class="actionbutton secondary"><em class="fas fa-arrow-left"></em> Indietro</button>
             <span id="sp-crumb-name"></span>
             <button id="sp-crumb-play" type="button" class="actionbutton"><em class="fas fa-play"></em> Riproduci</button>
           </div>
+          <form id="sp-search-form" class="sp-search hidden">
+            <input type="search" id="sp-search-input" placeholder="Cerca brani o artisti" autocomplete="off" />
+            <button type="submit" class="actionbutton" aria-label="Cerca" title="Cerca"><em class="fas fa-search"></em></button>
+          </form>
           <div id="sp-list"></div>
         </div>
       </div>

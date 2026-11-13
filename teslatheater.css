@@ -1528,7 +1528,7 @@ html[data-theme$="-light"] :is(
   #raiplay,
   #mediaset,
   #iptv,
-  #spotify,
+  #ytmusic,
   #applemusic,
   #skytg24,
   #airtesla) {
@@ -1548,7 +1548,7 @@ html[data-theme$="-light"] :is(
   #raiplay,
   #mediaset,
   #iptv,
-  #spotify,
+  #ytmusic,
   #applemusic,
   #skytg24,
   #airtesla) > .logo-container {
@@ -1570,7 +1570,7 @@ html[data-theme$="-light"] #twitch img { content: url("images/light/twitch.png")
 html[data-theme$="-light"] #raiplay img { content: url("images/light/raiplay.png"); }
 html[data-theme$="-light"] #mediaset img { content: url("images/light/mediaset.png"); }
 html[data-theme$="-light"] #iptv img { content: url("images/light/iptv.svg"); }
-html[data-theme$="-light"] #spotify img { content: url("images/light/spotify.svg"); }
+html[data-theme$="-light"] #ytmusic img { content: url("images/light/ytmusic.svg"); }
 html[data-theme$="-light"] #applemusic img { content: url("images/light/applemusic.svg"); }
 
 /* Nothing playing: a quiet music-note placeholder instead of a broken image */
@@ -2084,27 +2084,27 @@ html[data-theme$="-light"] .button { border-color: var(--bd); }
 
 /* App icons follow the colours of each style */
 html[data-theme="minimal"] #iptv img { content: url("images/themes/minimal/iptv.svg"); }
-html[data-theme="minimal"] #spotify img { content: url("images/themes/minimal/spotify.svg"); }
+html[data-theme="minimal"] #ytmusic img { content: url("images/themes/minimal/ytmusic.svg"); }
 html[data-theme="minimal"] #applemusic img { content: url("images/themes/minimal/applemusic.svg"); }
 html[data-theme="cover"] #iptv img { content: url("images/themes/cover/iptv.svg"); }
-html[data-theme="cover"] #spotify img { content: url("images/themes/cover/spotify.svg"); }
+html[data-theme="cover"] #ytmusic img { content: url("images/themes/cover/ytmusic.svg"); }
 html[data-theme="cover"] #applemusic img { content: url("images/themes/cover/applemusic.svg"); }
 html[data-theme="android-dark"] #iptv img { content: url("images/themes/android-dark/iptv.svg"); }
-html[data-theme="android-dark"] #spotify img { content: url("images/themes/android-dark/spotify.svg"); }
+html[data-theme="android-dark"] #ytmusic img { content: url("images/themes/android-dark/ytmusic.svg"); }
 html[data-theme="android-dark"] #applemusic img { content: url("images/themes/android-dark/applemusic.svg"); }
 html[data-theme="android-light"] #iptv img { content: url("images/themes/android-light/iptv.svg"); }
-html[data-theme="android-light"] #spotify img { content: url("images/themes/android-light/spotify.svg"); }
+html[data-theme="android-light"] #ytmusic img { content: url("images/themes/android-light/ytmusic.svg"); }
 html[data-theme="android-light"] #applemusic img { content: url("images/themes/android-light/applemusic.svg"); }
 html[data-theme="ios-dark"] #iptv img { content: url("images/themes/ios-dark/iptv.svg"); }
-html[data-theme="ios-dark"] #spotify img { content: url("images/themes/ios-dark/spotify.svg"); }
+html[data-theme="ios-dark"] #ytmusic img { content: url("images/themes/ios-dark/ytmusic.svg"); }
 html[data-theme="ios-dark"] #applemusic img { content: url("images/themes/ios-dark/applemusic.svg"); }
 html[data-theme="ios-light"] #iptv img { content: url("images/themes/ios-light/iptv.svg"); }
-html[data-theme="ios-light"] #spotify img { content: url("images/themes/ios-light/spotify.svg"); }
+html[data-theme="ios-light"] #ytmusic img { content: url("images/themes/ios-light/ytmusic.svg"); }
 html[data-theme="ios-light"] #applemusic img { content: url("images/themes/ios-light/applemusic.svg"); }
 
 /* Same optical size for every logo; icons with their own background look like app icons */
 .button > .logo-container > img { max-width: 88%; max-height: 64%; }
-#netflix img, #iptv img, #spotify img, #applemusic img, #dazn img, #twitch img { max-width: 72%; max-height: 72%; }
+#netflix img, #iptv img, #ytmusic img, #applemusic img, #dazn img, #twitch img { max-width: 72%; max-height: 72%; }
 #airtesla img, #skytg24 img { border-radius: 18%; max-width: 76%; max-height: 76%; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); }
 #skytg24 img { max-width: 88%; max-height: 40%; border-radius: 10px; }
 /* Same icon size and alignment inside every button */
@@ -2627,3 +2627,17 @@ html[data-theme] .dash-ctl .dash-play { width: calc(var(--vh, 1vh) * 6.2); heigh
 html[data-theme] .dash-now-main { display: flex; flex-direction: column; align-items: stretch; justify-content: center; text-align: left; }
 html[data-theme] .dash-bar { width: 100%; grid-column: auto; }
 html[data-theme] .dash-ctl { justify-content: flex-start; }
+
+/* YouTube Music: search box in the library */
+.sp-search { display: flex; gap: 8px; padding: 4px 12px 8px; }
+.sp-search input {
+  flex: 1;
+  padding: 10px 16px;
+  color: var(--ink);
+  background: var(--bg-deep);
+  border: 1px solid transparent;
+  border-radius: 100px;
+  box-shadow: var(--inset);
+  font: inherit;
+}
+.sp-search.hidden { display: none; }

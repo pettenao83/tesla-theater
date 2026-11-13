@@ -5,10 +5,8 @@
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-  <g fill="none" stroke-linecap="round" stroke-width="10">
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="10">
     <circle cx="128" cy="128" r="86" stroke="#eaddff"/>
-    <path d="M78 104 Q128 86 178 108" stroke="#d0bcff"/>
-    <path d="M86 132 Q128 118 170 134" stroke="#d0bcff"/>
-    <path d="M94 158 Q128 148 160 160" stroke="#d0bcff"/>
+    <path d="M108 92 L170 128 L108 164 Z" stroke="#d0bcff"/>
   </g>
 </svg>
