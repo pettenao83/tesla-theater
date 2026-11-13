@@ -3,6 +3,7 @@ const DEFAULT_SITES = {
   "youtube": { "name": "YouTube", "img": "images/youtube.png", "url": "https://www.youtube.com/" },
   "iptv": { "name": "IPTV", "img": "images/iptv.svg", "url": "#iptv", "internal": "iptv" },
   "ytmusic": { "name": "YouTube Music", "img": "images/ytmusic.svg", "url": "#music", "internal": "music" },
+  "position": { "name": "Mappa", "img": "images/position.svg", "url": "#position", "internal": "position" },
   "applemusic": { "name": "Apple Music", "img": "images/applemusic.svg", "url": "https://music.apple.com/" },
   "primevideo": { "name": "Prime Video", "img": "images/primevideo.png", "url": "https://www.primevideo.com/" },
   "plex": { "name": "Plex", "img": "images/plex.png", "url": "https://app.plex.tv/" },

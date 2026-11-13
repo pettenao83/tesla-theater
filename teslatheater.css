@@ -2145,8 +2145,8 @@ html[data-theme="cover"] #dash {
   min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-areas: "top map" "apps map" "apps news";
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: "top news" "apps news";
   gap: 16px;
   max-width: none;
   margin: 0;
@@ -2652,8 +2652,8 @@ html[data-theme] .dash-ctl { justify-content: flex-start; }
 html[data-theme="minimal"] #dash,
 html[data-theme="cover"] #dash {
   grid-template-columns: 128px minmax(0, 1.55fr) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  grid-template-areas: "apps map now" "apps map news";
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "apps now news";
   gap: 14px;
   padding: 0 20px 20px;
 }
@@ -2817,17 +2817,4 @@ html[data-theme="neon"] .sp-l-vinyl .sp-vinyl::after { text-shadow: 0 0 10px var
 .pos-status.ok { color: #30d158; }
 .pos-status.error { color: #ff453a; }
 .pos-status.wait { color: #ffb020; }
-html:not([data-theme$="-light"]):not([data-theme="minimal"]) .pos-map .leaflet-tile-pane,
-html:not([data-theme$="-light"]):not([data-theme="minimal"]) #dash-map-el .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9); }
-
-/* Home map card */
-#dash-map { grid-area: map; position: relative; padding: 0; overflow: hidden; min-height: 0; cursor: pointer; }
-#dash-map-el { position: absolute; inset: 0; background: var(--bg-panel); }
-#dash-map-el .leaflet-control-container .leaflet-control-attribution { font-size: 9px; opacity: .6; }
-.dash-map-chip { position: absolute; left: 12px; bottom: 12px; z-index: 800; padding: 6px 14px; border-radius: 999px; background: var(--bg-panel); color: var(--ink); font-size: 1rem; box-shadow: 0 3px 10px rgba(0,0,0,.3); }
-.dash-map-chip b { font-size: 1.5rem; }
-.dash-map-chip.hidden, .dash-map-hint.hidden { display: none; }
-.dash-map-hint { position: absolute; inset: 0; z-index: 800; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--bg-panel); color: var(--ink); font-size: 1.1rem; }
-.dash-map-hint em { font-size: 2.2rem; color: var(--pink); }
-
-#dash-news .news-title, #dash-news.nophoto .news-title { font-size: 1.5rem; -webkit-line-clamp: 2; line-clamp: 2; }
+html:not([data-theme$="-light"]):not([data-theme="minimal"]) .pos-map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9); }
