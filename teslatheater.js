@@ -494,6 +494,9 @@ function initApp() {
     if (willShow) {
       resetAddAppForm();
     }
+    if (window.musicApi && window.musicApi.place) {
+      window.musicApi.place();
+    }
   });
 
   $('#add-app-cancel').on('click', function() {

@@ -427,6 +427,9 @@
     byId('dash-settings-btn').addEventListener('click', () => {
       byId('dash-settings').classList.toggle('hidden');
       byId('dash-settings-btn').classList.toggle('active');
+      if (music() && music().place) {
+        music().place();
+      }
       relayout();
     });
     document.querySelectorAll('.dash-theme').forEach(b => {

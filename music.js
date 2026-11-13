@@ -772,7 +772,9 @@
     }
     const target = coverTarget();
     const f = host.querySelector('iframe');
-    if (showVideo && cur && target) {
+    // the video sits above the whole page: it steps aside while a panel (style, add app) is open
+    const panelOpen = !!document.querySelector('#dash-settings:not(.hidden), #add-app-form:not(.hidden)');
+    if (showVideo && cur && target && !panelOpen) {
       const r = target.getBoundingClientRect();
       host.style.cssText = 'position:fixed;z-index:60;left:' + r.left + 'px;top:' + r.top + 'px;width:' + r.width + 'px;height:' + r.height + 'px;border-radius:14px;overflow:hidden;';
       if (f) {
