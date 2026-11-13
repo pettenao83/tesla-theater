@@ -17,6 +17,9 @@
   const SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
   const API = 'https://www.googleapis.com/youtube/v3';
   const LAYOUTS = ['vinyl', 'immersive', 'cinema'];
+  // The OAuth client ID is public by design (it is in every web app that uses Google login).
+  // Only the accounts listed as test users in the Google Cloud project can sign in with it.
+  const DEFAULT_CLIENT_ID = '670805026293-uufnfv1jdbdqp3ipkokl9p0te2dujdff.apps.googleusercontent.com';
   const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
   const st = { clientId: '', access: '', expires: 0 };
@@ -62,6 +65,9 @@
     try {
       Object.assign(st, JSON.parse(window.localStorage.getItem(KEY) || '{}'));
     } catch (e) { /* ignore */ }
+    if (!st.clientId && !st.ownId) {
+      st.clientId = DEFAULT_CLIENT_ID;
+    }
   }
 
   function save() {
@@ -931,11 +937,13 @@
       }
       setMsg('');
       st.clientId = id;
+      st.ownId = id !== DEFAULT_CLIENT_ID;
       save();
       render();
     });
     byId('sp-change-id').addEventListener('click', () => {
       st.clientId = '';
+      st.ownId = true;
       save();
       render();
     });
@@ -1037,7 +1045,8 @@
       window.localStorage.removeItem(RECENT_KEY);
       window.localStorage.removeItem(LAYOUT_KEY);
     } catch (e) { /* ignore */ }
-    st.clientId = '';
+    st.clientId = DEFAULT_CLIENT_ID;
+    st.ownId = false;
     st.access = '';
     st.expires = 0;
   }
