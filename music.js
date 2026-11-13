@@ -540,6 +540,45 @@
     renderNow();
   }
 
+  // Vinyl: a zig-zag spiral in the accent colour that grows with the song's progress
+  let spiralPath = null;
+
+  function buildSpiral() {
+    const host = document.querySelector('.sp-vinyl');
+    if (!host || spiralPath) {
+      return;
+    }
+    let d = '';
+    const n = 220;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      const a = t * Math.PI * 2 * 4;
+      const r = 36 + t * 56 + (i % 2 ? 2.6 : -2.6);
+      d += (i ? 'L' : 'M') + (100 + r * Math.cos(a)).toFixed(1) + ' ' + (100 + r * Math.sin(a)).toFixed(1);
+    }
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 200 200');
+    svg.setAttribute('class', 'sp-spiral');
+    const path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('pathLength', '1');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke-linejoin', 'round');
+    path.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(path);
+    host.appendChild(svg);
+    spiralPath = path;
+  }
+
+  function updateSpiral() {
+    buildSpiral();
+    if (spiralPath) {
+      const p = cur && dur ? Math.max(0, Math.min(1, timeNow / dur)) : 0;
+      spiralPath.style.strokeDasharray = p.toFixed(4) + ' 1';
+    }
+  }
+
   function startTick() {
     if (tickTimer) {
       return;
@@ -556,6 +595,7 @@
           byId('sp-dur').textContent = fmt(dur);
           byId('sp-seek').max = dur || 0;
         }
+        updateSpiral();
       }
     }, 500);
   }
@@ -601,6 +641,7 @@
     byId('sp-repeat').innerHTML = '<em class="fas fa-retweet"></em>' + (repeat === 'one' ? '<small>1</small>' : '');
     byId('sp-seek').disabled = !cur;
     byId('sp-seek').max = dur || 0;
+    updateSpiral();
     byId('sp-dur').textContent = fmt(dur);
     if (!cur) {
       byId('sp-seek').value = 0;
@@ -1026,6 +1067,7 @@
     document.body.classList.add('spotify-open');
     setMsg('');
     render();
+    updateSpiral();
     startTick();
     setTimeout(placeVideo, 100);
   }
