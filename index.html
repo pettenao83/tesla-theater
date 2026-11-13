@@ -50,12 +50,12 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=90">
-  <script src="teslatheater.js?v=90"></script>
-  <script src="iptv.js?v=90"></script>
-  <script src="music.js?v=90"></script>
-  <script src="dashboard.js?v=90"></script>
-  <script src="position.js?v=90"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=89">
+  <script src="teslatheater.js?v=89"></script>
+  <script src="iptv.js?v=89"></script>
+  <script src="music.js?v=89"></script>
+  <script src="dashboard.js?v=89"></script>
+  <script src="position.js?v=89"></script>
 </head>
 <body>
 
@@ -236,27 +236,15 @@
       </div>
     </section>
 
-    <section id="pos-view" class="hidden" aria-label="Mappa">
+    <section id="pos-view" class="hidden" aria-label="Posizione">
       <div class="sp-bar">
         <button id="pos-home" type="button" class="actionbutton" title="Home" aria-label="Home"><em class="fas fa-home"></em><span class="lbl">Home</span></button>
-        <form id="pos-form" class="pos-search" autocomplete="off">
-          <input id="pos-q" type="search" placeholder="Cerca un luogo o un indirizzo" aria-label="Cerca">
-          <button type="submit" class="actionbutton" aria-label="Cerca"><em class="fas fa-search"></em></button>
-        </form>
+        <span class="sp-title">Posizione</span>
         <button id="pos-follow" type="button" class="actionbutton secondary active" title="Segui la posizione" aria-label="Segui"><em class="fas fa-location-arrow"></em><span class="lbl">Segui</span></button>
-        <button id="pos-info-btn" type="button" class="actionbutton secondary" title="Dati GPS" aria-label="Dati GPS"><em class="fas fa-info-circle"></em><span class="lbl">GPS</span></button>
-        <button id="pos-retry" type="button" class="actionbutton secondary hidden" aria-label="Riprova"><em class="fas fa-redo"></em></button>
+        <button id="pos-retry" type="button" class="actionbutton secondary" title="Riprova" aria-label="Riprova"><em class="fas fa-redo"></em><span class="lbl">Riprova</span></button>
       </div>
       <div class="pos-main">
-        <div id="pos-map" class="pos-map"></div>
-        <div class="pos-hud"><b id="pos-hud-speed">0</b><small>km/h</small></div>
-        <ul id="pos-results" class="pos-results hidden"></ul>
-        <div id="pos-route" class="pos-route hidden">
-          <div><b id="pos-route-eta">–</b><span id="pos-route-dist">–</span><small id="pos-route-name"></small></div>
-          <button id="pos-route-open" type="button" class="actionbutton secondary" title="Apri in Google Maps"><em class="fas fa-external-link-alt"></em><span class="lbl">Google Maps</span></button>
-          <button id="pos-route-clear" type="button" class="actionbutton" title="Annulla"><em class="fas fa-times"></em><span class="lbl">Annulla</span></button>
-        </div>
-        <div id="pos-info" class="pos-info hidden">
+        <div class="pos-info">
           <p id="pos-status" class="pos-status wait">In attesa…</p>
           <dl>
             <dt>Latitudine</dt><dd id="pos-lat">–</dd>
@@ -271,6 +259,7 @@
             <dt>Connessione sicura</dt><dd id="pos-secure">–</dd>
           </dl>
         </div>
+        <div id="pos-map" class="pos-map"></div>
       </div>
     </section>
 
