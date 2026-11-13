@@ -542,6 +542,10 @@
 
   // Vinyl: a zig-zag spiral in the accent colour that grows with the song's progress
   let spiralPath = null;
+  let spiralTip = null;
+  let spiralLen = 0;
+  let tickAt = 0;
+  let spiralRaf = 0;
 
   function buildSpiral() {
     const host = document.querySelector('.sp-vinyl');
@@ -567,16 +571,40 @@
     path.setAttribute('stroke-linejoin', 'round');
     path.setAttribute('stroke-linecap', 'round');
     svg.appendChild(path);
+    const tip = document.createElementNS(ns, 'circle');
+    tip.setAttribute('class', 'sp-tip');
+    tip.setAttribute('r', '5');
+    svg.appendChild(tip);
     host.appendChild(svg);
     spiralPath = path;
+    spiralTip = tip;
+    spiralLen = path.getTotalLength();
   }
 
+  // progress of the song, interpolated between the 500 ms player readings
   function updateSpiral() {
     buildSpiral();
-    if (spiralPath) {
-      const p = cur && dur ? Math.max(0, Math.min(1, timeNow / dur)) : 0;
-      spiralPath.style.strokeDasharray = p.toFixed(4) + ' 1';
+    if (!spiralPath) {
+      return;
     }
+    const est = cur && dur ? timeNow + (playing ? (performance.now() - tickAt) / 1000 : 0) : 0;
+    const p = cur && dur ? Math.max(0, Math.min(1, est / dur)) : 0;
+    spiralPath.style.strokeDasharray = p.toFixed(5) + ' 1';
+    if (spiralLen && spiralTip) {
+      const pt = spiralPath.getPointAtLength(p * spiralLen);
+      spiralTip.setAttribute('cx', pt.x.toFixed(2));
+      spiralTip.setAttribute('cy', pt.y.toFixed(2));
+      spiralTip.style.opacity = cur ? '1' : '0';
+    }
+  }
+
+  function spiralLoop() {
+    spiralRaf = 0;
+    if (!open) {
+      return;
+    }
+    updateSpiral();
+    spiralRaf = requestAnimationFrame(spiralLoop);
   }
 
   function startTick() {
@@ -587,6 +615,7 @@
       if (ytp && ready && cur) {
         try {
           timeNow = ytp.getCurrentTime() || 0;
+          tickAt = performance.now();
           dur = ytp.getDuration() || dur;
         } catch (e) { /* the player is not ready yet */ }
         if (open && !seeking) {
@@ -1068,6 +1097,9 @@
     setMsg('');
     render();
     updateSpiral();
+    if (!spiralRaf) {
+      spiralRaf = requestAnimationFrame(spiralLoop);
+    }
     startTick();
     setTimeout(placeVideo, 100);
   }
