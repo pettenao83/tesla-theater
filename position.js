@@ -18,6 +18,10 @@
   let leafletPromise = null;
   let ageTimer = null;
   let bound = false;
+  let mini = null;
+  let miniMarker = null;
+  let miniTiles = null;
+  let miniOn = false;
 
   function loadLeaflet() {
     if (window.L) {
@@ -82,6 +86,7 @@
     last = pos;
     const c = pos.coords;
     status('Posizione ricevuta', 'ok');
+    byId('pos-retry').classList.add('hidden');
     set('pos-lat', c.latitude.toFixed(6));
     set('pos-lon', c.longitude.toFixed(6));
     set('pos-acc', c.accuracy != null ? Math.round(c.accuracy) + ' m' : 'n.d.');
@@ -90,6 +95,7 @@
     set('pos-alt', c.altitude != null ? Math.round(c.altitude) + ' m' : 'n.d.');
     set('pos-count', String(count));
     tickAge();
+    updateMini(c);
     byId('pos-hud-speed').textContent = c.speed != null && !isNaN(c.speed) ? Math.round(c.speed * 3.6) : '0';
     if (map && window.L) {
       const ll = [c.latitude, c.longitude];
@@ -107,6 +113,70 @@
     }
   }
 
+  function updateMini(c) {
+    const kmh = c.speed != null && !isNaN(c.speed) ? Math.round(c.speed * 3.6) : 0;
+    const chip = byId('dash-map-speed');
+    chip.classList.remove('hidden');
+    chip.firstElementChild.textContent = kmh;
+    byId('dash-map-hint').classList.add('hidden');
+    if (!mini || !window.L) {
+      return;
+    }
+    const ll = [c.latitude, c.longitude];
+    if (!miniMarker) {
+      miniMarker = window.L.circleMarker(ll, { radius: 9, weight: 3, color: '#ffffff', fillColor: '#0a84ff', fillOpacity: 1 }).addTo(mini);
+    } else {
+      miniMarker.setLatLng(ll);
+    }
+    mini.setView(ll, 15, { animate: false });
+  }
+
+  async function startMini() {
+    if (miniOn) {
+      return;
+    }
+    miniOn = true;
+    try {
+      await loadLeaflet();
+    } catch (e) {
+      miniOn = false;
+      return;
+    }
+    mini = window.L.map('dash-map-el', {
+      zoomControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
+      boxZoom: false, keyboard: false, touchZoom: false, attributionControl: true
+    }).setView([45.49, 12.15], 15);
+    miniTiles = window.L.tileLayer(tileUrl(), { maxZoom: 19, attribution: '© OSM' }).addTo(mini);
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(() => mini.invalidateSize()).observe(byId('dash-map-el'));
+    }
+    if (last) {
+      updateMini(last.coords);
+    }
+  }
+
+  function initCard() {
+    const card = byId('dash-map');
+    if (!card) {
+      return;
+    }
+    card.addEventListener('click', () => openPosition());
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        openPosition();
+      }
+    });
+    // already allowed before: start straight away; otherwise wait for the first tap
+    if (navigator.permissions && navigator.permissions.query && 'geolocation' in navigator) {
+      navigator.permissions.query({ name: 'geolocation' }).then(p => {
+        if (p.state === 'granted') {
+          startMini();
+          start();
+        }
+      }).catch(() => {});
+    }
+  }
+
   function onError(e) {
     const text = {
       1: 'Il browser ha negato la posizione (permesso rifiutato o non disponibile in questo browser).',
@@ -115,6 +185,7 @@
     }[e.code] || 'Errore di posizione.';
     status(text + (e.message ? ' (' + e.message + ')' : ''), 'error');
     byId('pos-info').classList.remove('hidden');
+    byId('pos-retry').classList.remove('hidden');
   }
 
   function tickAge() {
@@ -142,7 +213,7 @@
       set('pos-perm', 'n.d.');
     }
     if (watchId !== null) {
-      navigator.geolocation.clearWatch(watchId);
+      return;
     }
     status('Richiedo la posizione… (se compare un avviso, consenti)', 'wait');
     watchId = navigator.geolocation.watchPosition(onPosition, onError, {
@@ -152,12 +223,7 @@
     });
   }
 
-  function stop() {
-    if (watchId !== null && navigator.geolocation) {
-      navigator.geolocation.clearWatch(watchId);
-    }
-    watchId = null;
-  }
+  function stop() { /* the watch keeps running for the home card */ }
 
   let routeLine = null;
   let destMarker = null;
@@ -257,6 +323,10 @@
     byId('pos-home').addEventListener('click', closePosition);
     byId('pos-retry').addEventListener('click', () => {
       count = 0;
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
       start();
     });
     byId('pos-follow').addEventListener('click', () => {
@@ -278,6 +348,7 @@
     follow = true;
     byId('pos-follow').classList.add('active');
     start();
+    startMini();
     clearInterval(ageTimer);
     ageTimer = setInterval(tickAge, 1000);
     await ensureMap();
@@ -294,7 +365,15 @@
     if (typeof resizeTiles === 'function') {
       resizeTiles();
     }
+    if (mini) {
+      setTimeout(() => mini.invalidateSize(), 100);
+    }
   }
 
   window.openPosition = openPosition;
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCard);
+  } else {
+    initCard();
+  }
 }());

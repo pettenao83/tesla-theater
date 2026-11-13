@@ -50,12 +50,12 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=90">
-  <script src="teslatheater.js?v=90"></script>
-  <script src="iptv.js?v=90"></script>
-  <script src="music.js?v=90"></script>
-  <script src="dashboard.js?v=90"></script>
-  <script src="position.js?v=90"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=91">
+  <script src="teslatheater.js?v=91"></script>
+  <script src="iptv.js?v=91"></script>
+  <script src="music.js?v=91"></script>
+  <script src="dashboard.js?v=91"></script>
+  <script src="position.js?v=91"></script>
 </head>
 <body>
 
@@ -110,6 +110,11 @@
             <button id="dash-repeat" type="button" aria-label="Ripeti"><em class="fas fa-retweet"></em></button>
           </div>
           <button id="dash-connect" type="button" class="actionbutton hidden"><em class="fas fa-music"></em> Apri YouTube Music</button>
+        </div>
+        <div id="dash-map" class="dash-card" role="button" tabindex="0" aria-label="Apri la mappa">
+          <div id="dash-map-el"></div>
+          <div id="dash-map-speed" class="dash-map-chip hidden"><b>0</b> km/h</div>
+          <div id="dash-map-hint" class="dash-map-hint"><em class="fas fa-location-arrow"></em><span>Tocca per attivare la mappa</span></div>
         </div>
         <div id="dash-news" class="dash-card">
           <div class="news-head">
