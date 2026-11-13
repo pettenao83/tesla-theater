@@ -1243,6 +1243,9 @@
   }
 
   function openIptv() {
+    if (window.ytCard) {
+      window.ytCard.pause();
+    }
     // the TV takes over: pause any music that is playing
     if (window.musicApi && window.musicApi.state().playing) {
       window.musicApi.toggle();

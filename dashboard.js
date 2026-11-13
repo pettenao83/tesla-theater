@@ -480,13 +480,36 @@
         setTimeout(renderNow, 100);
       }
     });
+    function setMode(m) {
+      const video = m === 'video';
+      byId('dash-now').classList.toggle('mode-video', video);
+      byId('dash-sw-music').classList.toggle('on', !video);
+      byId('dash-sw-video').classList.toggle('on', video);
+      byId('dash-yt').classList.toggle('hidden', !video);
+      if (video && window.ytCard) {
+        window.ytCard.render(byId('dash-yt'));
+      }
+      if (music() && music().place) {
+        setTimeout(music().place, 50);
+      }
+      try {
+        window.localStorage.setItem('TeslaTheaterHomeMode', m);
+      } catch (e) { /* ignore */ }
+    }
+    byId('dash-sw-music').addEventListener('click', e => { e.stopPropagation(); setMode('music'); });
+    byId('dash-sw-video').addEventListener('click', e => { e.stopPropagation(); setMode('video'); });
+    try {
+      if (window.localStorage.getItem('TeslaTheaterHomeMode') === 'video') {
+        setTimeout(() => setMode('video'), 0);
+      }
+    } catch (e) { /* ignore */ }
     byId('dash-connect').addEventListener('click', () => {
       if (music()) {
         music().open();
       }
     });
     byId('dash-now').addEventListener('click', e => {
-      if (e.target.closest('button') || !music()) {
+      if (e.target.closest('button, .dash-sw, #dash-yt') || !music()) {
         return;
       }
       music().open();

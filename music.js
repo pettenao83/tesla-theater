@@ -1008,6 +1008,9 @@
   }
 
   function openMusic() {
+    if (window.ytCard) {
+      window.ytCard.pause();
+    }
     bind();
     load();
     open = true;

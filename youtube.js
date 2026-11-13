@@ -12,6 +12,7 @@
   let idx = -1;
   let bound = false;
   let token = 0;
+  let isPlaying = false;
 
   function loadYT() {
     if (window.YT && window.YT.Player) {
@@ -55,7 +56,9 @@
 
   function toItem(it) {
     const sn = it.snippet || {};
-    const id = typeof it.id === 'string' ? it.id : ((it.id && it.id.videoId) || (sn.resourceId && sn.resourceId.videoId));
+    // playlist items carry the video id in resourceId (their own `id` is the list entry);
+    // search results use id.videoId; videos.list uses the plain id
+    const id = (sn.resourceId && sn.resourceId.videoId) || (it.id && it.id.videoId) || (typeof it.id === 'string' ? it.id : '');
     const th = sn.thumbnails || {};
     return {
       id,
@@ -208,6 +211,34 @@
       .then(d => ({ items: (d.items || []).map(toItem) }));
   }
 
+  function onPlayerError(code) {
+    const reason = {
+      2: 'ID video non valido.',
+      5: 'Errore del player.',
+      100: 'Video non trovato o privato.',
+      101: 'Il proprietario non permette la riproduzione fuori da YouTube.',
+      150: 'Il proprietario non permette la riproduzione fuori da YouTube.'
+    }[code] || ('Errore del player (' + code + ').');
+    const skip = (code === 100 || code === 101 || code === 150) && idx + 1 < items.length;
+    msg(reason + (skip ? ' Passo al successivo…' : ' Usa "Apri su YouTube".'), true);
+    if (skip) {
+      const at = idx;
+      setTimeout(() => {
+        if (idx === at) {
+          play(idx + 1);
+        }
+      }, 2500);
+    }
+  }
+
+  function watchStart(at) {
+    setTimeout(() => {
+      if (idx === at && yt && yt.getPlayerState && yt.getPlayerState() === -1 && byId('yt-msg').classList.contains('hidden')) {
+        msg('Il video non parte: prova "Apri su YouTube" sotto il titolo.', true);
+      }
+    }, 8000);
+  }
+
   async function play(i) {
     const v = items[i];
     if (!v) {
@@ -216,6 +247,9 @@
     idx = i;
     byId('yt-title').textContent = v.title;
     byId('yt-channel').textContent = v.channel;
+    byId('yt-ext').href = 'https://www.youtube.com/watch?v=' + v.id;
+    msg('', false);
+    watchStart(i);
     byId('yt-view').classList.add('playing');
     byId('yt-back').classList.remove('hidden');
     render();
@@ -235,15 +269,13 @@
           events: {
             onReady: () => resolve(),
             onStateChange: e => {
+              isPlaying = e.data === window.YT.PlayerState.PLAYING;
+              refreshCard();
               if (e.data === window.YT.PlayerState.ENDED && idx + 1 < items.length) {
                 play(idx + 1);
               }
             },
-            onError: () => {
-              if (idx + 1 < items.length) {
-                play(idx + 1);
-              }
-            }
+            onError: e => onPlayerError(e.data)
           }
         });
       });
@@ -256,6 +288,7 @@
     if (yt && yt.stopVideo) {
       yt.stopVideo();
     }
+    isPlaying = false;
   }
 
   function back() {
@@ -288,7 +321,7 @@
     });
   }
 
-  function openYoutube() {
+  function openYoutube(list, start) {
     bind();
     window.musicApi.init();
     if (window.musicApi.state().playing) {
@@ -304,17 +337,130 @@
       needLogin();
       return;
     }
+    if (Array.isArray(list) && list.length) {
+      items = list;
+      idx = -1;
+      msg('', false);
+      document.querySelectorAll('.yt-tab').forEach(b => b.classList.remove('active'));
+      render();
+      play(start || 0);
+      return;
+    }
     if (!items.length) {
       openTab('popular');
     }
   }
 
+  // ---- shelf inside the home card ----
+  let shelf = { at: 0, items: [] };
+
+  async function loadShelf() {
+    if (Date.now() - shelf.at < 600000 && shelf.items.length) {
+      return shelf.items;
+    }
+    let list = (await tabs.feed()).items;
+    if (!list.length) {
+      list = (await tabs.popular()).items;
+    }
+    shelf = { at: Date.now(), items: list.filter(v => v.id).slice(0, 8) };
+    return shelf.items;
+  }
+
+  let cardHost = null;
+
+  function refreshCard() {
+    if (cardHost && !cardHost.classList.contains('hidden')) {
+      renderCard(cardHost);
+    }
+  }
+
+  function toggleCard() {
+    if (!yt || !yt.getPlayerState) {
+      return;
+    }
+    if (yt.getPlayerState() === 1) {
+      yt.pauseVideo();
+    } else {
+      yt.playVideo();
+    }
+  }
+
+  function pauseCard() {
+    if (yt && yt.pauseVideo && isPlaying) {
+      yt.pauseVideo();
+    }
+  }
+
+  async function renderCard(host) {
+    cardHost = host;
+    host.innerHTML = '';
+    const now = idx >= 0 ? items[idx] : null;
+    if (now) {
+      const np = document.createElement('div');
+      np.className = 'dash-yt-now';
+      const im = document.createElement('img');
+      im.alt = '';
+      im.src = now.thumb;
+      const tx = document.createElement('div');
+      tx.className = 'dash-yt-nowtxt';
+      const tt = document.createElement('b');
+      tt.textContent = now.title;
+      const ch = document.createElement('span');
+      ch.textContent = (isPlaying ? 'In riproduzione · ' : 'In pausa · ') + now.channel;
+      tx.append(tt, ch);
+      const pb = document.createElement('button');
+      pb.type = 'button';
+      pb.className = 'actionbutton';
+      pb.setAttribute('aria-label', 'Riproduci / pausa');
+      pb.innerHTML = '<em class="fas fa-' + (isPlaying ? 'pause' : 'play') + '"></em>';
+      pb.addEventListener('click', e => { e.stopPropagation(); toggleCard(); });
+      np.append(im, tx, pb);
+      np.addEventListener('click', e => { e.stopPropagation(); openYoutube(); });
+      host.appendChild(np);
+    }
+    const grid = document.createElement('div');
+    grid.className = 'dash-yt-grid';
+    const bar = document.createElement('div');
+    bar.className = 'dash-yt-bar';
+    const all = document.createElement('button');
+    all.type = 'button';
+    all.className = 'actionbutton secondary';
+    all.innerHTML = '<em class="fab fa-youtube"></em> Apri YouTube';
+    all.addEventListener('click', e => { e.stopPropagation(); openYoutube(); });
+    bar.appendChild(all);
+    host.append(grid, bar);
+    window.musicApi.init();
+    if (!window.musicApi.loggedIn()) {
+      grid.innerHTML = '<p class="dash-yt-note">Accedi con Google per vedere i video dei tuoi canali.</p>';
+      return;
+    }
+    grid.innerHTML = '<p class="dash-yt-note">Carico…</p>';
+    try {
+      const list = await loadShelf();
+      grid.innerHTML = '';
+      list.forEach((v, i) => {
+        const c = document.createElement('div');
+        c.className = 'dash-yt-item';
+        const img = document.createElement('img');
+        img.alt = '';
+        img.src = v.thumb;
+        const t = document.createElement('span');
+        t.textContent = v.title;
+        c.append(img, t);
+        c.addEventListener('click', e => { e.stopPropagation(); openYoutube(list, i); });
+        grid.appendChild(c);
+      });
+    } catch (e) {
+      grid.innerHTML = '<p class="dash-yt-note">Video non disponibili al momento.</p>';
+    }
+  }
+
+  window.ytCard = { render: renderCard, pause: pauseCard };
+
   function closeYoutube() {
-    stopPlayer();
-    idx = -1;
-    byId('yt-view').classList.remove('playing');
-    byId('yt-back').classList.add('hidden');
+    // the video keeps playing (sound only) and shows up in the home "Video" card
     byId('yt-view').classList.add('hidden');
+    refreshCard();
     $('#app-header, #apps').removeClass('hidden');
     if (typeof resizeTiles === 'function') {
       resizeTiles();
