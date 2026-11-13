@@ -1072,6 +1072,11 @@
     shuffle: toggleShuffle,
     repeat: cycleRepeat,
     open: () => openMusic(),
+    // shared Google session, used by the YouTube video view
+    init: load,
+    call: api,
+    loggedIn: () => !!st.access,
+    login,
     toggleVideo: () => {
       showVideo = !showVideo;
       placeVideo();

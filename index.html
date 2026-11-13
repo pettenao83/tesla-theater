@@ -50,11 +50,12 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=90">
-  <script src="teslatheater.js?v=90"></script>
-  <script src="iptv.js?v=90"></script>
-  <script src="music.js?v=90"></script>
-  <script src="dashboard.js?v=90"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=91">
+  <script src="teslatheater.js?v=91"></script>
+  <script src="iptv.js?v=91"></script>
+  <script src="music.js?v=91"></script>
+  <script src="dashboard.js?v=91"></script>
+  <script src="youtube.js?v=91"></script>
 </head>
 <body>
 
@@ -232,6 +233,26 @@
           </div>
           <p id="iptv-now">Seleziona un canale</p>
         </div>
+      </div>
+    </section>
+
+    <section id="yt-view" class="hidden" aria-label="YouTube">
+      <div class="sp-bar">
+        <button id="yt-home" type="button" class="actionbutton secondary" title="Home" aria-label="Home"><em class="fas fa-home"></em><span class="lbl">Home</span></button>
+        <form id="yt-form" class="yt-search" autocomplete="off">
+          <input id="yt-q" type="search" placeholder="Cerca su YouTube" aria-label="Cerca su YouTube">
+          <button type="submit" class="actionbutton" aria-label="Cerca"><em class="fas fa-search"></em></button>
+        </form>
+        <button id="yt-back" type="button" class="actionbutton secondary hidden" title="Torna ai risultati" aria-label="Risultati"><em class="fas fa-th-large"></em><span class="lbl">Risultati</span></button>
+        <button id="yt-login" type="button" class="actionbutton hidden" aria-label="Accedi"><em class="fab fa-google"></em><span class="lbl">Accedi</span></button>
+      </div>
+      <p id="yt-msg" class="hidden"></p>
+      <div class="yt-main">
+        <div class="yt-stage-wrap">
+          <div id="yt-stage"><div id="yt-player"></div></div>
+          <div class="yt-meta"><b id="yt-title"></b><span id="yt-channel"></span></div>
+        </div>
+        <div id="yt-list" class="yt-list"></div>
       </div>
     </section>
 

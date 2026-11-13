@@ -1,6 +1,6 @@
 const DEFAULT_SITES = {
   "netflix": { "name": "Netflix", "img": "images/netflix.png", "url": "https://www.netflix.com/" },
-  "youtube": { "name": "YouTube", "img": "images/youtube.png", "url": "https://www.youtube.com/" },
+  "youtube": { "name": "YouTube", "img": "images/youtube.png", "url": "#youtube", "internal": "youtube" },
   "iptv": { "name": "IPTV", "img": "images/iptv.svg", "url": "#iptv", "internal": "iptv" },
   "ytmusic": { "name": "YouTube Music", "img": "images/ytmusic.svg", "url": "#music", "internal": "music" },
   "applemusic": { "name": "Apple Music", "img": "images/applemusic.svg", "url": "https://music.apple.com/" },
@@ -82,6 +82,10 @@ function open() {
   // Built-in pages (e.g. the IPTV player) open inside the launcher itself.
   if ($(this).attr('data-internal') === 'iptv' && typeof openIptv === 'function') {
     openIptv();
+    return;
+  }
+  if ($(this).attr('data-internal') === 'youtube' && typeof openYoutube === 'function') {
+    openYoutube();
     return;
   }
   if ($(this).attr('data-internal') === 'music' && typeof openMusic === 'function') {
@@ -187,7 +191,7 @@ function fitHome() {
   const z = Math.min(vw / W, vh / H);
   // "1vh" of the virtual page: constant, so every size that uses it is stable
   document.documentElement.style.setProperty('--vh', (H / 100) + 'px');
-  ['app-header', 'spotify-view', 'iptv-view'].forEach(function (id) {
+  ['app-header', 'spotify-view', 'iptv-view', 'yt-view'].forEach(function (id) {
     const el = document.getElementById(id);
     if (!el) {
       return;
