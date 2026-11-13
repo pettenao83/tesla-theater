@@ -1,5 +1,5 @@
 /*
- * Home dashboard: clock, weather, YouTube Music "now playing" with basic controls,
+ * Home dashboard: YouTube Music "now playing" with basic controls,
  * and a choice of looks (Neon / Minimale / Cover). Settings live in this browser.
  */
 (function () {
@@ -8,10 +8,8 @@
   const KEY = 'TeslaTheaterDash';
   const STYLES = ['neon', 'minimal', 'cover', 'android', 'ios'];
   const MODES = ['auto', 'light', 'dark'];
-  const DEFAULT_CITY = { name: 'Spinea (Venezia)', lat: 45.49, lon: 12.15 };
-  const cfg = { theme: 'ios', mode: 'auto', accent: '', city: DEFAULT_CITY, news: 'ansa' };
+  const cfg = { theme: 'ios', mode: 'auto', accent: '', news: 'sky', newsV: 2 };
   let player = null;
-  let weatherTimer = null;
   let started = false;
 
   const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
@@ -34,10 +32,8 @@
         cfg.accent = saved.accent;
       }
       if (typeof saved.news === 'string' && NEWS_SOURCES[saved.news]) {
-        cfg.news = saved.news;
-      }
-      if (saved.city && typeof saved.city.lat === 'number' && typeof saved.city.lon === 'number') {
-        cfg.city = saved.city;
+        // the old default (ANSA, no photos) moves to Sky TG24 once
+        cfg.news = saved.newsV !== 2 && saved.news === 'ansa' ? 'sky' : saved.news;
       }
     } catch (e) { /* ignore */ }
   }
@@ -168,169 +164,14 @@
     relayout();
   }
 
-  // ---------- clock ----------
-
-  function tickClock() {
-    const now = new Date();
-    byId('dash-time').textContent = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    byId('dash-date').textContent = now.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
-  }
-
-  // ---------- weather (Open-Meteo, no key) ----------
-
-  function describe(code) {
-    if (code === 0) { return ['fa-sun', 'Sereno']; }
-    if (code <= 2) { return ['fa-cloud-sun', 'Poco nuvoloso']; }
-    if (code === 3) { return ['fa-cloud', 'Coperto']; }
-    if (code === 45 || code === 48) { return ['fa-smog', 'Nebbia']; }
-    if (code >= 51 && code <= 57) { return ['fa-cloud-rain', 'Pioggerella']; }
-    if (code >= 61 && code <= 67) { return ['fa-cloud-showers-heavy', 'Pioggia']; }
-    if (code >= 71 && code <= 77) { return ['fa-snowflake', 'Neve']; }
-    if (code >= 80 && code <= 82) { return ['fa-cloud-showers-heavy', 'Rovesci']; }
-    if (code >= 95) { return ['fa-bolt', 'Temporale']; }
-    return ['fa-cloud', 'Variabile'];
-  }
-
-  const DAYS = ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'];
-
-  function hhmm(iso) {
-    return iso ? String(iso).slice(11, 16) : '--:--';
-  }
-
-  function renderForecast(j) {
-    const box = byId('fc-days');
-    box.textContent = '';
-    const dl = j.daily;
-    if (!dl || !dl.time) {
-      return;
-    }
-    for (let i = 1; i <= 3 && i < dl.time.length; i++) {
-      const day = mk('div', 'fc-day');
-      day.appendChild(mk('span', 'fc-name', DAYS[new Date(dl.time[i] + 'T12:00:00').getDay()]));
-      const ic = mk('em', 'fas ' + describe(dl.weather_code[i])[0]);
-      day.appendChild(ic);
-      day.appendChild(mk('span', 'fc-max', Math.round(dl.temperature_2m_max[i]) + '°'));
-      day.appendChild(mk('span', 'fc-min', Math.round(dl.temperature_2m_min[i]) + '°'));
-      box.appendChild(day);
-    }
-  }
-
-  function renderSun(j) {
-    const sun = byId('sun-times');
-    sun.textContent = '';
-    if (j.daily && j.daily.sunrise) {
-      const a = mk('span', 'sun-item');
-      a.innerHTML = '<em class="fas fa-sun"></em> ' + hhmm(j.daily.sunrise[0]);
-      const b = mk('span', 'sun-item');
-      b.innerHTML = '<em class="fas fa-moon"></em> ' + hhmm(j.daily.sunset[0]);
-      sun.appendChild(a);
-      sun.appendChild(b);
-    }
-    airWind.wind = j.current && j.current.wind_speed_10m != null ? Math.round(j.current.wind_speed_10m) : null;
-    renderAirWind();
-  }
-
-  const airWind = { wind: null, aqi: null };
-
-  function aqiLabel(v) {
-    if (v == null) { return ['', 'n.d.']; }
-    if (v <= 20) { return ['good', 'Ottima']; }
-    if (v <= 40) { return ['good', 'Buona']; }
-    if (v <= 60) { return ['mid', 'Discreta']; }
-    if (v <= 80) { return ['bad', 'Scadente']; }
-    return ['bad', 'Pessima'];
-  }
-
-  function renderAirWind() {
-    const box = byId('air-wind');
-    box.textContent = '';
-    const q = aqiLabel(airWind.aqi);
-    const a = mk('span', 'sun-item');
-    a.innerHTML = '<em class="fas fa-leaf aqi-' + q[0] + '"></em> ' + q[1];
-    box.appendChild(a);
-    if (airWind.wind != null) {
-      const w = mk('span', 'sun-item');
-      w.innerHTML = '<em class="fas fa-wind"></em> ' + airWind.wind + ' km/h';
-      box.appendChild(w);
-    }
-  }
-
-  async function loadAir() {
-    try {
-      const r = await fetch('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + cfg.city.lat +
-        '&longitude=' + cfg.city.lon + '&current=european_aqi');
-      const j = await r.json();
-      airWind.aqi = j.current ? j.current.european_aqi : null;
-    } catch (e) {
-      airWind.aqi = null;
-    }
-    renderAirWind();
-  }
-
-  async function loadWeather() {
-    byId('dash-city').textContent = cfg.city.name;
-    try {
-      const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + cfg.city.lat +
-        '&longitude=' + cfg.city.lon +
-        '&current=temperature_2m,weather_code,wind_speed_10m' +
-        '&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&forecast_days=4&timezone=auto';
-      const r = await fetch(url);
-      if (!r.ok) {
-        throw new Error('HTTP ' + r.status);
-      }
-      const j = await r.json();
-      const d = describe(j.current.weather_code);
-      byId('dash-wicon').className = 'fas ' + d[0];
-      byId('dash-temp').textContent = Math.round(j.current.temperature_2m) + '°';
-      byId('dash-wtext').textContent = d[1];
-      renderForecast(j);
-      renderSun(j);
-    } catch (e) {
-      byId('dash-wtext').textContent = 'Meteo non disponibile';
-    }
-    loadAir();
-    relayout();
-  }
-
-  async function searchCity() {
-    const q = byId('dash-city-input').value.trim();
-    const msg = byId('dash-city-msg');
-    if (!q) {
-      msg.textContent = 'Scrivi il nome di una città.';
-      return;
-    }
-    msg.textContent = 'Cerco…';
-    try {
-      const r = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' +
-        encodeURIComponent(q) + '&count=1&language=it&format=json');
-      const j = await r.json();
-      const hit = j.results && j.results[0];
-      if (!hit) {
-        msg.textContent = 'Città non trovata.';
-        return;
-      }
-      cfg.city = {
-        name: hit.name + (hit.admin1 ? ' (' + hit.admin1 + ')' : ''),
-        lat: hit.latitude,
-        lon: hit.longitude
-      };
-      save();
-      msg.textContent = 'Meteo per ' + cfg.city.name;
-      loadWeather();
-    } catch (e) {
-      msg.textContent = 'Ricerca non riuscita, riprova.';
-    }
-  }
-
-
   // ---------- news (RSS in italiano) ----------
 
   const PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
   const NEWS_SOURCES = {
+    sky: { name: 'Sky TG24', url: 'https://tg24.sky.it/rss/tg24.xml' },
     ansa: { name: 'ANSA', url: 'https://www.ansa.it/sito/ansait_rss.xml' },
     corriere: { name: 'Corriere della Sera', url: 'https://xml2.corriereobjects.it/rss/homepage.xml', direct: true },
     repubblica: { name: 'la Repubblica', url: 'https://www.repubblica.it/rss/homepage/rss2.0.xml' },
-    sky: { name: 'Sky TG24', url: 'https://tg24.sky.it/rss/tg24.xml' },
     rai: { name: 'Rai News', url: 'https://www.rainews.it/rss/tutti' },
     google: { name: 'Google Notizie', url: 'https://news.google.com/rss?hl=it&gl=IT&ceid=IT:it' }
   };
@@ -446,7 +287,7 @@
     return ph;
   }
 
-  // One big story with its photo and two smaller ones; the set rotates by itself.
+  // A big story with its photo and three smaller ones; the set rotates by itself.
   function renderNews() {
     const items = (news.items || []).slice(0, 8);
     const src = NEWS_SOURCES[news.source] || NEWS_SOURCES[cfg.news];
@@ -463,10 +304,14 @@
     }
     newsIndex = newsIndex % items.length;
     const first = items[newsIndex];
-    byId('dash-news').classList.add('nophoto');
+    const photo = !!first.img;
+    byId('dash-news').classList.toggle('nophoto', !photo);
+    if (photo) {
+      main.appendChild(picture(first.img, 'news-photo'));
+    }
     main.appendChild(mk('div', 'news-title', first.title));
     main.appendChild(mk('div', 'news-meta', ago(first.at)));
-    const count = 5;
+    const count = photo ? 3 : 5;
     for (let k = 1; k <= count && k < items.length; k++) {
       const it = items[(newsIndex + k) % items.length];
       const row = mk('div', 'news-row' + (it.img ? '' : ' nothumb'));
@@ -498,144 +343,6 @@
       card.classList.remove('swap');
     }, 280);
   }
-  // ---------- calendar ----------
-
-  let calDay = '';
-  function renderCalendar() {
-    const now = new Date();
-    const key = now.toDateString();
-    if (key === calDay) {
-      return;
-    }
-    calDay = key;
-    byId('cal-title').textContent = now.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
-    const grid = byId('cal-grid');
-    grid.textContent = '';
-    ['L', 'M', 'M', 'G', 'V', 'S', 'D'].forEach(x => grid.appendChild(mk('span', 'cal-h', x)));
-    const first = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lead = (first.getDay() + 6) % 7;
-    const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    for (let i = 0; i < lead; i++) {
-      grid.appendChild(mk('span', 'cal-d empty', ''));
-    }
-    for (let d = 1; d <= days; d++) {
-      grid.appendChild(mk('span', 'cal-d' + (d === now.getDate() ? ' today' : ''), String(d)));
-    }
-  }
-
-  // ---------- recently opened apps ----------
-
-  function renderRecent() {
-    const box = byId('recent-apps');
-    let ids = [];
-    try {
-      ids = JSON.parse(window.localStorage.getItem('TeslaTheaterRecent') || '[]');
-    } catch (e) { /* ignore */ }
-    const sig = ids.filter(id => document.getElementById(id)).join(',');
-    if (box.dataset.sig === sig && box.children.length) {
-      return;
-    }
-    box.dataset.sig = sig;
-    box.textContent = '';
-    ids.forEach(id => {
-      const tile = document.getElementById(id);
-      const src = tile && tile.querySelector('img');
-      if (!src) {
-        return;
-      }
-      const b = mk('button', 'recent-app');
-      b.type = 'button';
-      b.title = (tile.getAttribute('title') || id);
-      const im = mk('img');
-      im.alt = '';
-      im.src = src.getAttribute('src');
-      if (src.style.content) {
-        im.style.content = src.style.content;
-      }
-      b.appendChild(im);
-      b.addEventListener('click', () => $('#' + id).trigger('click'));
-      box.appendChild(b);
-    });
-    if (!box.children.length) {
-      box.appendChild(mk('span', 'm-hint', 'Nessuna ancora'));
-    }
-  }
-
-  // ---------- favourite channels: one tap ----------
-
-  function parseM3u(text) {
-    const out = {};
-    const lines = text.split(/\r?\n/);
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].startsWith('#EXTINF')) {
-        const logo = /tvg-logo="([^"]*)"/.exec(lines[i]);
-        const name = lines[i].slice(lines[i].lastIndexOf(',') + 1).trim();
-        let j = i + 1;
-        while (j < lines.length && (!lines[j].trim() || lines[j].startsWith('#'))) {
-          j++;
-        }
-        if (lines[j]) {
-          out[lines[j].trim()] = { name: name, logo: logo ? logo[1] : '' };
-        }
-      }
-    }
-    return out;
-  }
-
-  async function loadFavChannels() {
-    const box = byId('ch-fav');
-    try {
-      const [pr, mr] = await Promise.all([
-        fetch('playlists/preferenze.json', { cache: 'no-cache' }),
-        fetch('playlists/italia.m3u')
-      ]);
-      const favs = ((await pr.json()).favorites || []);
-      const known = parseM3u(await mr.text());
-      box.textContent = '';
-      favs.filter(u => known[u]).slice(0, 6).forEach(u => {
-        const c = known[u];
-        const b = mk('button', 'ch-btn');
-        b.type = 'button';
-        b.title = c.name;
-        if (c.logo) {
-          const im = mk('img');
-          im.alt = '';
-          im.loading = 'lazy';
-          im.src = c.logo.replace(/^http:/, 'https:');
-          im.onerror = () => { im.remove(); b.textContent = c.name; };
-          b.appendChild(im);
-        } else {
-          b.textContent = c.name;
-        }
-        b.addEventListener('click', () => {
-          if (typeof iptvPlayUrl === 'function') {
-            iptvPlayUrl(u);
-          }
-        });
-        box.appendChild(b);
-      });
-    } catch (e) {
-      box.textContent = '';
-    }
-    renderLastChannel();
-  }
-
-  function renderLastChannel() {
-    const btn = byId('ch-last');
-    let last = null;
-    try {
-      last = JSON.parse(window.localStorage.getItem('TeslaTheaterIptvLast') || 'null');
-    } catch (e) { /* ignore */ }
-    if (!last || !last.url) {
-      btn.classList.add('hidden');
-      return;
-    }
-    const t = new Date(last.at).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    btn.textContent = 'Ultimo visto: ' + last.name + ' · ' + t;
-    btn.onclick = () => iptvPlayUrl(last.url);
-    btn.classList.remove('hidden');
-  }
-
   // ---------- now playing (YouTube Music) ----------
 
   function music() {
@@ -666,6 +373,9 @@
         cover.src = BLANK;
       }
     }
+    byId('dash-video').classList.toggle('hidden', !has);
+    byId('dash-video').classList.toggle('active', !!s && !!s.video);
+    byId('dash-left').textContent = has && s.duration ? '-' + Math.floor(Math.max(0, s.duration - s.progress) / 60) + ':' + String(Math.round(Math.max(0, s.duration - s.progress)) % 60).padStart(2, '0') : '';
     byId('dash-track').textContent = has ? s.title : 'Nessuna riproduzione';
     byId('dash-artist').textContent = has ? s.artist : 'Apri YouTube Music e scegli un brano.';
     byId('dash-prog').style.width = has && s.duration ? Math.min(100, (s.progress / s.duration) * 100) + '%' : '0%';
@@ -681,9 +391,19 @@
       byId('dash-play').innerHTML = icon;
     }
     byId('dash-play').setAttribute('aria-label', s.playing ? 'Pausa' : 'Riproduci');
+    if (m.place) {
+      m.place();
+    }
   }
 
   function bind() {
+    byId('dash-video').addEventListener('click', e => {
+      e.stopPropagation();
+      if (music()) {
+        music().toggleVideo();
+        setTimeout(renderNow, 100);
+      }
+    });
     byId('dash-connect').addEventListener('click', () => {
       if (music()) {
         music().open();
@@ -707,8 +427,6 @@
     byId('dash-settings-btn').addEventListener('click', () => {
       byId('dash-settings').classList.toggle('hidden');
       byId('dash-settings-btn').classList.toggle('active');
-      byId('dash-city-input').value = '';
-      byId('dash-city-msg').textContent = 'Città del meteo: ' + cfg.city.name;
       relayout();
     });
     document.querySelectorAll('.dash-theme').forEach(b => {
@@ -728,7 +446,6 @@
     if (window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
     }
-    byId('dash-city-search').addEventListener('click', searchCity);
     const sel = byId('dash-news-source');
     sel.value = cfg.news;
     sel.addEventListener('change', () => {
@@ -737,12 +454,6 @@
       newsIndex = 0;
       news = { source: '', items: [], at: 0 };
       loadNews(true);
-    });
-    byId('dash-city-input').addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        searchCity();
-      }
     });
   }
 
@@ -756,13 +467,6 @@
     buildAccents();
     applyTheme();
     new MutationObserver(renderIcons).observe(byId('apps'), { childList: true });
-    tickClock();
-    renderCalendar();
-    renderRecent();
-    loadFavChannels();
-    setInterval(() => { tickClock(); renderCalendar(); renderRecent(); renderLastChannel(); }, 10000);
-    loadWeather();
-    weatherTimer = setInterval(loadWeather, 15 * 60 * 1000);
     loadNews(false);
     setInterval(() => loadNews(true), NEWS_TTL);
     setInterval(rotateNews, 9000);
@@ -782,14 +486,12 @@
     cfg.theme = 'ios';
     cfg.mode = 'auto';
     cfg.accent = '';
-    cfg.city = DEFAULT_CITY;
-    cfg.news = 'ansa';
+    cfg.news = 'sky';
     try {
       window.localStorage.removeItem(NEWS_KEY);
     } catch (e) { /* ignore */ }
     if (started) {
       applyTheme();
-      loadWeather();
     }
   };
 

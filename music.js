@@ -755,24 +755,32 @@
     } catch (e) { /* the shelf is optional */ }
   }
 
-  // The real video can be shown over the cover (some music videos are worth it).
+  // The real video can be shown over the cover (some music videos are worth it): over the cover
+  // of the music page when it is open, over the music tile when the home is on screen.
+  function coverTarget() {
+    if (open) {
+      return byId('sp-cover');
+    }
+    const home = byId('dash');
+    return home && home.offsetParent !== null ? byId('dash-cover') : null;
+  }
+
   function placeVideo() {
     const host = byId('ytm-host');
     if (!host) {
       return;
     }
-    const cover = byId('sp-cover');
-    if (open && showVideo && cur && cover) {
-      const r = cover.getBoundingClientRect();
+    const target = coverTarget();
+    const f = host.querySelector('iframe');
+    if (showVideo && cur && target) {
+      const r = target.getBoundingClientRect();
       host.style.cssText = 'position:fixed;z-index:60;left:' + r.left + 'px;top:' + r.top + 'px;width:' + r.width + 'px;height:' + r.height + 'px;border-radius:14px;overflow:hidden;';
-      const f = host.querySelector('iframe');
       if (f) {
         f.style.width = '100%';
         f.style.height = '100%';
       }
     } else {
       host.style.cssText = 'position:fixed;left:-3000px;top:0;width:320px;height:180px;';
-      const f = host.querySelector('iframe');
       if (f) {
         f.style.width = '320px';
         f.style.height = '180px';
@@ -1044,14 +1052,20 @@
       progress: timeNow,
       duration: dur,
       shuffle,
-      repeat
+      repeat,
+      video: showVideo
     }),
     toggle,
     next: () => next(false),
     prev,
     shuffle: toggleShuffle,
     repeat: cycleRepeat,
-    open: () => openMusic()
+    open: () => openMusic(),
+    toggleVideo: () => {
+      showVideo = !showVideo;
+      placeVideo();
+    },
+    place: placeVideo
   };
   window.openMusic = openMusic;
   window.musicReset = reset;

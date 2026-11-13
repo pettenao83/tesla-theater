@@ -79,14 +79,6 @@ function open() {
     return;
   }
 
-  // remember the last apps opened (shown in the "recent" tile of the home)
-  try {
-    const rid = $(this).attr('id');
-    let recent = JSON.parse(window.localStorage.getItem('TeslaTheaterRecent') || '[]');
-    recent = [rid].concat(recent.filter(x => x !== rid)).slice(0, 3);
-    window.localStorage.setItem('TeslaTheaterRecent', JSON.stringify(recent));
-  } catch (e) { /* ignore */ }
-
   // Built-in pages (e.g. the IPTV player) open inside the launcher itself.
   if ($(this).attr('data-internal') === 'iptv' && typeof openIptv === 'function') {
     openIptv();

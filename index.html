@@ -50,11 +50,11 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=78">
-  <script src="teslatheater.js?v=78"></script>
-  <script src="iptv.js?v=78"></script>
-  <script src="music.js?v=78"></script>
-  <script src="dashboard.js?v=78"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=81">
+  <script src="teslatheater.js?v=81"></script>
+  <script src="iptv.js?v=81"></script>
+  <script src="music.js?v=81"></script>
+  <script src="dashboard.js?v=81"></script>
 </head>
 <body>
 
@@ -87,56 +87,29 @@
       </div>
 
       <section id="dash" aria-label="Dashboard">
-        <div class="dash-top">
-        <div id="dash-now" class="dash-card">
-          <img id="dash-cover" class="empty" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
-          <div class="dash-now-main">
-            <div id="dash-track">Nessuna riproduzione</div>
-            <div id="dash-artist"></div>
-            <div class="dash-bar"><div id="dash-prog"></div></div>
-            <div id="dash-ctl" class="dash-ctl hidden">
-              <button id="dash-shuffle" type="button" aria-label="Casuale"><em class="fas fa-random"></em></button>
-              <button id="dash-prev" type="button" aria-label="Precedente"><em class="fas fa-step-backward"></em></button>
-              <button id="dash-play" type="button" class="dash-play" aria-label="Riproduci"><em class="fas fa-play"></em></button>
-              <button id="dash-next" type="button" aria-label="Successivo"><em class="fas fa-step-forward"></em></button>
-              <button id="dash-repeat" type="button" aria-label="Ripeti"><em class="fas fa-retweet"></em></button>
-            </div>
-            <button id="dash-connect" type="button" class="actionbutton hidden"><em class="fas fa-music"></em> Apri YouTube Music</button>
-          </div>
-        </div>
-        <div class="dash-stack">
-        <div id="dash-clock" class="dash-card">
-          <div id="dash-time">--:--</div>
-          <div id="dash-date"></div>
-        </div>
-        <div id="dash-weather" class="dash-card">
-          <em id="dash-wicon" class="fas fa-cloud"></em>
-          <div class="dash-wtext"><span id="dash-temp">--°</span><span id="dash-wdesc"><span id="dash-wtext"></span><small id="dash-city"></small></span></div>
-        </div>
-        </div>
-        </div>
-        <div id="dash-forecast" class="dash-card dash-col">
-          <div class="tl">Prossimi giorni</div>
-          <div id="fc-days" class="fc-days"></div>
-        </div>
-        <div id="dash-recent" class="dash-card dash-col">
-          <div class="tl">Usate di recente</div>
-          <div id="recent-apps" class="recent-apps"></div>
-        </div>
-        <div id="dash-channels" class="dash-card dash-col">
-          <div class="tl">Canali preferiti</div>
-          <div id="ch-fav" class="ch-fav"></div>
-          <button id="ch-last" type="button" class="ch-last hidden"></button>
-        </div>
-        <div id="dash-calendar" class="dash-card dash-col">
-          <div id="cal-title" class="tl"></div>
-          <div id="cal-grid" class="cal-grid"></div>
-        </div>
-        <div id="dash-sun" class="dash-card">
-          <div class="sun-col"><div class="tl">Sole</div><div id="sun-times" class="sun-line"></div></div>
-          <div class="sun-col"><div class="tl">Aria e vento</div><div id="air-wind" class="sun-line"></div></div>
-        </div>
         <div id="apps" class="container"></div>
+        <div id="dash-now" class="dash-card">
+          <div class="now-art">
+            <img id="dash-cover" class="empty" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
+            <button id="dash-video" type="button" class="now-chip hidden" title="Mostra il video" aria-label="Video"><em class="fas fa-video"></em> Video</button>
+          </div>
+          <div class="now-head">
+            <div class="now-text">
+              <div id="dash-track">Nessuna riproduzione</div>
+              <div id="dash-artist"></div>
+            </div>
+            <span id="dash-left" class="now-left"></span>
+          </div>
+          <div class="dash-bar"><div id="dash-prog"></div></div>
+          <div id="dash-ctl" class="dash-ctl hidden">
+            <button id="dash-shuffle" type="button" aria-label="Casuale"><em class="fas fa-random"></em></button>
+            <button id="dash-prev" type="button" aria-label="Precedente"><em class="fas fa-step-backward"></em></button>
+            <button id="dash-play" type="button" class="dash-play" aria-label="Riproduci"><em class="fas fa-play"></em></button>
+            <button id="dash-next" type="button" aria-label="Successivo"><em class="fas fa-step-forward"></em></button>
+            <button id="dash-repeat" type="button" aria-label="Ripeti"><em class="fas fa-retweet"></em></button>
+          </div>
+          <button id="dash-connect" type="button" class="actionbutton hidden"><em class="fas fa-music"></em> Apri YouTube Music</button>
+        </div>
         <div id="dash-news" class="dash-card">
           <div class="news-head">
             <span id="news-chip" class="news-chip">Notizie</span>
@@ -168,19 +141,13 @@
           <div class="dash-set-row">
             <strong>Notizie</strong>
             <select id="dash-news-source" aria-label="Fonte delle notizie">
-              <option value="ansa">ANSA</option>
+              <option value="sky">Sky TG24 (con foto)</option>
+              <option value="ansa">ANSA (senza foto)</option>
               <option value="corriere">Corriere della Sera</option>
               <option value="repubblica">la Repubblica</option>
-              <option value="sky">Sky TG24</option>
               <option value="rai">Rai News</option>
               <option value="google">Google Notizie</option>
             </select>
-          </div>
-          <div class="dash-set-row">
-            <strong>Meteo</strong>
-            <input type="text" id="dash-city-input" placeholder="Cerca una città" autocomplete="off" />
-            <button type="button" id="dash-city-search" class="actionbutton secondary"><em class="fas fa-search"></em> Cerca</button>
-            <span id="dash-city-msg"></span>
           </div>
         </div>
       </section>
