@@ -2109,7 +2109,7 @@ html[data-theme="ios-light"] #applemusic img { content: url("images/themes/ios-l
 
 /* Same optical size for every logo; icons with their own background look like app icons */
 .button > .logo-container > img { max-width: 88%; max-height: 64%; }
-#netflix img, #iptv img, #ytmusic img, #position img, #applemusic img, #dazn img, #twitch img { max-width: 72%; max-height: 72%; }
+#netflix img, #iptv img, #ytmusic img, #applemusic img, #dazn img, #twitch img { max-width: 72%; max-height: 72%; }
 #airtesla img, #skytg24 img { border-radius: 18%; max-width: 76%; max-height: 76%; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); }
 #skytg24 img { max-width: 88%; max-height: 40%; border-radius: 10px; }
 /* Same icon size and alignment inside every button */
@@ -2789,18 +2789,3 @@ html[data-theme="neon"] .sp-l-vinyl .sp-vinyl::after { text-shadow: 0 0 10px var
   font: inherit;
   font-size: 0.9rem;
 }
-
-/* Position test */
-#pos-view { position: relative; max-width: none; margin: 0; width: 100%; padding: 12px 20px 16px; display: flex; flex-direction: column; box-sizing: border-box; }
-#pos-view.hidden { display: none; }
-.pos-main { flex: 1; min-height: 0; display: grid; grid-template-columns: calc(var(--vh,1vh)*40) 1fr; gap: calc(var(--vh,1vh)*2); margin-top: calc(var(--vh,1vh)*2); }
-.pos-info { background: var(--bg-panel); border: 1px solid var(--line); border-radius: calc(var(--vh,1vh)*2); padding: calc(var(--vh,1vh)*2.4); overflow: auto; color: var(--ink); }
-.pos-info dl { display: grid; grid-template-columns: auto 1fr; gap: calc(var(--vh,1vh)*1) calc(var(--vh,1vh)*2); margin: 0; font-size: calc(var(--vh,1vh)*2.4); }
-.pos-info dt { opacity: .65; }
-.pos-info dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-.pos-status { font-size: calc(var(--vh,1vh)*2.4); font-weight: 700; margin: 0 0 calc(var(--vh,1vh)*2); }
-.pos-status.ok { color: #30d158; }
-.pos-status.error { color: #ff453a; }
-.pos-status.wait { color: #ffb020; }
-.pos-map { border-radius: calc(var(--vh,1vh)*2); overflow: hidden; min-height: 0; border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink); }
-html:not([data-theme$="-light"]):not([data-theme="minimal"]) .pos-map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9); }
