@@ -2853,3 +2853,13 @@ html[data-theme="neon"] .sp-l-vinyl .sp-vinyl::after { text-shadow: 0 0 10px var
 .dash-yt-nowrow { flex: none; display: flex; align-items: center; gap: calc(var(--vh,1vh)*1.2); }
 .dash-yt-nowrow .actionbutton { width: calc(var(--vh,1vh)*6); height: calc(var(--vh,1vh)*6); padding: 0; justify-content: center; flex: none; }
 .dash-yt-bar { gap: calc(var(--vh,1vh)*1.2); }
+
+/* YouTube cinema mode: only the video and a thin bar */
+#yt-view:not(.playing) #yt-cinema { display: none; }
+#yt-cinema { margin-left: auto; }
+#yt-view.cinema .yt-tabs, #yt-view.cinema .yt-list, #yt-view.cinema .yt-meta, #yt-view.cinema #yt-msg,
+#yt-view.cinema .yt-search, #yt-view.cinema #yt-back, #yt-view.cinema #yt-login { display: none; }
+#yt-view.cinema { padding-top: 8px; padding-bottom: 10px; }
+#yt-view.cinema .yt-main { margin-top: calc(var(--vh,1vh)*1); }
+#yt-view.cinema .yt-stage-wrap { flex: 1 1 auto; }
+#yt-view.cinema #yt-stage { aspect-ratio: auto; flex: 1; width: 100%; height: 100%; max-height: none; min-height: 0; }

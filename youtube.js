@@ -295,7 +295,19 @@
     isPlaying = false;
   }
 
+  function setCinema(on) {
+    const v = byId('yt-view');
+    v.classList.toggle('cinema', !!on);
+    const b = byId('yt-cinema');
+    b.classList.toggle('active', !!on);
+    b.title = on ? 'Mostra elenco e comandi' : 'Modalità cinema';
+    b.querySelector('em').className = 'fas fa-' + (on ? 'compress' : 'film');
+    b.querySelector('.lbl').textContent = on ? 'Esci' : 'Cinema';
+    [50, 200, 450].forEach(ms => setTimeout(place, ms));
+  }
+
   function back() {
+    setCinema(false);
     stopPlayer();
     idx = -1;
     byId('yt-view').classList.remove('playing');
@@ -310,6 +322,7 @@
     bound = true;
     byId('yt-home').addEventListener('click', closeYoutube);
     byId('yt-back').addEventListener('click', back);
+    byId('yt-cinema').addEventListener('click', () => setCinema(!byId('yt-view').classList.contains('cinema')));
     document.querySelectorAll('.yt-tab').forEach(b => b.addEventListener('click', () => openTab(b.dataset.tab)));
     byId('yt-login').addEventListener('click', () => window.musicApi.login());
     byId('yt-form').addEventListener('submit', e => {
@@ -325,8 +338,11 @@
     });
   }
 
-  function openYoutube(list, start) {
+  function openYoutube(list, start, cinema) {
     bind();
+    if (cinema) {
+      setTimeout(() => setCinema(true), 0);
+    }
     window.musicApi.init();
     if (window.musicApi.state().playing) {
       window.musicApi.toggle();
@@ -461,7 +477,7 @@
         tx,
         icon(isPlaying ? 'pause' : 'play', 'Riproduci / pausa', toggleCard, 'dash-yt-play'),
         icon('th-large', 'Altri video', () => { listMode = true; renderCard(host); }),
-        icon('expand', 'Schermo intero', () => openYoutube()),
+        icon('expand', 'Cinema', () => openYoutube(null, 0, true)),
         icon('times', 'Chiudi video', () => { stopPlayer(); idx = -1; renderCard(host); })
       );
       host.append(vid, row);
@@ -518,6 +534,7 @@
 
   function closeYoutube() {
     // the video keeps playing (sound only) and shows up in the home "Video" card
+    setCinema(false);
     byId('yt-view').classList.add('hidden');
     listMode = false;
     refreshCard();
