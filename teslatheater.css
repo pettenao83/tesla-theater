@@ -81,8 +81,8 @@ a:focus-visible {
 }
 
 .marquee h1 .cyan {
-  color: var(--cyan);
-  text-shadow: 0 0 8px var(--cyan-glow), 0 0 26px var(--cyan-glow);
+  color: var(--pink);
+  text-shadow: 0 0 8px var(--pink-glow), 0 0 26px var(--pink-glow);
 }
 
 .tagline {
@@ -1380,39 +1380,41 @@ html[data-theme^="ios"] {
 }
 /* Android 17 (Material 3 Expressive) */
 html[data-theme="android-dark"] {
-  --bg-deep: #141218;
-  --bg-panel: #211f26;
-  --bg-panel-hover: #2b2930;
-  --sky-1: #2b2930;
-  --sky-2: #141218;
-  --pink: #d0bcff;
-  --pink-glow: rgba(208, 188, 255, 0.25);
-  --cyan: #eaddff;
-  --cyan-glow: rgba(234, 221, 255, 0.12);
-  --ink: #e6e0e9;
-  --ink-muted: #cac4d0;
+  --pink: #8ab4f8;
+  --pink-glow: color-mix(in srgb, var(--pink) 25%, transparent);
+  --bg-deep: color-mix(in srgb, var(--pink) 5%, #121212);
+  --bg-panel: color-mix(in srgb, var(--pink) 8%, #1b1b1d);
+  --bg-panel-hover: color-mix(in srgb, var(--pink) 12%, #232326);
+  --sky-1: color-mix(in srgb, var(--pink) 10%, #1e1e20);
+  --sky-2: var(--bg-deep);
+  --cyan: color-mix(in srgb, var(--pink) 70%, #ffffff);
+  --cyan-glow: color-mix(in srgb, var(--pink) 12%, transparent);
+  --ink: #e3e3e6;
+  --ink-muted: #a8abb0;
   --line: rgba(147, 143, 153, 0.35);
-  --line-pink: rgba(208, 188, 255, 0.35);
-  --on-pink: #381e72;
+  --line-pink: color-mix(in srgb, var(--pink) 35%, transparent);
+  --on-pink: #062e6f;
 }
+
 html[data-theme="android-light"] {
-  --bg-deep: #fef7ff;
-  --bg-panel: #f3edf7;
-  --bg-panel-hover: #ece6f0;
-  --sky-1: #e8def8;
-  --sky-2: #fef7ff;
-  --pink: #6750a4;
-  --pink-glow: rgba(103, 80, 164, 0.15);
-  --cyan: #4f378b;
-  --cyan-glow: rgba(79, 55, 139, 0.08);
-  --ink: #1d1b20;
-  --ink-muted: #49454f;
-  --line: rgba(121, 116, 126, 0.35);
-  --line-pink: rgba(103, 80, 164, 0.3);
+  --pink: #1a73e8;
+  --pink-glow: color-mix(in srgb, var(--pink) 18%, transparent);
+  --bg-deep: color-mix(in srgb, var(--pink) 4%, #fcfcfd);
+  --bg-panel: color-mix(in srgb, var(--pink) 7%, #ffffff);
+  --bg-panel-hover: color-mix(in srgb, var(--pink) 11%, #ffffff);
+  --sky-1: color-mix(in srgb, var(--pink) 12%, #ffffff);
+  --sky-2: var(--bg-deep);
+  --cyan: color-mix(in srgb, var(--pink) 80%, #000000);
+  --cyan-glow: color-mix(in srgb, var(--pink) 8%, transparent);
+  --ink: #1b1b1f;
+  --ink-muted: #5f6368;
+  --line: rgba(95, 99, 104, 0.35);
+  --line-pink: color-mix(in srgb, var(--pink) 30%, transparent);
   --on-pink: #ffffff;
   --tile-bg: #2b2930;
   --tile-bg-hover: #3a3740;
 }
+
 /* iOS */
 html[data-theme="ios-dark"] {
   --bg-deep: #000000;

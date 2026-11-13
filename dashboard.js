@@ -85,11 +85,21 @@
     return 'url("data:image/svg+xml,' + encodeURIComponent(head + body + '</svg>') + '")';
   }
 
+  // a CSS colour (even color-mix / var) as a plain rgb() value for the SVG icons
+  function resolveColor(v) {
+    const probe = document.createElement('span');
+    probe.style.color = v;
+    document.body.appendChild(probe);
+    const out = window.getComputedStyle(probe).color;
+    probe.remove();
+    return out;
+  }
+
   function renderIcons() {
     const cs = window.getComputedStyle(document.documentElement);
-    const a = cs.getPropertyValue('--pink').trim();
-    const b = cs.getPropertyValue('--cyan').trim();
-    const t = cs.getPropertyValue('--ink').trim();
+    const a = resolveColor(cs.getPropertyValue('--pink').trim());
+    const b = resolveColor(cs.getPropertyValue('--cyan').trim());
+    const t = resolveColor(cs.getPropertyValue('--ink').trim());
     ['iptv', 'ytmusic', 'applemusic'].forEach(id => {
       const img = document.querySelector('#' + id + ' img');
       if (img) {
