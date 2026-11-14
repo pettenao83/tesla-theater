@@ -782,6 +782,36 @@
   }
 
   // Background colour of the immersive look: the cover's average colour, darkened.
+  // the immersive layout uses the style and accent colours; no colour is taken from the cover any more
+  function applyColor() {
+    byId('spotify-view').style.removeProperty('--sp-bg');
+  }
+
+  function setLayout(l, remember) {
+    layout = LAYOUTS.includes(l) ? l : 'vinyl';
+    const v = byId('spotify-view');
+    LAYOUTS.forEach(x => v.classList.toggle('sp-l-' + x, x === layout));
+    v.classList.remove('sp-lib-open');
+    byId('sp-lib-btn').classList.remove('active');
+    byId('sp-lib-btn').classList.toggle('hidden', layout !== 'immersive');
+    document.querySelectorAll('.sp-layout').forEach(b => b.classList.toggle('active', b.dataset.layout === layout));
+    if (remember) {
+      try {
+        window.localStorage.setItem(LAYOUT_KEY, layout);
+      } catch (e) { /* ignore */ }
+    }
+    if (layout === 'cinema') {
+      loadShelf();
+    }
+    if (layout === 'immersive') {
+      lastId = null;
+      applyColor();
+      renderNav();
+    }
+    placeVideo();
+  }
+
+  // Background colour of the immersive look: the cover's average colour, darkened.
   function applyColor() {
     const v = byId('spotify-view');
     if (!cur || layout !== 'immersive') {

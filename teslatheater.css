@@ -1703,37 +1703,22 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
   .sp-l-cinema #sp-artist { font-size: 1.15rem; }
 
 
-/* Immersivo: the background takes the colour of the cover */
+/* Immersivo: theme and accent colours (the surface is the accent mixed into the style's panel colour) */
 #spotify-view.sp-l-immersive {
   max-width: none;
-  background: var(--sp-bg, #2a2a2e);
-  color: #fff;
-  transition: background 0.6s ease;
+  background: color-mix(in srgb, var(--pink) 14%, var(--bg-panel));
+  color: var(--ink);
 }
 .sp-l-immersive .sp-art { max-width: min(100%, calc(var(--vh, 1vh) * 66)); height: auto; width: 100%; align-self: center; }
 .sp-l-immersive #sp-cover { border-radius: 16px; box-shadow: 0 22px 44px rgba(0, 0, 0, 0.5); }
 .sp-l-immersive .sp-title,
-.sp-l-immersive #sp-track { color: #fff; text-shadow: none; }
+.sp-l-immersive #sp-track { color: var(--ink); text-shadow: none; }
 .sp-l-immersive #sp-artist,
 .sp-l-immersive .sp-seekrow,
-.sp-l-immersive .sp-volrow { color: rgba(255, 255, 255, 0.75); }
+.sp-l-immersive .sp-volrow { color: var(--ink-muted); }
 .sp-l-immersive .sp-seekrow input,
-.sp-l-immersive .sp-volrow input { accent-color: #fff; }
-.sp-l-immersive .sp-controls button { color: #fff; border-color: rgba(255, 255, 255, 0.35); }
-.sp-l-immersive .sp-controls button.on { color: #fff; background: rgba(255, 255, 255, 0.2); box-shadow: none; }
-.sp-l-immersive .sp-controls .sp-play {
-  color: var(--sp-bg, #2a2a2e);
-  background: #fff;
-  border-color: #fff;
-  box-shadow: none;
-}
-.sp-l-immersive .sp-bar .actionbutton {
-  color: #fff;
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.4);
-}
-.sp-l-immersive .sp-bar .actionbutton.active { background: rgba(255, 255, 255, 0.22); }
-.sp-l-immersive #sp-msg { color: #ffd5d5; }
+.sp-l-immersive .sp-volrow input { accent-color: var(--pink); }
+.sp-l-immersive #sp-msg { color: var(--accent-text, var(--pink)); }
 .sp-l-immersive.sp-lib-open .sp-lib {
   display: flex;
   position: absolute;
@@ -1895,7 +1880,7 @@ html[data-theme$="-light"] .sp-row {
 .sp-l-immersive .sp-controls .sp-play {
   box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.10), 0 3px 6px rgba(0, 0, 0, 0.35), 0 14px 28px rgba(0, 0, 0, 0.35);
 }
-.sp-queue-label { color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; margin-bottom: 8px; }
+.sp-queue-label { color: var(--ink-muted); font-size: 0.9rem; margin-bottom: 8px; }
 .sp-queue-row { display: flex; gap: 12px; }
 .sp-next {
   flex: 1 1 0;
@@ -2368,8 +2353,8 @@ html[data-theme="cover"] #dash { align-self: stretch; }
   gap: 12px;
   padding: 8px 14px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25), 0 10px 18px rgba(0, 0, 0, 0.22);
+  background: color-mix(in srgb, var(--pink) 10%, var(--bg-deep));
+  box-shadow: var(--inset);
 }
 .sp-nav-btn {
   flex: 1 1 0;
@@ -2378,7 +2363,7 @@ html[data-theme="cover"] #dash { align-self: stretch; }
   align-items: center;
   gap: 10px;
   padding: 4px 6px;
-  color: #fff;
+  color: var(--ink);
   background: none;
   border: 0;
   border-radius: 10px;
@@ -2388,7 +2373,7 @@ html[data-theme="cover"] #dash { align-self: stretch; }
   transition: transform 0.15s ease, background 0.15s ease;
 }
 button.sp-nav-btn:hover,
-button.sp-nav-btn:focus-visible { background: rgba(255, 255, 255, 0.12); transform: translateY(-2px); outline: none; }
+button.sp-nav-btn:focus-visible { background: var(--tint, rgba(127, 127, 127, 0.18)); transform: translateY(-2px); outline: none; }
 button.sp-nav-btn:active { transform: none; }
 .sp-nav-next { justify-content: flex-end; text-align: right; }
 .sp-nav-btn em { flex: none; font-size: 1.1rem; opacity: 0.85; }
@@ -2397,11 +2382,11 @@ button.sp-nav-btn:active { transform: none; }
 .sp-nav-text b,
 .sp-nav-text small { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sp-nav-text b { font-weight: 500; font-size: 0.95rem; }
-.sp-nav-text small { color: rgba(255, 255, 255, 0.72); font-size: 0.8rem; }
-.sp-nav-div { width: 1px; height: 38px; flex: none; background: rgba(255, 255, 255, 0.25); }
+.sp-nav-text small { color: var(--ink-muted); font-size: 0.8rem; }
+.sp-nav-div { width: 1px; height: 38px; flex: none; background: var(--line); }
 
 /* more air on the right: the details block sits further from the window edge */
-#spotify-view.sp-l-immersive .sp-now { padding: 8px clamp(40px, 7vw, 140px) 8px 8px; }
+#spotify-view.sp-l-immersive .sp-now { padding: 8px clamp(40px, 7vw, 140px) 8px clamp(24px, 3vw, 64px); }
 #spotify-view.sp-l-cinema .sp-now { padding: 0 clamp(24px, 5vw, 110px) 0 0; }
 
 /* Scrollbars follow the style and the accent colour everywhere */
