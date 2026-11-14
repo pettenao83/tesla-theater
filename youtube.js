@@ -94,9 +94,9 @@
     return m ? (+m[1] || 0) * 86400 + (+m[2] || 0) * 3600 + (+m[3] || 0) * 60 + (+m[4] || 0) : 0;
   }
 
-  // Drops Shorts: up to a minute, or up to three minutes when they carry the #shorts tag.
+  // Drops Shorts (and, if asked, songs from the Music category): up to a minute, or up to three minutes when they carry the #shorts tag.
   // (The API has no "is a Short" flag, so this is a close approximation.)
-  async function withoutShorts(list) {
+  async function withoutShorts(list, noMusic) {
     const ids = list.map(v => v.id);
     const info = {};
     try {
@@ -105,6 +105,7 @@
         (d.items || []).forEach(it => {
           info[it.id] = {
             s: secs(it.contentDetails && it.contentDetails.duration),
+            music: it.snippet.categoryId === '10',
             tag: /#shorts?\b/i.test((it.snippet.title || '') + ' ' + (it.snippet.description || ''))
           };
         });
@@ -114,12 +115,23 @@
     }
     return list.filter(v => {
       const i = info[v.id];
-      return !i || i.s === 0 || !(i.s <= 60 || (i.tag && i.s <= 185));
+      if (!i) {
+        return true;
+      }
+      if (noMusic && i.music) {
+        return false;
+      }
+      return i.s === 0 || !(i.s <= 60 || (i.tag && i.s <= 185));
     });
   }
 
   const tabs = {
-    liked: () => call('/playlistItems', { part: 'snippet', playlistId: 'LL', maxResults: '48' }).then(d => ({ items: (d.items || []).map(toItem) })),
+    // liked videos only: songs (category Music) and Shorts are left out
+    liked: async () => {
+      const d = await call('/playlistItems', { part: 'snippet', playlistId: 'LL', maxResults: '50' });
+      const all = (d.items || []).map(toItem).filter(v => v.id);
+      return { items: await withoutShorts(all, true), empty: 'Nessun video tra i piaciuti (le canzoni sono nascoste).' };
+    },
     subs: async () => {
       const d = await call('/subscriptions', { part: 'snippet', mine: 'true', maxResults: '50', order: 'alphabetical' });
       return {
