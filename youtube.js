@@ -139,12 +139,6 @@
   }
 
   const tabs = {
-    // liked videos only: songs (category Music) and Shorts are left out
-    liked: async () => {
-      const d = await call('/playlistItems', { part: 'snippet', playlistId: 'LL', maxResults: '50' });
-      const all = (d.items || []).map(toItem).filter(v => v.id);
-      return { items: await withoutShorts(all, true), empty: 'Nessun video tra i piaciuti (le canzoni sono nascoste).' };
-    },
     subs: async () => {
       const d = await call('/subscriptions', { part: 'snippet', mine: 'true', maxResults: '50', order: 'alphabetical' });
       const fav = getFav();
