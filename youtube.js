@@ -1,6 +1,6 @@
 /*
  * YouTube inside the launcher: search and play videos in the page (official IFrame player).
- * Search and the "popular" shelf use the YouTube Data API through the Google session of the music view.
+ * Search and the channel feeds use the YouTube Data API through the Google session of the music view.
  */
 (function () {
   'use strict';
@@ -89,7 +89,6 @@
   }
 
   const tabs = {
-    popular: () => call('/videos', { part: 'snippet', chart: 'mostPopular', regionCode: 'IT', maxResults: '24' }).then(d => ({ items: (d.items || []).map(toItem) })),
     liked: () => call('/playlistItems', { part: 'snippet', playlistId: 'LL', maxResults: '48' }).then(d => ({ items: (d.items || []).map(toItem) })),
     subs: async () => {
       const d = await call('/subscriptions', { part: 'snippet', mine: 'true', maxResults: '50', order: 'alphabetical' });
@@ -398,7 +397,7 @@
       return;
     }
     if (!items.length) {
-      openTab('popular');
+      openTab('feed');
     }
   }
 
@@ -409,10 +408,7 @@
     if (Date.now() - shelf.at < 600000 && shelf.items.length) {
       return shelf.items;
     }
-    let list = (await tabs.feed()).items;
-    if (!list.length) {
-      list = (await tabs.popular()).items;
-    }
+    const list = (await tabs.feed()).items;
     shelf = { at: Date.now(), items: list.filter(v => v.id).slice(0, 8) };
     return shelf.items;
   }
@@ -538,6 +534,9 @@
     try {
       const list = await loadShelf();
       grid.innerHTML = '';
+      if (!list.length) {
+        grid.innerHTML = '<p class="dash-yt-note">Nessuna novità dai tuoi canali.</p>';
+      }
       list.forEach((v, i) => {
         const c = document.createElement('div');
         c.className = 'dash-yt-item';
