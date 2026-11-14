@@ -1186,7 +1186,7 @@
     } catch (e) {
       setLayout('vinyl', false);
     }
-    $('#app-header, #apps, #add-app-form').addClass('hidden');
+    $('#app-header, #add-app-form').addClass('hidden');
     byId('iptv-view').classList.add('hidden');
     byId('app-root').classList.remove('hidden');
     byId('spotify-view').classList.remove('hidden');
@@ -1205,7 +1205,7 @@
     open = false;
     byId('spotify-view').classList.add('hidden');
     document.body.classList.remove('spotify-open');
-    $('#app-header, #apps').removeClass('hidden');
+    $('#app-header').removeClass('hidden');
     placeVideo();
     if (typeof resizeTiles === 'function') {
       resizeTiles();
@@ -1248,6 +1248,7 @@
     shuffle: toggleShuffle,
     repeat: cycleRepeat,
     open: () => openMusic(),
+    close: () => closeMusic(),
     keepAlive: on => {
       const a = silentAudio();
       if (a) {

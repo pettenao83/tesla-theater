@@ -377,7 +377,7 @@
     if (window.musicApi.state().playing) {
       window.musicApi.toggle();
     }
-    $('#app-header, #apps, #add-app-form').addClass('hidden');
+    $('#app-header, #add-app-form').addClass('hidden');
     byId('iptv-view').classList.add('hidden');
     byId('spotify-view').classList.add('hidden');
     byId('app-root').classList.remove('hidden');
@@ -569,11 +569,12 @@
     listMode = false;
     refreshCard();
     place();
-    $('#app-header, #apps').removeClass('hidden');
+    $('#app-header').removeClass('hidden');
     if (typeof resizeTiles === 'function') {
       resizeTiles();
     }
   }
 
   window.openYoutube = openYoutube;
+  window.closeYoutube = closeYoutube;
 }());

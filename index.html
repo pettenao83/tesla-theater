@@ -50,12 +50,12 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=109">
-  <script src="teslatheater.js?v=109"></script>
-  <script src="iptv.js?v=109"></script>
-  <script src="music.js?v=109"></script>
-  <script src="dashboard.js?v=109"></script>
-  <script src="youtube.js?v=109"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=110">
+  <script src="teslatheater.js?v=110"></script>
+  <script src="iptv.js?v=110"></script>
+  <script src="music.js?v=110"></script>
+  <script src="dashboard.js?v=110"></script>
+  <script src="youtube.js?v=110"></script>
 </head>
 <body>
 
@@ -72,6 +72,7 @@
   </div>
 
   <div id="app-root" class="hidden">
+    <nav id="rail" aria-label="Sezioni"><div id="apps" class="container"></div></nav>
     <header id="app-header">
       <div class="marquee">
         <h1><img src="images/tesla-white.png" class="inline" alt="Tesla"/><span class="cyan">Theater</span></h1>
@@ -90,7 +91,6 @@
       </div>
 
       <section id="dash" aria-label="Dashboard">
-        <div id="apps" class="container"></div>
         <div id="dash-now" class="dash-card">
           <div class="dash-sw" role="tablist" aria-label="Musica o video">
             <button type="button" id="dash-sw-music" class="on" role="tab"><em class="fas fa-music"></em> Musica</button>

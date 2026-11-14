@@ -2636,9 +2636,9 @@ html[data-theme] .dash-ctl { justify-content: flex-start; }
 #dash,
 html[data-theme="minimal"] #dash,
 html[data-theme="cover"] #dash {
-  grid-template-columns: 128px minmax(0, 1.55fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
-  grid-template-areas: "apps now news";
+  grid-template-areas: "now news";
   gap: 14px;
   padding: 0 20px 20px;
 }
@@ -2861,3 +2861,53 @@ html[data-theme="neon"] .sp-vinyl .sp-spiral path { filter: drop-shadow(0 0 2px 
 
 /* the record stays still: only the line moves */
 .sp-l-vinyl .sp-vinyl { animation: none !important; }
+
+/* Side rail: always visible, tall text tiles in the accent colour */
+#rail { position: fixed; z-index: 5; box-sizing: border-box; }
+#rail #apps {
+  position: static;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 14px 8px 14px 14px;
+  margin: 0;
+  display: flex !important;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  perspective: none;
+  max-width: none;
+}
+#rail .button {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  flex: 1 1 0;
+  margin: 0 !important;
+  aspect-ratio: auto;
+  padding: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: calc(var(--vh, 1vh) * 2.4);
+}
+#rail .button > .logo-container { display: none !important; }
+#rail .tile-name {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: calc(var(--vh, 1vh) * 2.5);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--accent-text, var(--pink));
+  pointer-events: none;
+}
+#rail .button.current { background: var(--pink); border-color: transparent; }
+#rail .button.current .tile-name { color: var(--on-pink, #fff); }
+html[data-theme="neon"] #rail .tile-name { text-shadow: 0 0 8px var(--pink-glow); }
+html[data-theme="neon"] #rail .button.current .tile-name { text-shadow: none; }

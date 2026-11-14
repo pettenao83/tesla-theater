@@ -1253,7 +1253,7 @@
     bind();
     loadState();
     addMissingDefaults();
-    $('#app-header, #apps, #add-app-form').addClass('hidden');
+    $('#app-header, #add-app-form').addClass('hidden');
     $('#add-app-btn').removeClass('active');
     byId('iptv-view').classList.remove('hidden');
     document.body.classList.add('iptv-open');
@@ -1271,7 +1271,7 @@
     stopPlayback();
     byId('iptv-view').classList.add('hidden');
     document.body.classList.remove('iptv-open');
-    $('#app-header, #apps').removeClass('hidden');
+    $('#app-header').removeClass('hidden');
     if (typeof resizeTiles === 'function') {
       resizeTiles();
     }
@@ -1306,6 +1306,7 @@
   }
 
   window.openIptv = openIptv;
+  window.closeIptv = closeIptv;
   window.iptvPlayUrl = function (url) {
     pendingUrl = url;
     openIptv();

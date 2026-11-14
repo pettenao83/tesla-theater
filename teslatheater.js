@@ -65,17 +65,34 @@ function open() {
     return;
   }
 
-  // Built-in pages (e.g. the IPTV player) open inside the launcher itself.
-  if ($(this).attr('data-internal') === 'iptv' && typeof openIptv === 'function') {
-    openIptv();
-    return;
-  }
-  if ($(this).attr('data-internal') === 'youtube' && typeof openYoutube === 'function') {
-    openYoutube();
-    return;
-  }
-  if ($(this).attr('data-internal') === 'music' && typeof openMusic === 'function') {
-    openMusic();
+  // Built-in pages (e.g. the IPTV player) open inside the launcher itself; the side rail stays put.
+  const kind = $(this).attr('data-internal');
+  if (kind) {
+    const views = { iptv: 'iptv-view', youtube: 'yt-view', music: 'spotify-view' };
+    const closers = {
+      iptv: () => window.closeIptv && window.closeIptv(),
+      youtube: () => window.closeYoutube && window.closeYoutube(),
+      music: () => window.musicApi && window.musicApi.close && window.musicApi.close()
+    };
+    const openers = {
+      iptv: () => typeof openIptv === 'function' && openIptv(),
+      youtube: () => typeof openYoutube === 'function' && openYoutube(),
+      music: () => typeof openMusic === 'function' && openMusic()
+    };
+    const isOpen = k => {
+      const v = document.getElementById(views[k]);
+      return !!v && !v.classList.contains('hidden');
+    };
+    if (isOpen(kind)) {
+      closers[kind]();   // tapping the current section goes back home
+      return;
+    }
+    Object.keys(views).forEach(k => {
+      if (k !== kind && isOpen(k)) {
+        closers[k]();
+      }
+    });
+    openers[kind]();
     return;
   }
 
@@ -177,15 +194,25 @@ function fitHome() {
   const z = Math.min(vw / W, vh / H);
   // "1vh" of the virtual page: constant, so every size that uses it is stable
   document.documentElement.style.setProperty('--vh', (H / 100) + 'px');
+  const RW = 84; // width of the side rail, in virtual pixels
+  const rail = document.getElementById('rail');
+  if (rail) {
+    rail.style.left = Math.round((vw - W * z) / 2) + 'px';
+    rail.style.top = Math.round((vh - H * z) / 2) + 'px';
+    rail.style.width = RW + 'px';
+    rail.style.height = H + 'px';
+    rail.style.transformOrigin = '0 0';
+    rail.style.transform = 'scale(' + z + ')';
+  }
   ['app-header', 'spotify-view', 'iptv-view', 'yt-view'].forEach(function (id) {
     const el = document.getElementById(id);
     if (!el) {
       return;
     }
     el.style.position = 'fixed';
-    el.style.left = Math.round((vw - W * z) / 2) + 'px';
+    el.style.left = Math.round((vw - W * z) / 2 + RW * z) + 'px';
     el.style.top = Math.round((vh - H * z) / 2) + 'px';
-    el.style.width = W + 'px';
+    el.style.width = (W - RW) + 'px';
     el.style.height = H + 'px';
     el.style.maxWidth = 'none';
     el.style.margin = '0';
@@ -196,48 +223,6 @@ function fitHome() {
 
 function resizeTiles() {
   fitHome();
-  const $apps = $('#apps');
-  const el = $apps[0];
-  const n = $apps.children('.button').length;
-  if (!el || !n) {
-    return;
-  }
-  const W = el.clientWidth;
-  const H = el.clientHeight;
-  if (W <= 0 || H <= 0) {
-    return; // the home is hidden (another page is open)
-  }
-  // One column. The tiles are as large as the column allows; when they all fit, the leftover
-  // height is shared evenly between them; with many apps they shrink down to a minimum size
-  // and, only after that, the column scrolls.
-  const pad = 10;
-  const gapMin = 8;
-  const minSize = 70;
-  const widthSize = Math.min(160, W - pad * 2);
-  const fit = (H - pad * 2 - (n - 1) * gapMin) / n;
-  let size;
-  let gap;
-  let scroll = false;
-  if (fit >= widthSize) {
-    size = Math.floor(widthSize);
-    gap = n > 1 ? Math.min(size * 0.5, (H - pad * 2 - n * size) / (n - 1)) : 0;
-  } else if (fit >= minSize) {
-    size = Math.floor(fit);
-    gap = gapMin;
-  } else {
-    size = Math.floor(Math.min(160, W - pad * 2 - 14));
-    gap = 10;
-    scroll = true;
-  }
-  el.style.overflowY = scroll ? 'auto' : 'hidden';
-  el.style.padding = pad + 'px';
-  el.style.gridTemplateColumns = `${size}px`;
-  el.style.columnGap = '0';
-  el.style.rowGap = `${Math.round(gap)}px`;
-  el.style.justifyContent = 'center';
-  el.style.alignContent = scroll ? 'start' : 'center';
-  document.documentElement.style.setProperty('--tile-size', `${size}px`);
-  $apps.children('.button').css('margin-left', '');
 }
 
 let resizeTimer;
@@ -289,6 +274,8 @@ function addSiteButton($template, siteId, site, $apps) {
   if (site.custom) {
     $app.addClass('custom-app');
   }
+
+  $('<span class="tile-name"></span>').text(site.name).appendTo($app);
 
   $app.appendTo($apps);
 }
@@ -568,3 +555,26 @@ function editMode(edit) {
     $('.button').addClass('active');
   }
 }
+
+
+// The rail marks the section that is open
+(function () {
+  const map = { 'iptv-view': 'iptv', 'yt-view': 'youtube', 'spotify-view': 'ytmusic' };
+  function sync() {
+    const open = Object.keys(map).find(id => {
+      const v = document.getElementById(id);
+      return v && !v.classList.contains('hidden');
+    });
+    document.querySelectorAll('#apps .button').forEach(b => b.classList.toggle('current', !!open && b.id === map[open]));
+  }
+  window.addEventListener('DOMContentLoaded', function () {
+    const mo = new MutationObserver(sync);
+    Object.keys(map).forEach(id => {
+      const v = document.getElementById(id);
+      if (v) {
+        mo.observe(v, { attributes: true, attributeFilter: ['class'] });
+      }
+    });
+    sync();
+  });
+})();
