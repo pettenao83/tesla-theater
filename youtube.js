@@ -88,6 +88,36 @@
     return ids.map(i => uploads[i]).filter(Boolean);
   }
 
+  // seconds from an ISO 8601 duration such as PT1M5S
+  function secs(iso) {
+    const m = /^P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(iso || '');
+    return m ? (+m[1] || 0) * 86400 + (+m[2] || 0) * 3600 + (+m[3] || 0) * 60 + (+m[4] || 0) : 0;
+  }
+
+  // Drops Shorts: up to a minute, or up to three minutes when they carry the #shorts tag.
+  // (The API has no "is a Short" flag, so this is a close approximation.)
+  async function withoutShorts(list) {
+    const ids = list.map(v => v.id);
+    const info = {};
+    try {
+      for (let k = 0; k < ids.length; k += 50) {
+        const d = await call('/videos', { part: 'contentDetails,snippet', id: ids.slice(k, k + 50).join(','), maxResults: '50' });
+        (d.items || []).forEach(it => {
+          info[it.id] = {
+            s: secs(it.contentDetails && it.contentDetails.duration),
+            tag: /#shorts?\b/i.test((it.snippet.title || '') + ' ' + (it.snippet.description || ''))
+          };
+        });
+      }
+    } catch (e) {
+      return list;
+    }
+    return list.filter(v => {
+      const i = info[v.id];
+      return !i || i.s === 0 || !(i.s <= 60 || (i.tag && i.s <= 185));
+    });
+  }
+
   const tabs = {
     liked: () => call('/playlistItems', { part: 'snippet', playlistId: 'LL', maxResults: '48' }).then(d => ({ items: (d.items || []).map(toItem) })),
     subs: async () => {
@@ -117,7 +147,7 @@
       const parts = await Promise.all(pls.map(pl => call('/playlistItems', { part: 'snippet', playlistId: pl, maxResults: '3' }).catch(() => ({ items: [] }))));
       const all = [].concat(...parts.map(x => x.items || [])).map(toItem).filter(v => v.id);
       all.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-      return { items: all.slice(0, 36), empty: 'Nessuna novità dai tuoi canali.' };
+      return { items: (await withoutShorts(all)).slice(0, 36), empty: 'Nessuna novità dai tuoi canali.' };
     }
   };
 
@@ -127,8 +157,8 @@
       if (!pl) {
         throw new Error('Canale non disponibile.');
       }
-      const d = await call('/playlistItems', { part: 'snippet', playlistId: pl, maxResults: '36' });
-      return { items: (d.items || []).map(toItem) };
+      const d = await call('/playlistItems', { part: 'snippet', playlistId: pl, maxResults: '50' });
+      return { items: (await withoutShorts((d.items || []).map(toItem).filter(v => v.id))).slice(0, 36) };
     }
     const d = await call('/playlistItems', { part: 'snippet', playlistId: it.id, maxResults: '48' });
     return { items: (d.items || []).map(toItem) };
