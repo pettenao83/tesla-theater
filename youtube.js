@@ -172,8 +172,10 @@
       const d = await call('/playlistItems', { part: 'snippet', playlistId: pl, maxResults: '50' });
       return { items: (await withoutShorts((d.items || []).map(toItem).filter(v => v.id))).slice(0, 36) };
     }
-    const d = await call('/playlistItems', { part: 'snippet', playlistId: it.id, maxResults: '48' });
-    return { items: (d.items || []).map(toItem) };
+    // playlists: videos only, no songs and no Shorts
+    const d = await call('/playlistItems', { part: 'snippet', playlistId: it.id, maxResults: '50' });
+    const all = (d.items || []).map(toItem).filter(v => v.id);
+    return { items: await withoutShorts(all, true), empty: 'Nessun video in questa playlist (canzoni e Short sono nascosti).' };
   }
 
   function openTab(name) {
