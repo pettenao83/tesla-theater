@@ -70,6 +70,19 @@
   }
 
   const call = (path, params) => window.musicApi.call(path, params);
+  const FAV_KEY = 'TeslaTheaterYtFav';
+  const getFav = () => {
+    try {
+      return JSON.parse(window.localStorage.getItem(FAV_KEY) || '[]');
+    } catch (e) {
+      return [];
+    }
+  };
+  const setFav = list => {
+    try {
+      window.localStorage.setItem(FAV_KEY, JSON.stringify(list));
+    } catch (e) { /* ignore */ }
+  };
   const uploads = {};   // channelId -> uploads playlist id
 
   const thumbOf = sn => {
@@ -134,25 +147,29 @@
     },
     subs: async () => {
       const d = await call('/subscriptions', { part: 'snippet', mine: 'true', maxResults: '50', order: 'alphabetical' });
-      return {
-        items: (d.items || []).map(it => ({
-          kind: 'channel',
-          id: it.snippet.resourceId.channelId,
-          title: decode(it.snippet.title),
-          channel: '',
-          thumb: thumbOf(it.snippet)
-        })),
-        empty: 'Non risulti iscritto a nessun canale.'
-      };
+      const fav = getFav();
+      const list = (d.items || []).map(it => ({
+        kind: 'channel',
+        id: it.snippet.resourceId.channelId,
+        title: decode(it.snippet.title),
+        channel: '',
+        thumb: thumbOf(it.snippet),
+        fav: fav.includes(it.snippet.resourceId.channelId)
+      }));
+      list.sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0));
+      return { items: list, empty: 'Non risulti iscritto a nessun canale.' };
     },
     feed: async () => {
-      const d = await call('/subscriptions', { part: 'snippet', mine: 'true', maxResults: '50', order: 'relevance' });
-      const ids = (d.items || []).map(it => it.snippet.resourceId.channelId).slice(0, 20);
+      let ids = getFav().slice(0, 25);
+      if (!ids.length) {
+        const d = await call('/subscriptions', { part: 'snippet', mine: 'true', maxResults: '50', order: 'relevance' });
+        ids = (d.items || []).map(it => it.snippet.resourceId.channelId).slice(0, 20);
+      }
       const pls = await uploadsOf(ids);
       const parts = await Promise.all(pls.map(pl => call('/playlistItems', { part: 'snippet', playlistId: pl, maxResults: '3' }).catch(() => ({ items: [] }))));
       const all = [].concat(...parts.map(x => x.items || [])).map(toItem).filter(v => v.id);
       all.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-      return { items: (await withoutShorts(all)).slice(0, 36), empty: 'Nessuna novità dai tuoi canali.' };
+      return { items: (await withoutShorts(all)).slice(0, 36), empty: 'Nessuna novità. Nella scheda Canali tocca la stella per scegliere i canali preferiti.' };
     }
   };
 
@@ -197,6 +214,26 @@
       card.append(img, box);
       if (v.kind) {
         card.classList.add('container', v.kind);
+        const star = document.createElement('button');
+        star.type = 'button';
+        star.className = 'yt-star' + (v.fav ? ' on' : '');
+        star.setAttribute('aria-label', 'Canale preferito');
+        star.innerHTML = '<em class="fas fa-star"></em>';
+        star.addEventListener('click', e => {
+          e.stopPropagation();
+          const fav = getFav();
+          const at = fav.indexOf(v.id);
+          if (at >= 0) {
+            fav.splice(at, 1);
+          } else {
+            fav.push(v.id);
+          }
+          setFav(fav);
+          v.fav = at < 0;
+          star.classList.toggle('on', v.fav);
+          shelf = { at: 0, items: [] };
+        });
+        card.appendChild(star);
         card.addEventListener('click', () => run(openContainer(v)));
       } else {
         card.addEventListener('click', () => play(i));
