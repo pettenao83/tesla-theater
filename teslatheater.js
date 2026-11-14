@@ -1,21 +1,7 @@
 const DEFAULT_SITES = {
-  "netflix": { "name": "Netflix", "img": "images/netflix.png", "url": "https://www.netflix.com/" },
-  "youtube": { "name": "YouTube", "img": "images/youtube.png", "url": "#youtube", "internal": "youtube" },
   "iptv": { "name": "IPTV", "img": "images/iptv.svg", "url": "#iptv", "internal": "iptv" },
-  "ytmusic": { "name": "YouTube Music", "img": "images/ytmusic.svg", "url": "#music", "internal": "music" },
-  "applemusic": { "name": "Apple Music", "img": "images/applemusic.svg", "url": "https://music.apple.com/" },
-  "primevideo": { "name": "Prime Video", "img": "images/primevideo.png", "url": "https://www.primevideo.com/" },
-  "plex": { "name": "Plex", "img": "images/plex.png", "url": "https://app.plex.tv/" },
-  "disneyplus": { "name": "Disney+", "img": "images/disneyplus.png", "url": "https://www.disneyplus.com/" },
-  "nowtv": { "name": "NOW TV", "img": "images/nowtv.png", "url": "https://www.nowtv.com/" },
-  "dazn": { "name": "DaZn", "img": "images/dazn.png", "url": "https://www.dazn.com/" },
-  "paramountplus": { "name": "Paramount+", "img": "images/paramountplus.png", "url": "https://www.paramountplus.com/" },
-  "discoveryplus": { "name": "Discovery+", "img": "images/discoveryplus.png", "url": "https://www.discoveryplus.com/" },
-  "twitch": { "name": "Twitch", "img": "images/twitch.png", "url": "https://www.twitch.tv/" },
-  "raiplay": { "name": "Rai Play", "img": "images/raiplay.png", "url": "https://www.raiplay.it/" },
-  "mediaset": { "name": "Mediaset", "img": "images/mediaset.png", "url": "https://www.mediasetplay.mediaset.it/" },
-  "skytg24": { "name": "Sky TG24", "img": "images/skytg24.png", "url": "https://tg24.sky.it/" },
-  "airtesla": { "name": "Air Tesla", "img": "images/airtesla.png", "url": "http://6.6.6.6/" }
+  "youtube": { "name": "YouTube", "img": "images/youtube.png", "url": "#youtube", "internal": "youtube" },
+  "ytmusic": { "name": "YouTube Music", "img": "images/ytmusic.svg", "url": "#music", "internal": "music" }
 };
 
 function loadCustomSites() {
