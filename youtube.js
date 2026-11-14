@@ -240,6 +240,35 @@
     }, 8000);
   }
 
+  // steering-wheel / media keys while a video plays
+  function videoKeys() {
+    if (!('mediaSession' in navigator)) {
+      return;
+    }
+    const ms = navigator.mediaSession;
+    const set = (a, fn) => {
+      try { ms.setActionHandler(a, fn); } catch (e) { /* not supported */ }
+    };
+    set('play', () => { if (yt && yt.playVideo) { yt.playVideo(); } });
+    set('pause', () => { if (yt && yt.pauseVideo) { yt.pauseVideo(); } });
+    set('previoustrack', () => { if (idx > 0) { play(idx - 1); } });
+    set('nexttrack', () => { if (idx + 1 < items.length) { play(idx + 1); } });
+    set('seekto', null);
+    const v = items[idx];
+    try {
+      if (v) {
+        ms.metadata = new window.MediaMetadata({
+          title: v.title,
+          artist: v.channel,
+          artwork: v.thumb ? [{ src: v.thumb, sizes: '320x180', type: 'image/jpeg' }] : []
+        });
+      }
+    } catch (e) { /* ignore */ }
+    if (window.musicApi && window.musicApi.keepAlive) {
+      window.musicApi.keepAlive(true);
+    }
+  }
+
   async function play(i) {
     const v = items[i];
     if (!v) {
@@ -247,6 +276,7 @@
     }
     idx = i;
     listMode = false;
+    videoKeys();
     byId('yt-title').textContent = v.title;
     byId('yt-channel').textContent = v.channel;
     byId('yt-ext').href = 'https://www.youtube.com/watch?v=' + v.id;

@@ -621,6 +621,84 @@
     return t ? 'https://i.ytimg.com/vi/' + t.id + '/' + (size || 'maxresdefault') + '.jpg' : '';
   }
 
+  // ---------- steering-wheel / media keys (Media Session) ----------
+
+  let keepAlive = null;
+
+  // A silent looping sound in the page itself, so the browser treats this page (not the YouTube
+  // frame) as the media source and sends the wheel buttons to our handlers.
+  function silentAudio() {
+    if (keepAlive) {
+      return keepAlive;
+    }
+    try {
+      const rate = 8000;
+      const n = rate;
+      const buf = new ArrayBuffer(44 + n);
+      const v = new DataView(buf);
+      const w = (o, t) => { for (let i = 0; i < t.length; i++) { v.setUint8(o + i, t.charCodeAt(i)); } };
+      w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt ');
+      v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+      w(36, 'data'); v.setUint32(40, n, true);
+      for (let i = 0; i < n; i++) { v.setUint8(44 + i, 128); }
+      keepAlive = new Audio(URL.createObjectURL(new Blob([buf], { type: 'audio/wav' })));
+      keepAlive.loop = true;
+    } catch (e) {
+      keepAlive = null;
+    }
+    return keepAlive;
+  }
+
+  function setupMediaSession() {
+    if (!('mediaSession' in navigator)) {
+      return;
+    }
+    const ms = navigator.mediaSession;
+    const set = (a, fn) => {
+      try { ms.setActionHandler(a, fn); } catch (e) { /* not supported */ }
+    };
+    set('play', () => { if (!playing) { toggle(); } });
+    set('pause', () => { if (playing) { toggle(); } });
+    set('previoustrack', () => prev());
+    set('nexttrack', () => next(false));
+    set('seekto', d => {
+      if (ytp && d && typeof d.seekTime === 'number') {
+        ytp.seekTo(d.seekTime, true);
+      }
+    });
+  }
+
+  function syncMediaSession() {
+    if (!('mediaSession' in navigator)) {
+      return;
+    }
+    if (playing) {
+      setupMediaSession();
+    }
+    const a = silentAudio();
+    if (a) {
+      if (playing) {
+        const pr = a.play();
+        if (pr && pr.catch) {
+          pr.catch(() => {});
+        }
+      } else {
+        a.pause();
+      }
+    }
+    try {
+      if (cur) {
+        navigator.mediaSession.metadata = new window.MediaMetadata({
+          title: cur.title || '',
+          artist: cur.artist || '',
+          artwork: [{ src: coverUrl(cur, 'hqdefault'), sizes: '480x360', type: 'image/jpeg' }]
+        });
+      }
+      navigator.mediaSession.playbackState = playing ? 'playing' : (cur ? 'paused' : 'none');
+    } catch (e) { /* ignore */ }
+  }
+
   // ---------- screen: now playing ----------
 
   function setCover(img, t) {
@@ -653,6 +731,7 @@
     byId('sp-play').innerHTML = '<em class="fas fa-' + (playing ? 'pause' : 'play') + '"></em>';
     byId('sp-play').setAttribute('aria-label', playing ? 'Pausa' : 'Riproduci');
     byId('spotify-view').classList.toggle('sp-playing', playing);
+    syncMediaSession();
     byId('sp-shuffle').classList.toggle('on', shuffle);
     byId('sp-repeat').classList.toggle('on', repeat !== 'off');
     byId('sp-repeat').innerHTML = '<em class="fas fa-retweet"></em>' + (repeat === 'one' ? '<small>1</small>' : '');
@@ -1116,6 +1195,8 @@
     st.expires = 0;
   }
 
+  setupMediaSession();
+
   // What the home dashboard needs.
   window.musicApi = {
     state: () => ({
@@ -1137,6 +1218,19 @@
     shuffle: toggleShuffle,
     repeat: cycleRepeat,
     open: () => openMusic(),
+    keepAlive: on => {
+      const a = silentAudio();
+      if (a) {
+        if (on) {
+          const pr = a.play();
+          if (pr && pr.catch) {
+            pr.catch(() => {});
+          }
+        } else {
+          a.pause();
+        }
+      }
+    },
     // shared Google session, used by the YouTube video view
     init: load,
     call: api,
