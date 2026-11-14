@@ -2915,3 +2915,17 @@ html[data-theme="neon"] #rail .button.current .tile-name { text-shadow: none; }
 .yt-card.channel { position: relative; }
 .yt-star { position: absolute; top: calc(var(--vh,1vh)*1); right: calc(var(--vh,1vh)*1); width: calc(var(--vh,1vh)*5.5); height: calc(var(--vh,1vh)*5.5); border-radius: 50%; border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: calc(var(--vh,1vh)*2.4); padding: 0; }
 .yt-star.on { background: var(--pink); color: var(--on-pink, #fff); border-color: transparent; }
+
+/* IPTV audio-only card: flat surface from the style and accent, readable text, no dark blob */
+#iptv-audio-card {
+  background: color-mix(in srgb, var(--pink) 10%, var(--bg-panel));
+  color: var(--accent-text, var(--pink));
+  letter-spacing: 0.02em;
+}
+#iptv-audio-card > em { font-size: clamp(3rem, 12vh, 6rem); text-shadow: none; color: var(--accent-text, var(--pink)); }
+#iptv-audio-card > span { color: var(--ink); font-weight: 600; font-size: clamp(1.4rem, 3.6vh, 2.2rem); }
+#iptv-audio-play { background: var(--pink); color: var(--on-pink, #fff); border-color: transparent; box-shadow: 0 6px 18px color-mix(in srgb, var(--pink) 40%, transparent); }
+#iptv-audio-play:hover, #iptv-audio-play:focus-visible { filter: brightness(1.08); background: var(--pink); color: var(--on-pink, #fff); }
+html[data-theme="neon"] #iptv-audio-card > em { text-shadow: 0 0 22px var(--pink-glow); }
+html[data-theme="neon"] #iptv-audio-play { box-shadow: 0 0 18px var(--pink-glow); }
+.iptv-sync-state { font-size: 0.8rem; color: var(--ink-muted); }

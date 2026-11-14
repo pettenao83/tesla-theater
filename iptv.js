@@ -1011,15 +1011,37 @@
     return true;
   }
 
+  // what the delay can actually do right now, shown under the buttons
+  function syncState() {
+    const el = byId('iptv-sync-state');
+    if (!el) {
+      return;
+    }
+    const video = byId('iptv-video');
+    const src = video.currentSrc || '';
+    let cross = false;
+    try {
+      cross = !!src && !src.startsWith('blob:') && new URL(src, window.location.href).origin !== window.location.origin;
+    } catch (e) { /* ignore */ }
+    if (!audioCtx) {
+      el.textContent = syncMs > 0 ? 'Ritardo non applicato: il browser non offre Web Audio.' : '';
+    } else if (cross && !video.crossOrigin) {
+      el.textContent = 'Attenzione: questo flusso non è HLS e potrebbe non consentire il ritardo (audio muto o ritardo ignorato).';
+    } else {
+      el.textContent = audioCtx.state === 'running' ? 'Ritardo attivo.' : 'Ritardo in attesa: tocca + o − per attivare l\'audio.';
+    }
+  }
+
   function applyDelay(ms) {
     syncMs = ms;
     byId('iptv-sync-val').textContent = (ms > 0 ? '+' : '') + ms + ' ms';
     if ((ms > 0 || audioCtx) && ensureAudioGraph()) {
       delayNode.delayTime.value = ms / 1000;
       if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+        audioCtx.resume().then(syncState, syncState);
       }
     }
+    syncState();
   }
 
   function setChannelDelay(ms) {
