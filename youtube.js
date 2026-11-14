@@ -145,13 +145,6 @@
         empty: 'Non risulti iscritto a nessun canale.'
       };
     },
-    lists: async () => {
-      const d = await call('/playlists', { part: 'snippet', mine: 'true', maxResults: '50' });
-      return {
-        items: (d.items || []).map(it => ({ kind: 'playlist', id: it.id, title: decode(it.snippet.title), channel: '', thumb: thumbOf(it.snippet) })),
-        empty: 'Nessuna playlist.'
-      };
-    },
     feed: async () => {
       const d = await call('/subscriptions', { part: 'snippet', mine: 'true', maxResults: '50', order: 'relevance' });
       const ids = (d.items || []).map(it => it.snippet.resourceId.channelId).slice(0, 20);
@@ -172,10 +165,7 @@
       const d = await call('/playlistItems', { part: 'snippet', playlistId: pl, maxResults: '50' });
       return { items: (await withoutShorts((d.items || []).map(toItem).filter(v => v.id))).slice(0, 36) };
     }
-    // playlists: videos only, no songs and no Shorts
-    const d = await call('/playlistItems', { part: 'snippet', playlistId: it.id, maxResults: '50' });
-    const all = (d.items || []).map(toItem).filter(v => v.id);
-    return { items: await withoutShorts(all, true), empty: 'Nessun video in questa playlist (canzoni e Short sono nascosti).' };
+    throw new Error('Elemento non disponibile.');
   }
 
   function openTab(name) {
