@@ -307,6 +307,24 @@
     return out;
   }
 
+  // keeps only songs: videos YouTube files under the Music category (liked videos and mixed
+  // playlists also hold clips, shows and tutorials that do not belong in a music player)
+  async function onlyMusic(tracks) {
+    const kind = {};
+    try {
+      for (let k = 0; k < tracks.length; k += 50) {
+        const ids = tracks.slice(k, k + 50).map(t => t.id).join(',');
+        const d = await api('/videos', { part: 'snippet', id: ids, maxResults: '50' });
+        (d.items || []).forEach(it => {
+          kind[it.id] = it.snippet.categoryId;
+        });
+      }
+    } catch (e) {
+      return tracks;   // if the check fails, show everything rather than nothing
+    }
+    return tracks.filter(t => !kind[t.id] || kind[t.id] === '10');
+  }
+
   async function fetchItems(playlistId) {
     const key = 'items:' + playlistId;
     if (cache[key]) {
@@ -327,8 +345,9 @@
         break;
       }
     }
-    cache[key] = out;
-    return out;
+    const songs = await onlyMusic(out);
+    cache[key] = songs;
+    return songs;
   }
 
   async function search(q) {
@@ -1077,6 +1096,15 @@
 
   async function addToPlaylist(track, pl) {
     try {
+      // already there? one cheap lookup (1 quota unit) avoids a duplicate
+      if (!pl.fresh) {
+        const has = await api('/playlistItems', { part: 'id', playlistId: pl.id, videoId: track.id, maxResults: '1' });
+        if (has.items && has.items.length) {
+          closePicker();
+          keyToast('Già presente in ' + pl.title);
+          return;
+        }
+      }
       await api('/playlistItems', { part: 'snippet' }, {
         snippet: { playlistId: pl.id, resourceId: { kind: 'youtube#video', videoId: track.id } }
       });
@@ -1126,7 +1154,7 @@
           snippet: { title: name },
           status: { privacyStatus: 'private' }
         });
-        await addToPlaylist(track, { id: d.id, title: name });
+        await addToPlaylist(track, { id: d.id, title: name, fresh: true });
       } catch (err) {
         if (err.status === 403 || err.auth) {
           keyToast('Serve il permesso di modifica: ti riporto a Google…');
