@@ -1719,7 +1719,8 @@ html[data-theme$="-light"] #applemusic img { content: url("images/light/applemus
 .sp-l-immersive .sp-seekrow input,
 .sp-l-immersive .sp-volrow input { accent-color: var(--pink); }
 .sp-l-immersive #sp-msg { color: var(--accent-text, var(--pink)); }
-.sp-l-immersive.sp-lib-open .sp-lib {
+.sp-l-immersive.sp-lib-open .sp-lib,
+.sp-l-cinema.sp-lib-open .sp-lib {
   display: flex;
   position: absolute;
   right: 20px;
@@ -2935,3 +2936,7 @@ html[data-theme="neon"] #iptv-audio-play { box-shadow: 0 0 18px var(--pink-glow)
 
 .ytm-close { position: fixed; z-index: 61; display: none; align-items: center; gap: 8px; padding: 6px 14px; border: 0; border-radius: 999px; background: rgba(0, 0, 0, 0.65); color: #fff; font: inherit; font-size: 0.95rem; cursor: pointer; }
 .ytm-close:hover { background: var(--pink); color: var(--on-pink, #fff); }
+
+.sp-topsearch { flex: 1; display: flex; gap: 8px; min-width: 0; margin: 0 8px; max-width: 520px; }
+.sp-topsearch input { flex: 1; min-width: 0; font-size: calc(var(--vh,1vh)*2.2); padding: 0 calc(var(--vh,1vh)*2); border-radius: 999px; border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink); }
+.sp-topsearch.hidden { display: none; }

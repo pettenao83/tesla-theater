@@ -324,14 +324,22 @@
   }
 
   async function search(q) {
-    const d = await api('/search', { part: 'snippet', q, type: 'video', videoCategoryId: '10', maxResults: '25' });
-    return (d.items || []).filter(it => it.id && it.id.videoId).map(it => ({
-      id: it.id.videoId,
-      title: decode(it.snippet.title),
-      artist: cleanArtist(it.snippet.channelTitle),
-      thumb: thumbOf(it.snippet),
-      topic: isTopic(it.snippet.channelTitle)
-    }));
+    // songs (category Music) first, then every other matching video (live, clips, interviews...)
+    const base = { part: 'snippet', q, type: 'video', maxResults: '25' };
+    const [m, a] = await Promise.all([
+      api('/search', { ...base, videoCategoryId: '10' }),
+      api('/search', base).catch(() => ({ items: [] }))
+    ]);
+    const seen = new Set();
+    return [...(m.items || []), ...(a.items || [])]
+      .filter(it => it.id && it.id.videoId && !seen.has(it.id.videoId) && seen.add(it.id.videoId))
+      .map(it => ({
+        id: it.id.videoId,
+        title: decode(it.snippet.title),
+        artist: cleanArtist(it.snippet.channelTitle),
+        thumb: thumbOf(it.snippet),
+        topic: isTopic(it.snippet.channelTitle)
+      }));
   }
 
   function recents() {
@@ -813,7 +821,7 @@
     LAYOUTS.forEach(x => v.classList.toggle('sp-l-' + x, x === layout));
     v.classList.remove('sp-lib-open');
     byId('sp-lib-btn').classList.remove('active');
-    byId('sp-lib-btn').classList.toggle('hidden', layout !== 'immersive');
+    byId('sp-lib-btn').classList.toggle('hidden', layout === 'vinyl');
     document.querySelectorAll('.sp-layout').forEach(b => b.classList.toggle('active', b.dataset.layout === layout));
     if (remember) {
       try {
@@ -843,7 +851,7 @@
     LAYOUTS.forEach(x => v.classList.toggle('sp-l-' + x, x === layout));
     v.classList.remove('sp-lib-open');
     byId('sp-lib-btn').classList.remove('active');
-    byId('sp-lib-btn').classList.toggle('hidden', layout !== 'immersive');
+    byId('sp-lib-btn').classList.toggle('hidden', layout === 'vinyl');
     document.querySelectorAll('.sp-layout').forEach(b => b.classList.toggle('active', b.dataset.layout === layout));
     if (remember) {
       try {
@@ -1075,6 +1083,34 @@
     }
   }
 
+  // search from anywhere: opens the library (it is closed in the Immersive and Cinema looks) and lists the results
+  async function runSearch(q) {
+    if (!q) {
+      return;
+    }
+    tab = 'search';
+    crumb = null;
+    cache.lastSearch = null;
+    byId('sp-search-input').value = q;
+    byId('sp-top-q').value = q;
+    if (layout !== 'vinyl') {
+      byId('spotify-view').classList.add('sp-lib-open');
+      byId('sp-lib-btn').classList.add('active');
+    }
+    await renderList();
+    const box = byId('sp-list');
+    box.textContent = '';
+    box.appendChild(el('p', 'sp-empty', 'Cerco…'));
+    try {
+      cache.lastSearch = await search(q);
+      box.textContent = '';
+      trackRows(cache.lastSearch);
+    } catch (err) {
+      box.textContent = '';
+      fail(err);
+    }
+  }
+
   async function renderList() {
     const token = ++listToken;
     const box = byId('sp-list');
@@ -1140,6 +1176,7 @@
     const loggedIn = !!st.access;
     byId('sp-logout').classList.toggle('hidden', !loggedIn);
     byId('sp-video-btn').classList.toggle('hidden', !loggedIn);
+    byId('sp-top-search').classList.toggle('hidden', !loggedIn);
     main.classList.toggle('hidden', !loggedIn);
     setup.classList.toggle('hidden', loggedIn);
     if (loggedIn) {
@@ -1234,23 +1271,13 @@
         playList(crumb.tracks, 0);
       }
     });
-    byId('sp-search-form').addEventListener('submit', async e => {
+    byId('sp-search-form').addEventListener('submit', e => {
       e.preventDefault();
-      const q = byId('sp-search-input').value.trim();
-      if (!q) {
-        return;
-      }
-      const box = byId('sp-list');
-      box.textContent = '';
-      box.appendChild(el('p', 'sp-empty', 'Cerco…'));
-      try {
-        cache.lastSearch = await search(q);
-        box.textContent = '';
-        trackRows(cache.lastSearch);
-      } catch (err) {
-        box.textContent = '';
-        fail(err);
-      }
+      runSearch(byId('sp-search-input').value.trim());
+    });
+    byId('sp-top-search').addEventListener('submit', e => {
+      e.preventDefault();
+      runSearch(byId('sp-top-q').value.trim());
     });
     window.addEventListener('resize', () => setTimeout(placeVideo, 150));
   }
