@@ -2929,3 +2929,6 @@ html[data-theme="neon"] #rail .button.current .tile-name { text-shadow: none; }
 html[data-theme="neon"] #iptv-audio-card > em { text-shadow: 0 0 22px var(--pink-glow); }
 html[data-theme="neon"] #iptv-audio-play { box-shadow: 0 0 18px var(--pink-glow); }
 .iptv-sync-state { font-size: 0.8rem; color: var(--ink-muted); }
+
+#media-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); z-index: 9999; padding: 10px 20px; border-radius: 999px; background: var(--bg-panel, #222); color: var(--ink, #fff); border: 1px solid var(--line, #555); box-shadow: 0 6px 20px rgba(0,0,0,.35); font-size: 1rem; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+#media-toast.show { opacity: 1; transform: translateX(-50%); }

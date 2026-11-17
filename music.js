@@ -650,6 +650,50 @@
     return keepAlive;
   }
 
+  // brief on-screen note when a wheel / media command reaches the page (to see what the car really sends)
+  function keyToast(text) {
+    let t = byId('media-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'media-toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = text;
+    t.classList.add('show');
+    clearTimeout(keyToast.timer);
+    keyToast.timer = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  function mediaAction(action) {
+    keyToast('Comando: ' + action);
+    // a playing / paused YouTube video takes the command, otherwise the music
+    if (window.ytCard && window.ytCard.control && window.ytCard.control(action)) {
+      return;
+    }
+    if (action === 'next') {
+      next(false);
+    } else if (action === 'prev') {
+      prev();
+    } else if (action === 'play') {
+      if (!playing) { toggle(); }
+    } else if (action === 'pause') {
+      if (playing) { toggle(); }
+    } else if (action === 'toggle') {
+      toggle();
+    }
+  }
+
+  window.addEventListener('keydown', e => {
+    const map = {
+      MediaTrackNext: 'next', MediaTrackPrevious: 'prev', MediaPlayPause: 'toggle', MediaPlay: 'play', MediaPause: 'pause'
+    };
+    const a = map[e.key];
+    if (a) {
+      e.preventDefault();
+      mediaAction(a);
+    }
+  });
+
   function setupMediaSession() {
     if (!('mediaSession' in navigator)) {
       return;
@@ -658,10 +702,10 @@
     const set = (a, fn) => {
       try { ms.setActionHandler(a, fn); } catch (e) { /* not supported */ }
     };
-    set('play', () => { if (!playing) { toggle(); } });
-    set('pause', () => { if (playing) { toggle(); } });
-    set('previoustrack', () => prev());
-    set('nexttrack', () => next(false));
+    set('play', () => mediaAction('play'));
+    set('pause', () => mediaAction('pause'));
+    set('previoustrack', () => mediaAction('prev'));
+    set('nexttrack', () => mediaAction('next'));
     set('seekto', d => {
       if (ytp && d && typeof d.seekTime === 'number') {
         ytp.seekTo(d.seekTime, true);

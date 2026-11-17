@@ -313,10 +313,10 @@
     const set = (a, fn) => {
       try { ms.setActionHandler(a, fn); } catch (e) { /* not supported */ }
     };
-    set('play', () => { if (yt && yt.playVideo) { yt.playVideo(); } });
-    set('pause', () => { if (yt && yt.pauseVideo) { yt.pauseVideo(); } });
-    set('previoustrack', () => { if (idx > 0) { play(idx - 1); } });
-    set('nexttrack', () => { if (idx + 1 < items.length) { play(idx + 1); } });
+    set('play', () => control('play'));
+    set('pause', () => control('pause'));
+    set('previoustrack', () => control('prev'));
+    set('nexttrack', () => control('next'));
     set('seekto', null);
     const v = items[idx];
     try {
@@ -623,7 +623,30 @@
     }
   }
 
-  window.ytCard = { render: renderCard, pause: pauseCard, place };
+  // media / wheel commands: handled here only while a video is the current thing
+  function control(action) {
+    if (!yt || idx < 0 || !items[idx] || !yt.getPlayerState) {
+      return false;
+    }
+    const st = yt.getPlayerState();
+    if (st !== 1 && st !== 2 && st !== 3) {
+      return false;
+    }
+    if (action === 'next') {
+      if (idx + 1 < items.length) { play(idx + 1); }
+    } else if (action === 'prev') {
+      if (idx > 0) { play(idx - 1); }
+    } else if (action === 'toggle') {
+      if (st === 1) { yt.pauseVideo(); } else { yt.playVideo(); }
+    } else if (action === 'play') {
+      yt.playVideo();
+    } else if (action === 'pause') {
+      yt.pauseVideo();
+    }
+    return true;
+  }
+
+  window.ytCard = { render: renderCard, pause: pauseCard, place, control };
   window.addEventListener('resize', () => setTimeout(place, 150));
 
   function closeYoutube() {
