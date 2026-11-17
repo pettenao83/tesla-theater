@@ -2959,3 +2959,5 @@ html[data-theme="neon"] #iptv-audio-play { box-shadow: 0 0 18px var(--pink-glow)
 #sp-artist.link:hover, #sp-artist.link:active { text-decoration-color: currentColor; color: var(--accent-text, var(--pink)); }
 
 #dash-artist { cursor: pointer; }
+
+.sp-row.blocked { opacity: 0.5; }

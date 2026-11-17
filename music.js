@@ -310,19 +310,34 @@
   // keeps only songs: videos YouTube files under the Music category (liked videos and mixed
   // playlists also hold clips, shows and tutorials that do not belong in a music player)
   async function onlyMusic(tracks) {
-    const kind = {};
+    const info = {};
     try {
       for (let k = 0; k < tracks.length; k += 50) {
         const ids = tracks.slice(k, k + 50).map(t => t.id).join(',');
-        const d = await api('/videos', { part: 'snippet', id: ids, maxResults: '50' });
+        const d = await api('/videos', { part: 'snippet,status', id: ids, maxResults: '50' });
         (d.items || []).forEach(it => {
-          kind[it.id] = it.snippet.categoryId;
+          info[it.id] = {
+            cat: it.snippet.categoryId,
+            // can the video be played in an embedded player at all?
+            playable: !(it.status && (it.status.embeddable === false || it.status.privacyStatus === 'private'))
+          };
         });
       }
     } catch (e) {
       return tracks;   // if the check fails, show everything rather than nothing
     }
-    return tracks.filter(t => !kind[t.id] || kind[t.id] === '10');
+    // non-music videos are dropped; tracks YouTube says cannot be embedded are only marked (dimmed)
+    return tracks.filter(t => {
+      const i = info[t.id];
+      if (!i) {
+        return true;
+      }
+      if (i.cat && i.cat !== '10') {
+        return false;
+      }
+      t.blocked = !i.playable;
+      return true;
+    });
   }
 
   async function fetchItems(playlistId) {
@@ -1222,6 +1237,10 @@
     const box = byId('sp-list');
     tracks.forEach((t, i) => {
       const r = row(t.thumb, t.title, t.artist, () => playList(tracks, i));
+      if (t.blocked) {
+        r.classList.add('blocked');
+        r.title = 'YouTube segnala che questo brano non può essere riprodotto fuori dal suo sito';
+      }
       const add = el('span', 'sp-row-add');
       add.setAttribute('role', 'button');
       add.setAttribute('aria-label', 'Aggiungi a una playlist');
