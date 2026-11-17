@@ -263,13 +263,17 @@
 
   const SKIP_TITLES = ['Private video', 'Deleted video', 'Video privato', 'Video eliminato'];
 
+  // "Artist - Topic" channels carry auto-generated art tracks: the "video" is only the still cover
+  function isTopic(raw) {
+    return /-\s*Topic$/i.test(decode(raw || '').trim());
+  }
   function trackOf(it) {
     const sn = it.snippet || {};
     const id = (it.contentDetails && it.contentDetails.videoId) || (sn.resourceId && sn.resourceId.videoId) || '';
     if (!id || SKIP_TITLES.includes(sn.title)) {
       return null;
     }
-    return { id, title: decode(sn.title), artist: cleanArtist(sn.videoOwnerChannelTitle || ''), thumb: thumbOf(sn) };
+    return { id, title: decode(sn.title), artist: cleanArtist(sn.videoOwnerChannelTitle || ''), thumb: thumbOf(sn), topic: isTopic(sn.videoOwnerChannelTitle) };
   }
 
   async function fetchPlaylists() {
@@ -325,7 +329,8 @@
       id: it.id.videoId,
       title: decode(it.snippet.title),
       artist: cleanArtist(it.snippet.channelTitle),
-      thumb: thumbOf(it.snippet)
+      thumb: thumbOf(it.snippet),
+      topic: isTopic(it.snippet.channelTitle)
     }));
   }
 
@@ -790,6 +795,7 @@
     const id = cur ? cur.id : null;
     if (id !== lastId) {
       lastId = id;
+      placeVideo();
       if (layout === 'immersive') {
         applyColor();
       }
@@ -991,7 +997,8 @@
     const f = host.querySelector('iframe');
     // the video sits above the whole page: it steps aside while a panel (style, add app) is open
     const panelOpen = !!document.querySelector('#dash-settings:not(.hidden), #add-app-form:not(.hidden)');
-    if (showVideo && cur && target && !panelOpen) {
+    const realVideo = !!cur && !cur.topic;
+    if (showVideo && realVideo && target && !panelOpen) {
       const r = target.getBoundingClientRect();
       host.style.cssText = 'position:fixed;z-index:60;left:' + r.left + 'px;top:' + r.top + 'px;width:' + r.width + 'px;height:' + r.height + 'px;border-radius:14px;overflow:hidden;';
       if (f) {
@@ -1005,8 +1012,10 @@
         f.style.height = '180px';
       }
     }
-    byId('sp-video-btn').classList.toggle('active', showVideo);
-    placeCloseButton(showVideo && cur && target && !panelOpen ? target.getBoundingClientRect() : null);
+    byId('sp-video-btn').classList.toggle('active', showVideo && realVideo);
+    // art tracks have no real video: the button is not offered for them
+    byId('sp-video-btn').style.display = cur && cur.topic ? 'none' : '';
+    placeCloseButton(showVideo && realVideo && target && !panelOpen ? target.getBoundingClientRect() : null);
   }
 
   // the video sits above the page, so its own "Video" chip is hidden under it: this button
@@ -1312,7 +1321,8 @@
       duration: dur,
       shuffle,
       repeat,
-      video: showVideo
+      video: showVideo && !!cur && !cur.topic,
+      hasVideo: !!cur && !cur.topic
     }),
     toggle,
     next: () => next(false),

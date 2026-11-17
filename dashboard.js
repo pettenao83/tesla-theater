@@ -449,7 +449,7 @@
         cover.src = BLANK;
       }
     }
-    byId('dash-video').classList.toggle('hidden', !has);
+    byId('dash-video').classList.toggle('hidden', !(has && s.hasVideo));
     byId('dash-video').classList.toggle('active', !!s && !!s.video);
     byId('dash-left').textContent = has && s.duration ? '-' + Math.floor(Math.max(0, s.duration - s.progress) / 60) + ':' + String(Math.round(Math.max(0, s.duration - s.progress)) % 60).padStart(2, '0') : '';
     byId('dash-track').textContent = has ? s.title : 'Nessuna riproduzione';
