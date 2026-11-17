@@ -566,10 +566,19 @@ function editMode(edit) {
       return v && !v.classList.contains('hidden');
     });
     document.querySelectorAll('#apps .button').forEach(b => b.classList.toggle('current', !!open && b.id === map[open]));
+    // the floating video players follow the page that is on screen: re-place them after every switch
+    [0, 150, 450].forEach(ms => setTimeout(() => {
+      if (window.ytCard && window.ytCard.place) {
+        window.ytCard.place();
+      }
+      if (window.musicApi && window.musicApi.place) {
+        window.musicApi.place();
+      }
+    }, ms));
   }
   window.addEventListener('DOMContentLoaded', function () {
     const mo = new MutationObserver(sync);
-    Object.keys(map).forEach(id => {
+    Object.keys(map).concat(['app-header']).forEach(id => {
       const v = document.getElementById(id);
       if (v) {
         mo.observe(v, { attributes: true, attributeFilter: ['class'] });
