@@ -463,17 +463,54 @@
     renderNow();
   }
 
-  function onError(e) {
+  // When the owner blocks embedding (error 101/150) the same song is looked up again among videos
+  // that are allowed to be embedded (another upload: lyric video, official audio...) and played instead.
+  const norm = x => decode(x || '').toLowerCase().replace(/\(.*?\)|\[.*?\]/g, ' ').replace(/[^a-z0-9àèéìòù ]+/g, ' ').split(/\s+/).filter(Boolean);
+
+  function similar(wanted, found) {
+    const w = norm(wanted);
+    const f = new Set(norm(found));
+    return w.length > 0 && w.filter(x => f.has(x)).length / w.length >= 0.6;
+  }
+
+  async function findAlternative(t) {
+    const d = await api('/search', {
+      part: 'snippet',
+      q: (t.artist + ' ' + t.title).trim(),
+      type: 'video',
+      videoEmbeddable: 'true',
+      videoSyndicated: 'true',
+      maxResults: '8'
+    });
+    const hit = (d.items || []).find(it => it.id && it.id.videoId && it.id.videoId !== t.id && similar(t.title, it.snippet.title));
+    return hit ? hit.id.videoId : '';
+  }
+
+  async function onError(e) {
     // 100 removed, 101/150 embedding disabled by the owner, 2 invalid id, 5 html5 problem
+    const code = e && e.data;
+    const track = cur;
+    if ((code === 101 || code === 150) && track && !track.triedAlt) {
+      track.triedAlt = true;
+      try {
+        const alt = track.altId || await findAlternative(track);
+        if (alt && cur === track) {
+          track.altId = alt;
+          setMsg('Il brano originale non è riproducibile qui: uso un\'altra versione.', false);
+          ytp.loadVideoById(alt);
+          return;
+        }
+      } catch (err) { /* fall through to the next song */ }
+    }
     skips += 1;
     if (skips > Math.min(5, queue.length)) {
-      setMsg('Questi brani non sono riproducibili qui (il proprietario ha disattivato la riproduzione incorporata).', true);
+      setMsg('Questi brani non sono riproducibili qui (il proprietario ha disattivato la riproduzione incorporata). Errore ' + code + '.', true);
       playing = false;
       renderNow();
       return;
     }
-    setMsg('Brano non riproducibile qui, passo al successivo.', true);
-    if (e && e.data) {
+    setMsg('Brano non riproducibile qui (errore ' + code + '), passo al successivo.', true);
+    if (code) {
       next(true);
     }
   }
