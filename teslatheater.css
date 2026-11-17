@@ -2954,3 +2954,8 @@ html[data-theme="neon"] #iptv-audio-play { box-shadow: 0 0 18px var(--pink-glow)
 
 .sp-picker-new { display: flex; gap: 8px; }
 .sp-picker-new input { flex: 1; min-width: 0; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-deep); color: var(--ink); font: inherit; }
+
+#sp-artist.link { cursor: pointer; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; transition: text-decoration-color 0.15s; }
+#sp-artist.link:hover, #sp-artist.link:active { text-decoration-color: currentColor; color: var(--accent-text, var(--pink)); }
+
+#dash-artist { cursor: pointer; }

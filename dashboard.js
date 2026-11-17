@@ -506,6 +506,12 @@
         setTimeout(() => setMode('video'), 0);
       }
     } catch (e) { /* ignore */ }
+    byId('dash-artist').addEventListener('click', e => {
+      if (music() && music().state().has) {
+        e.stopPropagation();
+        music().openArtist();
+      }
+    });
     byId('dash-connect').addEventListener('click', () => {
       if (music()) {
         music().open();

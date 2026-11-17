@@ -281,7 +281,7 @@
     if (!id || SKIP_TITLES.includes(sn.title)) {
       return null;
     }
-    return { id, title: decode(sn.title), artist: cleanArtist(sn.videoOwnerChannelTitle || ''), thumb: thumbOf(sn), topic: isTopic(sn.videoOwnerChannelTitle) };
+    return { id, title: decode(sn.title), artist: cleanArtist(sn.videoOwnerChannelTitle || ''), thumb: thumbOf(sn), topic: isTopic(sn.videoOwnerChannelTitle), channelId: sn.videoOwnerChannelId || '' };
   }
 
   async function fetchPlaylists() {
@@ -346,7 +346,8 @@
         title: decode(it.snippet.title),
         artist: cleanArtist(it.snippet.channelTitle),
         thumb: thumbOf(it.snippet),
-        topic: isTopic(it.snippet.channelTitle)
+        topic: isTopic(it.snippet.channelTitle),
+        channelId: it.snippet.channelId || ''
       }));
   }
 
@@ -802,6 +803,7 @@
     byId('sp-repeat').innerHTML = '<em class="fas fa-retweet"></em>' + (repeat === 'one' ? '<small>1</small>' : '');
     byId('sp-seek').disabled = !cur;
     byId('sp-add').disabled = !cur;
+    byId('sp-artist').classList.toggle('link', !!cur);
     byId('sp-seek').max = dur || 0;
     updateSpiral();
     byId('sp-dur').textContent = fmt(dur);
@@ -1237,6 +1239,46 @@
     }
   }
 
+  // ---------- artist page: albums and songs of the artist's channel ----------
+
+  async function fetchArtist(c) {
+    let id = c.channelId;
+    if (!id) {
+      // older saved tracks carry no channel: look the artist up by name
+      const d = await api('/search', { part: 'snippet', q: c.title, type: 'channel', maxResults: '5' });
+      const hit = (d.items || []).find(x => /topic/i.test(x.snippet.channelTitle || x.snippet.title || '')) || (d.items || [])[0];
+      id = hit ? (hit.id.channelId || (hit.snippet && hit.snippet.channelId)) : '';
+    }
+    if (!id) {
+      throw new Error('Artista non trovato.');
+    }
+    const ch = await api('/channels', { part: 'contentDetails', id });
+    const up = ch.items && ch.items[0] && ch.items[0].contentDetails.relatedPlaylists.uploads;
+    const [albums, tracks] = await Promise.all([
+      api('/playlists', { part: 'snippet,contentDetails', channelId: id, maxResults: '50' }).catch(() => ({ items: [] })),
+      up ? fetchItems(up) : Promise.resolve([])
+    ]);
+    return {
+      albums: (albums.items || []).map(p => ({
+        id: p.id, title: decode(p.snippet.title), thumb: thumbOf(p.snippet),
+        count: p.contentDetails ? p.contentDetails.itemCount : null
+      })),
+      tracks
+    };
+  }
+
+  function openArtist(track) {
+    if (!track || !track.artist) {
+      return;
+    }
+    crumb = { id: 'artist', title: track.artist, channelId: track.channelId || '', artist: true };
+    if (layout !== 'vinyl') {
+      byId('spotify-view').classList.add('sp-lib-open');
+      byId('sp-lib-btn').classList.add('active');
+    }
+    renderList();
+  }
+
   async function renderList() {
     const token = ++listToken;
     const box = byId('sp-list');
@@ -1258,9 +1300,21 @@
       let build;
       if (crumb) {
         byId('sp-crumb-name').textContent = crumb.title;
-        const tracks = await fetchItems(crumb.id);
-        crumb.tracks = tracks;
-        build = () => trackRows(tracks);
+        if (crumb.artist) {
+          const page = await fetchArtist(crumb);
+          crumb.tracks = page.tracks;
+          build = () => {
+            page.albums.forEach(p => {
+              box.appendChild(row(p.thumb, p.title, 'Album' + (p.count != null ? ' · ' + p.count + ' brani' : ''),
+                () => { crumb = { id: p.id, title: p.title }; renderList(); }));
+            });
+            trackRows(page.tracks);
+          };
+        } else {
+          const tracks = await fetchItems(crumb.id);
+          crumb.tracks = tracks;
+          build = () => trackRows(tracks);
+        }
       } else if (tab === 'playlists') {
         const pls = await fetchPlaylists();
         build = () => pls.forEach(p => {
@@ -1365,6 +1419,7 @@
     byId('sp-shuffle').addEventListener('click', toggleShuffle);
     byId('sp-repeat').addEventListener('click', cycleRepeat);
     byId('sp-add').addEventListener('click', () => openPicker(cur));
+    byId('sp-artist').addEventListener('click', () => { if (cur) { openArtist(cur); } });
     const seek = byId('sp-seek');
     seek.addEventListener('input', () => {
       seeking = true;
@@ -1485,6 +1540,7 @@
     repeat: cycleRepeat,
     open: () => openMusic(),
     close: () => closeMusic(),
+    openArtist: t => { openMusic(); openArtist(t || cur); },
     keepAlive: on => {
       const a = silentAudio();
       if (a) {
