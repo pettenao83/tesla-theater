@@ -14,7 +14,7 @@
   const AUTH_KEY = 'TeslaTheaterYtmAuth';
   const RECENT_KEY = 'TeslaTheaterYtmRecent';
   const LAYOUT_KEY = 'TeslaTheaterMusicLayout';
-  const SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
+  const SCOPE = 'https://www.googleapis.com/auth/youtube';   // read + manage playlists
   const API = 'https://www.googleapis.com/youtube/v3';
   const LAYOUTS = ['vinyl', 'immersive', 'cinema'];
   // The OAuth client ID is public by design (it is in every web app that uses Google login).
@@ -145,6 +145,8 @@
     }
     st.access = p.get('access_token');
     st.expires = Date.now() + (Number(p.get('expires_in')) || 3600) * 1000;
+    // true only when Google actually granted the permission to change playlists
+    st.write = (p.get('scope') || '').split(' ').indexOf(SCOPE) >= 0;
     save();
     return true;
   }
@@ -207,7 +209,7 @@
     render();
   }
 
-  async function api(path, params) {
+  async function api(path, params, body) {
     if (!st.access) {
       const e = new Error('Accedi a Google.');
       e.auth = true;
@@ -227,7 +229,13 @@
         q.set(k, params[k]);
       }
     });
-    const r = await fetch(API + path + '?' + q.toString(), { headers: { Authorization: 'Bearer ' + st.access } });
+    const opts = { headers: { Authorization: 'Bearer ' + st.access } };
+    if (body) {
+      opts.method = 'POST';
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    }
+    const r = await fetch(API + path + '?' + q.toString(), opts);
     const j = await r.json().catch(() => ({}));
     if (r.status === 401) {
       st.access = '';
@@ -793,6 +801,7 @@
     byId('sp-repeat').classList.toggle('on', repeat !== 'off');
     byId('sp-repeat').innerHTML = '<em class="fas fa-retweet"></em>' + (repeat === 'one' ? '<small>1</small>' : '');
     byId('sp-seek').disabled = !cur;
+    byId('sp-add').disabled = !cur;
     byId('sp-seek').max = dur || 0;
     updateSpiral();
     byId('sp-dur').textContent = fmt(dur);
@@ -1055,6 +1064,112 @@
 
   // ---------- library list ----------
 
+  // ---------- add a song to one of your playlists ----------
+
+  function closePicker() {
+    const p = byId('sp-picker');
+    if (p) {
+      p.remove();
+    }
+  }
+
+  async function addToPlaylist(track, pl) {
+    try {
+      await api('/playlistItems', { part: 'snippet' }, {
+        snippet: { playlistId: pl.id, resourceId: { kind: 'youtube#video', videoId: track.id } }
+      });
+      cache.playlists = null;
+      closePicker();
+      keyToast('Aggiunto a ' + pl.title);
+    } catch (e) {
+      if (e.status === 403 || e.auth) {
+        // the saved sign-in only allows reading: ask Google for the new permission once
+        keyToast('Serve il permesso di modifica: ti riporto a Google…');
+        setTimeout(login, 1200);
+        return;
+      }
+      keyToast('Non riesco ad aggiungerlo: ' + (e.message || 'errore'));
+    }
+  }
+
+  async function openPicker(track) {
+    if (!track) {
+      return;
+    }
+    closePicker();
+    const wrap = el('div', 'sp-picker');
+    wrap.id = 'sp-picker';
+    const panel = el('div', 'sp-picker-panel');
+    panel.appendChild(el('strong', null, 'Aggiungi a una playlist'));
+    panel.appendChild(el('small', null, track.title));
+    // new playlist: name it, create it (private) and add the song straight away
+    const form = el('form', 'sp-picker-new');
+    const nameIn = el('input');
+    nameIn.type = 'text';
+    nameIn.placeholder = 'Nuova playlist…';
+    nameIn.autocomplete = 'off';
+    nameIn.setAttribute('aria-label', 'Nome della nuova playlist');
+    const mk = el('button', 'actionbutton');
+    mk.type = 'submit';
+    mk.textContent = 'Crea e aggiungi';
+    form.append(nameIn, mk);
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const name = nameIn.value.trim();
+      if (!name) {
+        return;
+      }
+      try {
+        const d = await api('/playlists', { part: 'snippet,status' }, {
+          snippet: { title: name },
+          status: { privacyStatus: 'private' }
+        });
+        await addToPlaylist(track, { id: d.id, title: name });
+      } catch (err) {
+        if (err.status === 403 || err.auth) {
+          keyToast('Serve il permesso di modifica: ti riporto a Google…');
+          setTimeout(login, 1200);
+        } else {
+          keyToast('Non riesco a creare la playlist: ' + (err.message || 'errore'));
+        }
+      }
+    });
+    const list = el('div', 'sp-picker-list');
+    list.appendChild(el('p', 'sp-empty', 'Carico…'));
+    const close = el('button', 'actionbutton secondary');
+    close.type = 'button';
+    close.textContent = 'Annulla';
+    close.addEventListener('click', closePicker);
+    panel.append(form, list, close);
+    wrap.appendChild(panel);
+    wrap.addEventListener('click', e => {
+      if (e.target === wrap) {
+        closePicker();
+      }
+    });
+    byId('spotify-view').appendChild(wrap);
+    try {
+      const pls = await fetchPlaylists();
+      list.textContent = '';
+      if (!pls.length) {
+        list.appendChild(el('p', 'sp-empty', 'Non hai ancora playlist.'));
+      }
+      pls.forEach(p => {
+        const b = el('button', 'sp-picker-item');
+        b.type = 'button';
+        b.textContent = p.title + (p.count != null ? ' · ' + p.count : '');
+        b.addEventListener('click', () => addToPlaylist(track, p));
+        list.appendChild(b);
+      });
+    } catch (e) {
+      list.textContent = '';
+      list.appendChild(el('p', 'sp-empty', 'Impossibile leggere le playlist.'));
+      if (e.auth) {
+        fail(e);
+      }
+    }
+  }
+
   function row(img, title, sub, onClick) {
     const b = el('button', 'sp-row');
     b.type = 'button';
@@ -1076,7 +1191,18 @@
   function trackRows(tracks) {
     const box = byId('sp-list');
     tracks.forEach((t, i) => {
-      box.appendChild(row(t.thumb, t.title, t.artist, () => playList(tracks, i)));
+      const r = row(t.thumb, t.title, t.artist, () => playList(tracks, i));
+      const add = el('span', 'sp-row-add');
+      add.setAttribute('role', 'button');
+      add.setAttribute('aria-label', 'Aggiungi a una playlist');
+      add.title = 'Aggiungi a una playlist';
+      add.innerHTML = '<em class="fas fa-plus"></em>';
+      add.addEventListener('click', e => {
+        e.stopPropagation();
+        openPicker(t);
+      });
+      r.appendChild(add);
+      box.appendChild(r);
     });
     if (!tracks.length) {
       box.appendChild(el('p', 'sp-empty', 'Nessun brano da mostrare.'));
@@ -1238,6 +1364,7 @@
     byId('sp-prev').addEventListener('click', prev);
     byId('sp-shuffle').addEventListener('click', toggleShuffle);
     byId('sp-repeat').addEventListener('click', cycleRepeat);
+    byId('sp-add').addEventListener('click', () => openPicker(cur));
     const seek = byId('sp-seek');
     seek.addEventListener('input', () => {
       seeking = true;
