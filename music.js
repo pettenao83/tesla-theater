@@ -1006,6 +1006,34 @@
       }
     }
     byId('sp-video-btn').classList.toggle('active', showVideo);
+    placeCloseButton(showVideo && cur && target && !panelOpen ? target.getBoundingClientRect() : null);
+  }
+
+  // the video sits above the page, so its own "Video" chip is hidden under it: this button
+  // floats above the video and turns it off again
+  function placeCloseButton(rect) {
+    let b = byId('ytm-close');
+    if (!b) {
+      b = document.createElement('button');
+      b.id = 'ytm-close';
+      b.type = 'button';
+      b.className = 'ytm-close';
+      b.setAttribute('aria-label', 'Chiudi il video');
+      b.innerHTML = '<em class="fas fa-times"></em> Chiudi video';
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        showVideo = false;
+        placeVideo();
+      });
+      document.body.appendChild(b);
+    }
+    if (!rect || rect.width === 0) {
+      b.style.display = 'none';
+      return;
+    }
+    b.style.display = 'inline-flex';
+    b.style.left = Math.max(8, rect.right - b.offsetWidth - 10) + 'px';
+    b.style.top = (rect.top + 10) + 'px';
   }
 
   // ---------- library list ----------

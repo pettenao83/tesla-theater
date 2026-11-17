@@ -2932,3 +2932,6 @@ html[data-theme="neon"] #iptv-audio-play { box-shadow: 0 0 18px var(--pink-glow)
 
 #media-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); z-index: 9999; padding: 10px 20px; border-radius: 999px; background: var(--bg-panel, #222); color: var(--ink, #fff); border: 1px solid var(--line, #555); box-shadow: 0 6px 20px rgba(0,0,0,.35); font-size: 1rem; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
 #media-toast.show { opacity: 1; transform: translateX(-50%); }
+
+.ytm-close { position: fixed; z-index: 61; display: none; align-items: center; gap: 8px; padding: 6px 14px; border: 0; border-radius: 999px; background: rgba(0, 0, 0, 0.65); color: #fff; font: inherit; font-size: 0.95rem; cursor: pointer; }
+.ytm-close:hover { background: var(--pink); color: var(--on-pink, #fff); }
