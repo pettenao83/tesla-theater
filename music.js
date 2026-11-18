@@ -787,6 +787,70 @@
     }
   });
 
+  // ---------- touch gestures on the cover: swipe = next / previous, double tap = play / pause ----------
+
+  function attachGestures(el, withDoubleTap) {
+    if (!el || el.dataset.gestures) {
+      return;
+    }
+    el.dataset.gestures = '1';
+    el.style.touchAction = 'pan-y';
+    let sx = 0;
+    let sy = 0;
+    let st0 = 0;
+    let lastTap = 0;
+    let swiped = false;
+    el.addEventListener('pointerdown', e => {
+      sx = e.clientX;
+      sy = e.clientY;
+      st0 = Date.now();
+      swiped = false;
+    });
+    el.addEventListener('pointerup', e => {
+      if (!cur) {
+        return;
+      }
+      const dx = e.clientX - sx;
+      const dy = e.clientY - sy;
+      const dt = Date.now() - st0;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 800) {
+        swiped = true;
+        if (dx < 0) {
+          keyToast('Successivo');
+          next(false);
+        } else {
+          keyToast('Precedente');
+          prev();
+        }
+        return;
+      }
+      if (withDoubleTap && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
+        const now = Date.now();
+        if (now - lastTap < 350) {
+          lastTap = 0;
+          keyToast(playing ? 'Pausa' : 'Riproduci');
+          toggle();
+        } else {
+          lastTap = now;
+        }
+      }
+    });
+    // a swipe must not also count as a tap (on the home it would open the music page)
+    el.addEventListener('click', e => {
+      if (swiped) {
+        e.stopPropagation();
+        e.preventDefault();
+        swiped = false;
+      }
+    }, true);
+  }
+
+  function setupGestures() {
+    const wrap = byId('sp-cover') && byId('sp-cover').closest('.sp-cover-wrap');
+    attachGestures(wrap, true);
+    attachGestures(document.querySelector('#dash-now .now-art'), false);
+  }
+
   function setupMediaSession() {
     if (!('mediaSession' in navigator)) {
       return;
@@ -1503,6 +1567,7 @@
     byId('sp-shuffle').addEventListener('click', toggleShuffle);
     byId('sp-repeat').addEventListener('click', cycleRepeat);
     byId('sp-add').addEventListener('click', () => openPicker(cur));
+    setupGestures();
     byId('sp-artist').addEventListener('click', () => { if (cur) { openArtist(cur); } });
     const seek = byId('sp-seek');
     seek.addEventListener('input', () => {
@@ -1600,6 +1665,11 @@
   }
 
   setupMediaSession();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupGestures);
+  } else {
+    setupGestures();
+  }
 
   // What the home dashboard needs.
   window.musicApi = {

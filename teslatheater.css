@@ -3132,3 +3132,11 @@ html[data-theme] .dash-ctl .dash-play { width: 60px; height: 60px; }
 #dash-news .news-head { flex-wrap: nowrap; min-width: 0; }
 #news-source-quick { margin-right: auto; max-width: 62%; }
 #rail .tile-name { font-size: calc(var(--vh, 1vh) * 2); }
+
+/* bigger touch targets for the player controls */
+.sp-controls { gap: 18px; }
+.sp-controls button { width: 76px; height: 76px; font-size: 1.4rem; }
+.sp-controls .sp-play { width: 96px; height: 96px; font-size: 1.9rem; }
+#dash-now:not(.mode-video) .dash-ctl { gap: 14px; }
+html[data-theme] .dash-ctl button { width: 64px; height: 64px; font-size: 1.15rem; }
+html[data-theme] .dash-ctl .dash-play { width: 76px; height: 76px; font-size: 1.4rem; }
