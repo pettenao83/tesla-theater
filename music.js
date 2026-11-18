@@ -951,16 +951,13 @@
     if (id !== lastId) {
       lastId = id;
       placeVideo();
-      if (layout === 'immersive') {
-        applyColor();
-      }
     }
     if (layout === 'immersive') {
       renderNav();
     }
   }
 
-  // ---------- looks: Vinile / Immersivo / Cinema ----------
+  // ---------- looks: Vinile / Copertina / Video ----------
 
   function setLayout(l, remember) {
     layout = LAYOUTS.includes(l) ? l : 'vinyl';
@@ -980,155 +977,11 @@
     }
     if (layout === 'immersive') {
       lastId = null;
-      applyColor();
       renderNav();
     }
     placeVideo();
   }
 
-  // Background colour of the immersive look: the cover's average colour, darkened.
-  // Copertina look: background and glow follow the colours of the cover
-  function applyColor() {
-    const v = byId('spotify-view');
-    if (!cur || layout !== 'immersive') {
-      v.style.removeProperty('--sp-bg');
-      v.style.removeProperty('--sp-glow');
-      return;
-    }
-    const probe = new Image();
-    probe.crossOrigin = 'anonymous';
-    probe.onload = () => {
-      try {
-        const c = document.createElement('canvas');
-        c.width = 16;
-        c.height = 16;
-        const x = c.getContext('2d');
-        const side = Math.min(probe.naturalWidth, probe.naturalHeight);
-        x.drawImage(probe, (probe.naturalWidth - side) / 2, (probe.naturalHeight - side) / 2, side, side, 0, 0, 16, 16);
-        const d = x.getImageData(0, 0, 16, 16).data;
-        let r = 0;
-        let g = 0;
-        let b = 0;
-        for (let i = 0; i < d.length; i += 4) {
-          r += d[i];
-          g += d[i + 1];
-          b += d[i + 2];
-        }
-        const n = d.length / 4;
-        r /= n;
-        g /= n;
-        b /= n;
-        const peak = Math.max(r, g, b) || 1;
-        const k = Math.min(0.6, 105 / peak);
-        const kg = Math.min(2.2, 210 / peak);
-        v.style.setProperty('--sp-bg', 'rgb(' + Math.round(r * k) + ',' + Math.round(g * k) + ',' + Math.round(b * k) + ')');
-        v.style.setProperty('--sp-glow', 'rgba(' + Math.min(255, Math.round(r * kg)) + ',' + Math.min(255, Math.round(g * kg)) + ',' + Math.min(255, Math.round(b * kg)) + ',0.55)');
-      } catch (e) {
-        v.style.removeProperty('--sp-bg');
-        v.style.removeProperty('--sp-glow');
-      }
-    };
-    probe.onerror = () => {
-      v.style.removeProperty('--sp-bg');
-      v.style.removeProperty('--sp-glow');
-    };
-    probe.src = coverUrl(cur, 'hqdefault');
-  }
-
-  function setLayout(l, remember) {
-    layout = LAYOUTS.includes(l) ? l : 'vinyl';
-    const v = byId('spotify-view');
-    LAYOUTS.forEach(x => v.classList.toggle('sp-l-' + x, x === layout));
-    v.classList.remove('sp-lib-open');
-    byId('sp-lib-btn').classList.remove('active');
-    byId('sp-lib-btn').classList.toggle('hidden', layout === 'vinyl');
-    document.querySelectorAll('.sp-layout').forEach(b => b.classList.toggle('active', b.dataset.layout === layout));
-    if (remember) {
-      try {
-        window.localStorage.setItem(LAYOUT_KEY, layout);
-      } catch (e) { /* ignore */ }
-    }
-    if (layout === 'cinema') {
-      loadShelf();
-    }
-    if (layout === 'immersive') {
-      lastId = null;
-      applyColor();
-      renderNav();
-    }
-    placeVideo();
-  }
-
-  // Background colour of the immersive look: the cover's average colour, darkened.
-  // the immersive layout uses the style and accent colours; no colour is taken from the cover any more
-  function applyColor() {
-    byId('spotify-view').style.removeProperty('--sp-bg');
-  }
-
-  function setLayout(l, remember) {
-    layout = LAYOUTS.includes(l) ? l : 'vinyl';
-    const v = byId('spotify-view');
-    LAYOUTS.forEach(x => v.classList.toggle('sp-l-' + x, x === layout));
-    v.classList.remove('sp-lib-open');
-    byId('sp-lib-btn').classList.remove('active');
-    byId('sp-lib-btn').classList.toggle('hidden', layout === 'vinyl');
-    document.querySelectorAll('.sp-layout').forEach(b => b.classList.toggle('active', b.dataset.layout === layout));
-    if (remember) {
-      try {
-        window.localStorage.setItem(LAYOUT_KEY, layout);
-      } catch (e) { /* ignore */ }
-    }
-    if (layout === 'cinema') {
-      loadShelf();
-    }
-    if (layout === 'immersive') {
-      lastId = null;
-      applyColor();
-      renderNav();
-    }
-    placeVideo();
-  }
-
-  // Background colour of the immersive look: the cover's average colour, darkened.
-  function applyColor() {
-    const v = byId('spotify-view');
-    if (!cur || layout !== 'immersive') {
-      v.style.removeProperty('--sp-bg');
-      return;
-    }
-    const probe = new Image();
-    probe.crossOrigin = 'anonymous';
-    probe.onload = () => {
-      try {
-        const c = document.createElement('canvas');
-        c.width = 16;
-        c.height = 16;
-        const x = c.getContext('2d');
-        // the middle square of the picture (YouTube thumbnails are 16:9)
-        const side = Math.min(probe.naturalWidth, probe.naturalHeight);
-        x.drawImage(probe, (probe.naturalWidth - side) / 2, (probe.naturalHeight - side) / 2, side, side, 0, 0, 16, 16);
-        const d = x.getImageData(0, 0, 16, 16).data;
-        let r = 0;
-        let g = 0;
-        let b = 0;
-        for (let i = 0; i < d.length; i += 4) {
-          r += d[i];
-          g += d[i + 1];
-          b += d[i + 2];
-        }
-        const n = d.length / 4;
-        r /= n;
-        g /= n;
-        b /= n;
-        const k = Math.min(0.6, 105 / (Math.max(r, g, b) || 1));
-        v.style.setProperty('--sp-bg', 'rgb(' + Math.round(r * k) + ',' + Math.round(g * k) + ',' + Math.round(b * k) + ')');
-      } catch (e) {
-        v.style.removeProperty('--sp-bg');
-      }
-    };
-    probe.onerror = () => v.style.removeProperty('--sp-bg');
-    probe.src = coverUrl(cur, 'hqdefault');
-  }
 
   // Previous track on the left, next one on the right (immersive look).
   // one wide card with the next song; the list icon opens the whole queue

@@ -3330,3 +3330,21 @@ body.editing .qw-open { display: none; }
 .sp-l-cinema #sp-cover { position: relative; width: 100%; height: 100%; object-fit: contain; }
 .sp-l-cinema .sp-shelf-row { overflow-x: auto; -webkit-mask-image: linear-gradient(to right, #000 84%, transparent); mask-image: linear-gradient(to right, #000 84%, transparent); padding-right: 40px; scrollbar-width: none; }
 .sp-l-cinema .sp-shelf-row::-webkit-scrollbar { display: none; }
+
+
+/* Copertina keeps the style and accent colours (no colour taken from the cover) */
+#spotify-view.sp-l-immersive { background: color-mix(in srgb, var(--pink) 14%, var(--bg-panel)); color: var(--ink); }
+.sp-l-immersive .sp-title, .sp-l-immersive #sp-track { color: var(--ink); }
+.sp-l-immersive #sp-artist { color: var(--ink); opacity: 0.9; }
+.sp-l-immersive .sp-seekrow, .sp-l-immersive .sp-volrow { color: var(--ink-muted); }
+.sp-l-immersive .sp-controls button { color: var(--ink); border-color: var(--line); }
+.sp-l-immersive .sp-controls .sp-play { color: var(--on-pink, #fff); background: var(--pink); border-color: transparent; }
+.sp-l-immersive .sp-source { background: color-mix(in srgb, var(--ink) 12%, transparent); color: var(--ink); }
+.sp-l-immersive .sp-layouts { background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.sp-l-immersive .sp-layouts .sp-layout { color: var(--ink); }
+.sp-l-immersive .sp-layouts .sp-layout.active { background: var(--pink); color: var(--on-pink, #fff); }
+.sp-l-immersive .sp-bar .actionbutton { color: var(--ink); }
+.sp-l-immersive .sp-art::before { background: radial-gradient(closest-side, color-mix(in srgb, var(--pink) 55%, transparent), transparent 78%); }
+.sp-nextcard { color: var(--ink); border-color: var(--line); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.sp-nextcard-list { background: color-mix(in srgb, var(--ink) 12%, transparent); }
+.sp-nextcard:active { background: color-mix(in srgb, var(--ink) 14%, transparent); }
