@@ -8,7 +8,7 @@
   const KEY = 'TeslaTheaterDash';
   const STYLES = ['neon', 'minimal', 'cover', 'android', 'ios'];
   const MODES = ['auto', 'light', 'dark'];
-  const cfg = { theme: 'ios', mode: 'auto', accent: '', news: 'sky', newsV: 2 };
+  const cfg = { theme: 'minimal', mode: 'dark', accent: '#3e6ae1', news: 'sky', newsV: 2 };   // default: neutral anthracite with the Tesla blue
   let player = null;
   let started = false;
 
@@ -368,6 +368,7 @@
     const items = (news.items || []).slice(0, 8);
     const src = NEWS_SOURCES[news.source] || NEWS_SOURCES[cfg.news];
     byId('news-chip').textContent = src.name;
+    byId('news-source-quick').value = news.source || cfg.news;
     byId('news-age').textContent = items.length ? 'Aggiornato ' + ago(news.at) : 'Carico le notizie…';
     const main = byId('news-main');
     const more = byId('news-more');
@@ -378,7 +379,7 @@
     if (!items.length) {
       return;
     }
-    newsIndex = newsIndex % items.length;
+    newsIndex = ((newsIndex % items.length) + items.length) % items.length;
     const first = items[newsIndex];
     const photo = !!first.img;
     byId('dash-news').classList.toggle('nophoto', !photo);
@@ -430,6 +431,8 @@
     const s = m ? m.state() : null;
     const has = !!(s && s.has);
     byId('dash-connect').classList.toggle('hidden', has);
+    byId('dash-now').classList.toggle('idle', !has);
+    byId('dash-now').classList.toggle('playing', has && !!s.playing);
     byId('dash-ctl').classList.toggle('hidden', !has);
     const cover = byId('dash-cover');
     if (has) {
@@ -557,6 +560,31 @@
     if (window.matchMedia) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
     }
+    // quick news controls: source picker and big previous / next arrows
+    const quick = byId('news-source-quick');
+    Array.from(byId('dash-news-source').options).forEach(o => {
+      const q = document.createElement('option');
+      q.value = o.value;
+      q.textContent = o.textContent.replace(/\s*\(.*\)$/, '');
+      quick.appendChild(q);
+    });
+    quick.value = cfg.news;
+    quick.addEventListener('change', () => {
+      byId('dash-news-source').value = quick.value;
+      byId('dash-news-source').dispatchEvent(new Event('change'));
+    });
+    byId('news-next').addEventListener('click', () => { newsIndex += 1; renderNews(); });
+    byId('news-prev').addEventListener('click', () => { newsIndex -= 1; renderNews(); });
+    // the settings panel closes by itself when one of its tools is used
+    ['add-app-btn', 'remove-app-btn', 'export-btn', 'import-btn', 'reset-defaults-btn', 'lock-btn'].forEach(id => {
+      byId(id).addEventListener('click', () => {
+        byId('dash-settings').classList.add('hidden');
+        byId('dash-settings-btn').classList.remove('active');
+        if (music() && music().place) {
+          music().place();
+        }
+      });
+    });
     const sel = byId('dash-news-source');
     sel.value = cfg.news;
     sel.addEventListener('change', () => {

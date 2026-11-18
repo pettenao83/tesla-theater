@@ -1,7 +1,7 @@
 const DEFAULT_SITES = {
-  "iptv": { "name": "IPTV", "img": "images/iptv.svg", "url": "#iptv", "internal": "iptv" },
-  "youtube": { "name": "YouTube", "img": "images/youtube.png", "url": "#youtube", "internal": "youtube" },
-  "ytmusic": { "name": "YouTube Music", "img": "images/ytmusic.svg", "url": "#music", "internal": "music" }
+  "iptv": { "name": "IPTV", "img": "images/iptv.svg", "url": "#iptv", "internal": "iptv", "icon": "fas fa-tv", "sub": "Canali in diretta" },
+  "youtube": { "name": "YouTube", "img": "images/youtube.png", "url": "#youtube", "internal": "youtube", "icon": "fab fa-youtube", "sub": "Novità dai tuoi canali" },
+  "ytmusic": { "name": "YouTube Music", "img": "images/ytmusic.svg", "url": "#music", "internal": "music", "icon": "fas fa-music", "sub": "Brani e playlist" }
 };
 
 function loadCustomSites() {
@@ -156,6 +156,7 @@ function buildPage(sites) {
   }
 
   $('.button').on('click', open);
+  renderQuick();
   $('.deleteswitch').on('click', function(e) {
     e.stopPropagation();
     if (!onEdit) {
@@ -194,7 +195,7 @@ function fitHome() {
   const z = Math.min(vw / W, vh / H);
   // "1vh" of the virtual page: constant, so every size that uses it is stable
   document.documentElement.style.setProperty('--vh', (H / 100) + 'px');
-  const RW = 84; // width of the side rail, in virtual pixels
+  const RW = 118; // width of the side rail, in virtual pixels
   const rail = document.getElementById('rail');
   if (rail) {
     rail.style.left = Math.round((vw - W * z) / 2) + 'px';
@@ -254,6 +255,48 @@ function storeStatus($apps) {
   window.localStorage.setItem('TeslaTheaterStatus', JSON.stringify(appsStatus));
 }
 
+function hostOf(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch (e) {
+    return '';
+  }
+}
+
+// Quick launch: big cards on the home for every app of the side rail
+function renderQuick() {
+  const box = document.getElementById('quick');
+  if (!box) {
+    return;
+  }
+  box.textContent = '';
+  $('#apps .button').each(function () {
+    const id = this.id;
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'quick-card';
+    card.dataset.id = id;
+    const ic = this.querySelector('.tile-icon');
+    const icon = document.createElement('span');
+    icon.className = 'quick-icon';
+    if (ic) {
+      icon.innerHTML = ic.innerHTML;
+    }
+    const name = document.createElement('b');
+    name.textContent = this.getAttribute('title') || '';
+    const sub = document.createElement('small');
+    sub.textContent = this.getAttribute('data-sub') || '';
+    card.append(icon, name, sub);
+    card.addEventListener('click', () => {
+      const tile = document.getElementById(id);
+      if (tile) {
+        tile.click();
+      }
+    });
+    box.appendChild(card);
+  });
+}
+
 function addSiteButton($template, siteId, site, $apps) {
   const $app = $template.clone();
   $app.attr('id', siteId);
@@ -275,6 +318,17 @@ function addSiteButton($template, siteId, site, $apps) {
     $app.addClass('custom-app');
   }
 
+  // large icon above a horizontal label (the same icon is reused by the quick-launch cards)
+  const $icon = $('<span class="tile-icon"></span>');
+  if (site.icon) {
+    $icon.append($('<em></em>').addClass(site.icon));
+  } else if (site.img) {
+    $icon.append($('<img alt="">').attr('src', site.img.startsWith('http') || site.img.startsWith('data:') ? site.img : `images/${site.img.replace(/^images\//, '')}`));
+  } else {
+    $icon.text(site.name.charAt(0).toUpperCase());
+  }
+  $app.attr('data-sub', site.sub || (site.custom ? hostOf(site.url) : ''));
+  $app.append($icon);
   $('<span class="tile-name"></span>').text(site.name).appendTo($app);
 
   $app.appendTo($apps);

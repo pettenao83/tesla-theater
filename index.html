@@ -50,12 +50,12 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=130">
-  <script src="teslatheater.js?v=130"></script>
-  <script src="iptv.js?v=130"></script>
-  <script src="music.js?v=130"></script>
-  <script src="dashboard.js?v=130"></script>
-  <script src="youtube.js?v=130"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=133">
+  <script src="teslatheater.js?v=133"></script>
+  <script src="iptv.js?v=133"></script>
+  <script src="music.js?v=133"></script>
+  <script src="dashboard.js?v=133"></script>
+  <script src="youtube.js?v=133"></script>
 </head>
 <body>
 
@@ -82,15 +82,12 @@
       <div id="toolbar">
         <button id="fullscreen" type="button" class="actionbutton secondary" title="Schermo intero" aria-label="Schermo intero"><em class="fas fa-expand"></em><span class="lbl">Schermo intero</span></button>
         <button id="add-app-btn" type="button" class="actionbutton secondary" title="Aggiungi app" aria-label="Aggiungi app"><em class="fas fa-plus"></em><span class="lbl">Aggiungi app</span></button>
-        <button id="remove-app-btn" type="button" class="actionbutton secondary" title="Rimuovi app" aria-label="Rimuovi app"><em class="fas fa-trash"></em><span class="lbl">Rimuovi app</span></button>
-        <button id="export-btn" type="button" class="actionbutton secondary" title="Esporta" aria-label="Esporta"><em class="fas fa-upload"></em><span class="lbl">Esporta</span></button>
-        <button id="import-btn" type="button" class="actionbutton secondary" title="Importa" aria-label="Importa"><em class="fas fa-download"></em><span class="lbl">Importa</span></button>
-        <button id="reset-defaults-btn" type="button" class="actionbutton secondary" title="Ripristina" aria-label="Ripristina"><em class="fas fa-undo-alt"></em><span class="lbl">Ripristina</span></button>
-        <button id="dash-settings-btn" type="button" class="actionbutton secondary" title="Stile" aria-label="Stile"><em class="fas fa-palette"></em><span class="lbl">Stile</span></button>
-        <button id="lock-btn" type="button" class="actionbutton secondary" title="Blocca" aria-label="Blocca"><em class="fas fa-lock"></em><span class="lbl">Blocca</span></button>
+        <button id="dash-settings-btn" type="button" class="actionbutton secondary" title="Impostazioni" aria-label="Impostazioni"><em class="fas fa-cog"></em><span class="lbl">Impostazioni</span></button>
       </div>
 
       <section id="dash" aria-label="Dashboard">
+        <div class="dash-col">
+        <section id="quick" class="quick" aria-label="Accesso rapido"></section>
         <div id="dash-now" class="dash-card">
           <div class="dash-sw" role="tablist" aria-label="Musica o video">
             <button type="button" id="dash-sw-music" class="on" role="tab"><em class="fas fa-music"></em> Musica</button>
@@ -118,10 +115,14 @@
           </div>
           <button id="dash-connect" type="button" class="actionbutton hidden"><em class="fas fa-music"></em> Apri YouTube Music</button>
         </div>
+        </div>
         <div id="dash-news" class="dash-card">
           <div class="news-head">
             <span id="news-chip" class="news-chip">Notizie</span>
+            <select id="news-source-quick" class="news-source" aria-label="Fonte delle notizie"></select>
             <span id="news-age" class="news-age"></span>
+            <button id="news-prev" type="button" class="news-arrow" aria-label="Notizia precedente"><em class="fas fa-chevron-left"></em></button>
+            <button id="news-next" type="button" class="news-arrow" aria-label="Notizia successiva"><em class="fas fa-chevron-right"></em></button>
           </div>
           <div id="news-main" class="news-main"></div>
           <div id="news-more" class="news-more"></div>
@@ -156,6 +157,14 @@
               <option value="rai">Rai News</option>
               <option value="google">Google Notizie</option>
             </select>
+          </div>
+          <div class="dash-set-row dash-tools">
+            <strong>Strumenti</strong>
+            <button id="remove-app-btn" type="button" class="actionbutton secondary" title="Rimuovi app" aria-label="Rimuovi app"><em class="fas fa-trash"></em><span class="lbl">Rimuovi app</span></button>
+            <button id="export-btn" type="button" class="actionbutton secondary" title="Esporta" aria-label="Esporta"><em class="fas fa-upload"></em><span class="lbl">Esporta</span></button>
+            <button id="import-btn" type="button" class="actionbutton secondary" title="Importa" aria-label="Importa"><em class="fas fa-download"></em><span class="lbl">Importa</span></button>
+            <button id="reset-defaults-btn" type="button" class="actionbutton secondary" title="Ripristina" aria-label="Ripristina"><em class="fas fa-undo-alt"></em><span class="lbl">Ripristina</span></button>
+            <button id="lock-btn" type="button" class="actionbutton secondary" title="Blocca" aria-label="Blocca"><em class="fas fa-lock"></em><span class="lbl">Blocca</span></button>
           </div>
         </div>
       </section>
