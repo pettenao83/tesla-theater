@@ -3224,3 +3224,13 @@ html[data-theme] .dash-ctl .dash-play { width: 76px; height: 76px; font-size: 1.
 
 .qw-t b { white-space: normal; overflow: visible; }
 .qw-pl-text small { white-space: nowrap; }
+
+
+/* The side rail is gone: sections are opened from the home widgets, "Home" brings you back.
+   The hidden rail still holds the tiles that the app logic uses. */
+#rail { display: none !important; }
+#dash, html[data-theme="minimal"] #dash, html[data-theme="cover"] #dash { padding-left: 20px; }
+.qw, .qa { position: relative; }
+.qx { display: none; position: absolute; top: 8px; right: 8px; z-index: 5; width: 44px; height: 44px; border-radius: 50%; align-items: center; justify-content: center; background: #e5484d; color: #fff; cursor: pointer; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4); }
+body.editing .qx { display: inline-flex; }
+body.editing .qw-open { display: none; }

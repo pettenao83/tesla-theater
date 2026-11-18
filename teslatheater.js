@@ -195,7 +195,7 @@ function fitHome() {
   const z = Math.min(vw / W, vh / H);
   // "1vh" of the virtual page: constant, so every size that uses it is stable
   document.documentElement.style.setProperty('--vh', (H / 100) + 'px');
-  const RW = 118; // width of the side rail, in virtual pixels
+  const RW = 0; // the side rail is gone: pages use the full width
   const rail = document.getElementById('rail');
   if (rail) {
     rail.style.left = Math.round((vw - W * z) / 2) + 'px';
@@ -263,6 +263,24 @@ function hostOf(url) {
   }
 }
 
+// "x" shown on the cards while "Rimuovi app" is active (Impostazioni > Strumenti)
+function removeButton(id, custom) {
+  const b = document.createElement('span');
+  b.className = 'qx';
+  b.setAttribute('role', 'button');
+  b.setAttribute('aria-label', 'Rimuovi');
+  b.innerHTML = '<em class="fas fa-times"></em>';
+  b.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (custom) {
+      removeCustomApp(id);
+    } else {
+      removeDefaultSite(id);
+    }
+  });
+  return b;
+}
+
 // Quick launch: three live widgets (YouTube, IPTV, YouTube Music) and a row for custom apps.
 // widgets.js fills the widget bodies with real content.
 function renderQuick() {
@@ -297,7 +315,7 @@ function renderQuick() {
     head.addEventListener('click', () => open(d[0]));
     const body = document.createElement('div');
     body.className = 'qw-body';
-    card.append(head, body);
+    card.append(head, body, removeButton(d[0], false));
     widgets.appendChild(card);
   });
   // custom apps added with the + button: compact cards in their own row
@@ -314,8 +332,8 @@ function renderQuick() {
     }
     const name = document.createElement('b');
     name.textContent = this.getAttribute('title') || '';
-    card.append(icon, name);
-    card.addEventListener('click', () => open(id));
+    card.append(icon, name, removeButton(id, true));
+    card.addEventListener('click', () => { if (!onEdit) { open(id); } });
     apps.appendChild(card);
   });
   box.appendChild(widgets);
@@ -632,6 +650,7 @@ $(function() {
 
 function editMode(edit) {
   onEdit = edit;
+  document.body.classList.toggle('editing', !!edit);
   $('.deleteswitch').toggleClass('hidden', !edit);
   if (edit) {
     $('.button.active').removeClass('active');
