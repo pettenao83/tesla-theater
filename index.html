@@ -50,13 +50,13 @@
   </script>
 
   <!-- Custom (versioned to bust the browser cache on every deploy) -->
-  <link rel="stylesheet" href="teslatheater.css?v=138">
-  <script src="teslatheater.js?v=138"></script>
-  <script src="iptv.js?v=138"></script>
-  <script src="music.js?v=138"></script>
-  <script src="dashboard.js?v=138"></script>
-  <script src="youtube.js?v=138"></script>
-  <script src="widgets.js?v=138"></script>
+  <link rel="stylesheet" href="teslatheater.css?v=141">
+  <script src="teslatheater.js?v=141"></script>
+  <script src="iptv.js?v=141"></script>
+  <script src="music.js?v=141"></script>
+  <script src="dashboard.js?v=141"></script>
+  <script src="youtube.js?v=141"></script>
+  <script src="widgets.js?v=141"></script>
 </head>
 <body>
 
@@ -288,13 +288,12 @@
           <button type="submit" class="actionbutton" aria-label="Cerca"><em class="fas fa-search"></em></button>
         </form>
         <div class="sp-layouts" role="group" aria-label="Aspetto del player">
-          <button type="button" class="sp-layout actionbutton secondary" data-layout="vinyl" title="Vinile" aria-label="Vinile"><em class="fas fa-compact-disc"></em><span class="lbl" class="lbl">Vinile</span></button>
-          <button type="button" class="sp-layout actionbutton secondary" data-layout="immersive" title="Immersivo" aria-label="Immersivo"><em class="fas fa-image"></em><span class="lbl" class="lbl">Immersivo</span></button>
-          <button type="button" class="sp-layout actionbutton secondary" data-layout="cinema" title="Cinema" aria-label="Cinema"><em class="fas fa-film"></em><span class="lbl" class="lbl">Cinema</span></button>
+          <button type="button" class="sp-layout actionbutton secondary" data-layout="vinyl" title="Vinile" aria-label="Vinile"><em class="fas fa-compact-disc"></em><span class="lbl">Vinile</span></button>
+          <button type="button" class="sp-layout actionbutton secondary" data-layout="immersive" title="Copertina" aria-label="Copertina"><em class="fas fa-image"></em><span class="lbl">Copertina</span></button>
+          <button type="button" class="sp-layout actionbutton secondary" data-layout="cinema" title="Video" aria-label="Video"><em class="fas fa-film"></em><span class="lbl">Video</span></button>
         </div>
-        <button id="sp-lib-btn" type="button" class="actionbutton secondary hidden" title="Libreria" aria-label="Libreria"><em class="fas fa-list"></em><span class="lbl" class="lbl">Libreria</span></button>
-        <button id="sp-video-btn" type="button" class="actionbutton secondary hidden" title="Mostra il video sopra la copertina" aria-label="Video"><em class="fas fa-video"></em><span class="lbl">Video</span></button>
-        <button id="sp-logout" type="button" class="actionbutton secondary hidden" title="Esci" aria-label="Esci"><em class="fas fa-sign-out-alt"></em><span class="lbl" class="lbl">Esci</span></button>
+        <button id="sp-lib-btn" type="button" class="actionbutton secondary hidden" title="Coda e libreria" aria-label="Coda e libreria"><em class="fas fa-list-ul"></em><span class="lbl">Coda</span></button>
+        <button id="sp-logout" type="button" class="actionbutton secondary hidden" title="Disconnetti l'account" aria-label="Disconnetti l'account"><em class="fas fa-sign-out-alt"></em><span class="lbl">Esci</span></button>
       </div>
       <p id="sp-msg" class="hidden"></p>
 
@@ -326,8 +325,9 @@
 
       <div id="sp-main" class="sp-main hidden">
         <div class="sp-now">
-          <div class="sp-cover-wrap"><div class="sp-art"><div class="sp-vinyl" aria-hidden="true"></div><img id="sp-cover" class="empty" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" /></div></div>
+          <div class="sp-cover-wrap"><div class="sp-art"><div class="sp-vinyl" aria-hidden="true"></div><img id="sp-cover" class="empty" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" /><button id="sp-video-btn" type="button" class="sp-video-chip hidden" title="Mostra il video sopra la copertina" aria-label="Video"><em class="fas fa-video"></em> Video</button></div></div>
           <div class="sp-info">
+            <div id="sp-source" class="sp-source hidden"></div>
             <div id="sp-track">Nessuna riproduzione</div>
             <div id="sp-artist"></div>
           </div>
@@ -345,9 +345,8 @@
             <button id="sp-add" type="button" aria-label="Aggiungi a una playlist" title="Aggiungi a una playlist"><em class="fas fa-plus"></em></button>
           </div>
           <div id="sp-volrow" class="sp-volrow">
-            <em class="fas fa-volume-down"></em>
+            <button id="sp-mute" type="button" class="sp-mute" aria-label="Muto"><em class="fas fa-volume-up"></em></button>
             <input type="range" id="sp-vol" min="0" max="100" value="50" aria-label="Volume" />
-            <em class="fas fa-volume-up"></em>
           </div>
           <div id="sp-queue" class="sp-queue hidden" aria-label="Prossimi brani"></div>
           <div id="sp-shelf" class="sp-shelf"></div>

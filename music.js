@@ -30,6 +30,8 @@
   let order = [];            // play order: indices into queue
   let pos = -1;              // position inside `order`
   let cur = null;
+  let queueName = '';        // where the queue comes from (playlist, liked, search...)
+  let muted = false;
   let playing = false;
   let shuffle = false;
   let repeat = 'off';        // off | all | one
@@ -565,11 +567,12 @@
   }
 
   // Starts a list from one of its tracks.
-  function playList(tracks, index) {
+  function playList(tracks, index, label) {
     const list = tracks.filter(Boolean);
     if (!list.length) {
       return;
     }
+    queueName = label || '';
     queue = list;
     order = queue.map((t, i) => i);
     pos = Math.min(index || 0, queue.length - 1);
@@ -824,15 +827,9 @@
         }
         return;
       }
-      if (withDoubleTap && Math.abs(dx) < 12 && Math.abs(dy) < 12) {
-        const now = Date.now();
-        if (now - lastTap < 350) {
-          lastTap = 0;
-          keyToast(playing ? 'Pausa' : 'Riproduci');
-          toggle();
-        } else {
-          lastTap = now;
-        }
+      if (withDoubleTap && Math.abs(dx) < 12 && Math.abs(dy) < 12 && dt < 450) {
+        keyToast(playing ? 'Pausa' : 'Riproduci');
+        toggle();
       }
     });
     // a swipe must not also count as a tap (on the home it would open the music page)
@@ -929,6 +926,10 @@
     setCover(cover, cur);
     byId('sp-track').textContent = cur ? cur.title : 'Nessuna riproduzione';
     byId('sp-artist').textContent = cur ? cur.artist : 'Scegli un brano dalla libreria.';
+    const src = byId('sp-source');
+    src.textContent = cur && queueName ? 'In riproduzione da: ' + queueName : '';
+    src.classList.toggle('hidden', !(cur && queueName));
+    byId('spotify-view').style.setProperty('--sp-cover-url', cur ? 'url("' + coverUrl(cur, 'hqdefault') + '")' : 'none');
     byId('sp-play').innerHTML = '<em class="fas fa-' + (playing ? 'pause' : 'play') + '"></em>';
     byId('sp-play').setAttribute('aria-label', playing ? 'Pausa' : 'Riproduci');
     byId('spotify-view').classList.toggle('sp-playing', playing);
@@ -960,6 +961,79 @@
   }
 
   // ---------- looks: Vinile / Immersivo / Cinema ----------
+
+  function setLayout(l, remember) {
+    layout = LAYOUTS.includes(l) ? l : 'vinyl';
+    const v = byId('spotify-view');
+    LAYOUTS.forEach(x => v.classList.toggle('sp-l-' + x, x === layout));
+    v.classList.remove('sp-lib-open');
+    byId('sp-lib-btn').classList.remove('active');
+    byId('sp-lib-btn').classList.toggle('hidden', layout === 'vinyl');
+    document.querySelectorAll('.sp-layout').forEach(b => b.classList.toggle('active', b.dataset.layout === layout));
+    if (remember) {
+      try {
+        window.localStorage.setItem(LAYOUT_KEY, layout);
+      } catch (e) { /* ignore */ }
+    }
+    if (layout === 'cinema') {
+      loadShelf();
+    }
+    if (layout === 'immersive') {
+      lastId = null;
+      applyColor();
+      renderNav();
+    }
+    placeVideo();
+  }
+
+  // Background colour of the immersive look: the cover's average colour, darkened.
+  // Copertina look: background and glow follow the colours of the cover
+  function applyColor() {
+    const v = byId('spotify-view');
+    if (!cur || layout !== 'immersive') {
+      v.style.removeProperty('--sp-bg');
+      v.style.removeProperty('--sp-glow');
+      return;
+    }
+    const probe = new Image();
+    probe.crossOrigin = 'anonymous';
+    probe.onload = () => {
+      try {
+        const c = document.createElement('canvas');
+        c.width = 16;
+        c.height = 16;
+        const x = c.getContext('2d');
+        const side = Math.min(probe.naturalWidth, probe.naturalHeight);
+        x.drawImage(probe, (probe.naturalWidth - side) / 2, (probe.naturalHeight - side) / 2, side, side, 0, 0, 16, 16);
+        const d = x.getImageData(0, 0, 16, 16).data;
+        let r = 0;
+        let g = 0;
+        let b = 0;
+        for (let i = 0; i < d.length; i += 4) {
+          r += d[i];
+          g += d[i + 1];
+          b += d[i + 2];
+        }
+        const n = d.length / 4;
+        r /= n;
+        g /= n;
+        b /= n;
+        const peak = Math.max(r, g, b) || 1;
+        const k = Math.min(0.6, 105 / peak);
+        const kg = Math.min(2.2, 210 / peak);
+        v.style.setProperty('--sp-bg', 'rgb(' + Math.round(r * k) + ',' + Math.round(g * k) + ',' + Math.round(b * k) + ')');
+        v.style.setProperty('--sp-glow', 'rgba(' + Math.min(255, Math.round(r * kg)) + ',' + Math.min(255, Math.round(g * kg)) + ',' + Math.min(255, Math.round(b * kg)) + ',0.55)');
+      } catch (e) {
+        v.style.removeProperty('--sp-bg');
+        v.style.removeProperty('--sp-glow');
+      }
+    };
+    probe.onerror = () => {
+      v.style.removeProperty('--sp-bg');
+      v.style.removeProperty('--sp-glow');
+    };
+    probe.src = coverUrl(cur, 'hqdefault');
+  }
 
   function setLayout(l, remember) {
     layout = LAYOUTS.includes(l) ? l : 'vinyl';
@@ -1057,6 +1131,7 @@
   }
 
   // Previous track on the left, next one on the right (immersive look).
+  // one wide card with the next song; the list icon opens the whole queue
   function renderNav() {
     const box = byId('sp-queue');
     if (layout !== 'immersive' || !cur) {
@@ -1069,34 +1144,41 @@
     }
     box.dataset.sig = sig;
     const at = i => (i >= 0 && i < order.length ? queue[order[i]] : null);
-    const before = at(pos - 1) || (repeat === 'all' && order.length > 1 ? at(order.length - 1) : null);
     const after = at(pos + 1) || (repeat === 'all' && order.length > 1 ? at(0) : null);
     box.textContent = '';
-    if (!before && !after) {
+    if (!after) {
       box.classList.add('hidden');
       return;
     }
-    const side = (t, dir, onPick) => {
-      const b = el('button', 'sp-nav-btn sp-nav-' + dir);
-      b.type = 'button';
-      b.title = t.title;
-      const arrow = el('em', 'fas fa-chevron-' + (dir === 'prev' ? 'left' : 'right'));
-      const im = el('img');
-      im.alt = '';
-      im.src = t.thumb || coverUrl(t, 'mqdefault');
-      const tx = el('span', 'sp-nav-text');
-      tx.appendChild(el('b', null, t.title));
-      tx.appendChild(el('small', null, t.artist));
-      (dir === 'prev' ? [arrow, im, tx] : [tx, im, arrow]).forEach(n => b.appendChild(n));
-      b.addEventListener('click', onPick);
-      return b;
-    };
-    const bar = el('div', 'sp-nav-bar');
-    bar.appendChild(before ? side(before, 'prev', () => playPos(order.indexOf(queue.indexOf(before)))) : el('span', 'sp-nav-btn sp-nav-empty'));
-    bar.appendChild(el('i', 'sp-nav-div'));
-    bar.appendChild(after ? side(after, 'next', () => playPos(order.indexOf(queue.indexOf(after)))) : el('span', 'sp-nav-btn sp-nav-empty'));
-    box.appendChild(bar);
+    const card = el('button', 'sp-nextcard');
+    card.type = 'button';
+    card.title = after.title;
+    const im = el('img');
+    im.alt = '';
+    im.src = after.thumb || coverUrl(after, 'mqdefault');
+    const tx = el('span', 'sp-nextcard-text');
+    tx.appendChild(el('small', null, 'PROSSIMO BRANO'));
+    tx.appendChild(el('b', null, after.title));
+    tx.appendChild(el('span', null, after.artist));
+    const list = el('span', 'sp-nextcard-list');
+    list.setAttribute('role', 'button');
+    list.setAttribute('aria-label', 'Apri la coda');
+    list.innerHTML = '<em class="fas fa-list-ul"></em>';
+    list.addEventListener('click', e => {
+      e.stopPropagation();
+      openQueue();
+    });
+    card.append(im, tx, list);
+    card.addEventListener('click', () => next(false));
+    box.appendChild(card);
     box.classList.remove('hidden');
+  }
+
+  function openQueue() {
+    crumb = { id: 'queue', title: 'In coda', queue: true };
+    byId('spotify-view').classList.add('sp-lib-open');
+    byId('sp-lib-btn').classList.add('active');
+    renderList();
   }
 
   async function loadShelf() {
@@ -1120,7 +1202,7 @@
         b.appendChild(el('span', null, p.title));
         b.addEventListener('click', async () => {
           try {
-            playList(await fetchItems(p.id), 0);
+            playList(await fetchItems(p.id), 0, p.title);
           } catch (e) {
             fail(e);
           }
@@ -1334,10 +1416,18 @@
     return b;
   }
 
+  // name shown as "In riproduzione da": the open playlist / artist, or the library tab
+  function ctxLabel() {
+    if (crumb) {
+      return crumb.queue ? queueName : crumb.title;
+    }
+    return { liked: 'Piaciuti', recent: 'Recenti', search: 'Risultati di ricerca' }[tab] || '';
+  }
+
   function trackRows(tracks) {
     const box = byId('sp-list');
     tracks.forEach((t, i) => {
-      const r = row(t.thumb, t.title, t.artist, () => playList(tracks, i));
+      const r = row(t.thumb, t.title, t.artist, () => playList(tracks, i, ctxLabel()));
       if (t.blocked) {
         r.classList.add('blocked');
         r.title = 'YouTube segnala che questo brano non può essere riprodotto fuori dal suo sito';
@@ -1439,7 +1529,7 @@
       if (cache.lastSearch) {
         trackRows(cache.lastSearch);
       } else {
-        box.appendChild(el('p', 'sp-empty', 'Scrivi il nome di un brano o di un artista.'));
+        box.appendChild(el('p', 'sp-empty', 'Usa la barra di ricerca in alto per cercare brani, artisti e video.'));
       }
       return;
     }
@@ -1448,7 +1538,22 @@
       let build;
       if (crumb) {
         byId('sp-crumb-name').textContent = crumb.title;
-        if (crumb.artist) {
+        if (crumb.queue) {
+          crumb.tracks = null;
+          build = () => {
+            order.forEach((qi, k) => {
+              const t = queue[qi];
+              const r = row(t.thumb, t.title, t.artist, () => playPos(k));
+              if (k === pos) {
+                r.classList.add('playing');
+              }
+              box.appendChild(r);
+            });
+            if (!order.length) {
+              box.appendChild(el('p', 'sp-empty', 'La coda è vuota.'));
+            }
+          };
+        } else if (crumb.artist) {
           const page = await fetchArtist(crumb);
           crumb.tracks = page.tracks;
           build = () => {
@@ -1466,8 +1571,23 @@
       } else if (tab === 'playlists') {
         const pls = await fetchPlaylists();
         build = () => pls.forEach(p => {
-          box.appendChild(row(p.thumb, p.title, (p.count != null ? p.count + ' brani' : 'Playlist'),
-            () => { crumb = { id: p.id, title: p.title }; renderList(); }));
+          const r = row(p.thumb, p.title, (p.count != null ? p.count + ' brani' : 'Playlist'),
+            () => { crumb = { id: p.id, title: p.title }; renderList(); });
+          const play = el('span', 'sp-row-play');
+          play.setAttribute('role', 'button');
+          play.setAttribute('aria-label', 'Riproduci la playlist');
+          play.title = 'Riproduci';
+          play.innerHTML = '<em class="fas fa-play"></em>';
+          play.addEventListener('click', async e => {
+            e.stopPropagation();
+            try {
+              playList(await fetchItems(p.id), 0, p.title);
+            } catch (err) {
+              fail(err);
+            }
+          });
+          r.appendChild(play);
+          box.appendChild(r);
         });
         if (!pls.length) {
           build = () => box.appendChild(el('p', 'sp-empty', 'Non hai ancora playlist.'));
@@ -1529,7 +1649,35 @@
     }
     bound = true;
     byId('sp-home').addEventListener('click', closeMusic);
-    byId('sp-logout').addEventListener('click', logout);
+    byId('sp-logout').addEventListener('click', () => {
+      closePicker();
+      const wrap = el('div', 'sp-picker');
+      wrap.id = 'sp-picker';
+      const panel = el('div', 'sp-picker-panel');
+      panel.appendChild(el('strong', null, 'Disconnettere l\'account Google?'));
+      panel.appendChild(el('small', null, 'Dovrai accedere di nuovo per vedere le tue playlist.'));
+      const row2 = el('div', 'sp-confirm-row');
+      const no = el('button', 'actionbutton secondary');
+      no.type = 'button';
+      no.textContent = 'Annulla';
+      no.addEventListener('click', closePicker);
+      const yes = el('button', 'actionbutton');
+      yes.type = 'button';
+      yes.textContent = 'Disconnetti';
+      yes.addEventListener('click', () => {
+        closePicker();
+        logout();
+      });
+      row2.append(no, yes);
+      panel.appendChild(row2);
+      wrap.appendChild(panel);
+      wrap.addEventListener('click', e => {
+        if (e.target === wrap) {
+          closePicker();
+        }
+      });
+      byId('spotify-view').appendChild(wrap);
+    });
     byId('sp-video-btn').addEventListener('click', () => {
       showVideo = !showVideo;
       placeVideo();
@@ -1581,7 +1729,25 @@
       timeNow = Number(seek.value);
       seeking = false;
     });
+    byId('sp-mute').addEventListener('click', () => {
+      muted = !muted;
+      if (ytp && ready) {
+        if (muted) {
+          ytp.mute();
+        } else {
+          ytp.unMute();
+        }
+      }
+      byId('sp-mute').firstElementChild.className = 'fas fa-volume-' + (muted ? 'mute' : 'up');
+    });
     byId('sp-vol').addEventListener('input', e => {
+      if (muted) {
+        muted = false;
+        if (ytp && ready) {
+          ytp.unMute();
+        }
+        byId('sp-mute').firstElementChild.className = 'fas fa-volume-up';
+      }
       if (ytp && ready) {
         ytp.setVolume(Number(e.target.value));
       }
@@ -1599,7 +1765,7 @@
     });
     byId('sp-crumb-play').addEventListener('click', () => {
       if (crumb && crumb.tracks) {
-        playList(crumb.tracks, 0);
+        playList(crumb.tracks, 0, crumb.title);
       }
     });
     byId('sp-search-form').addEventListener('submit', e => {
@@ -1694,10 +1860,10 @@
     repeat: cycleRepeat,
     open: () => openMusic(),
     playlists: () => fetchPlaylists(),
-    playPlaylist: async id => {
+    playPlaylist: async (id, title) => {
       const tracks = await fetchItems(id);
       if (tracks.length) {
-        playList(tracks, 0);
+        playList(tracks, 0, title);
       }
     },
     close: () => closeMusic(),

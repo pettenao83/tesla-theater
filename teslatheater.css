@@ -3234,3 +3234,99 @@ html[data-theme] .dash-ctl .dash-play { width: 76px; height: 76px; font-size: 1.
 .qx { display: none; position: absolute; top: 8px; right: 8px; z-index: 5; width: 44px; height: 44px; border-radius: 50%; align-items: center; justify-content: center; background: #e5484d; color: #fff; cursor: pointer; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4); }
 body.editing .qx { display: inline-flex; }
 body.editing .qw-open { display: none; }
+
+
+/* =====================================================================
+   YouTube Music: header, Copertina (immersive), Vinile, Video (cinema)
+   ===================================================================== */
+
+/* --- header: segmented pill, library button, logout kept apart --- */
+.sp-bar { gap: 12px; }
+.sp-layouts { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.sp-layouts .sp-layout { width: auto; height: 48px; padding: 0 20px; gap: 8px; border-radius: 999px; border-color: transparent; background: transparent; box-shadow: none; color: var(--ink); }
+.sp-layouts .sp-layout .lbl { display: inline; font-size: 1rem; }
+.sp-layouts .sp-layout em { width: auto; }
+.sp-layouts .sp-layout.active { background: var(--pink); color: var(--on-pink, #fff); }
+#sp-lib-btn { width: auto; height: 48px; padding: 0 18px; gap: 8px; }
+#sp-lib-btn .lbl { display: inline; }
+#sp-logout { margin-left: auto; width: 44px; height: 44px; padding: 0; opacity: 0.65; background: transparent; border-color: transparent; box-shadow: none; }
+#sp-logout .lbl { display: none; }
+.sp-confirm-row { display: flex; gap: 12px; justify-content: flex-end; }
+.sp-confirm-row .actionbutton { width: auto; height: 48px; padding: 0 22px; }
+/* the top search bar is the only one: the one inside the library is not shown */
+#sp-search-form { display: none !important; }
+
+/* --- video chip on the cover --- */
+.sp-video-chip { position: absolute; top: 12px; right: 12px; z-index: 4; padding: 8px 16px; border: 0; border-radius: 999px; background: rgba(0, 0, 0, 0.55); color: #fff; font: inherit; font-size: 1rem; cursor: pointer; }
+.sp-video-chip.active { background: var(--pink); color: var(--on-pink, #fff); }
+.sp-video-chip.hidden { display: none; }
+
+/* --- now playing text: badge, title, artist closer and bigger --- */
+.sp-source { display: inline-block; margin-bottom: 10px; padding: 5px 14px; border-radius: 999px; font-size: 0.95rem; letter-spacing: 0.04em; background: color-mix(in srgb, var(--ink) 12%, transparent); color: var(--ink); max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-source.hidden { display: none; }
+#spotify-view #sp-artist { height: auto; margin-top: 2px; font-size: 1.5rem; line-height: 1.25; font-weight: 500; opacity: 1; }
+.sp-l-immersive #sp-track, .sp-l-cinema #sp-track { margin-bottom: 0; }
+
+/* --- controls: more air around, compact volume with a mute button --- */
+.sp-l-immersive .sp-controls, .sp-l-cinema .sp-controls { margin: calc(var(--vh, 1vh) * 1.6) 0; gap: 22px; }
+.sp-volrow { display: flex; align-items: center; gap: 12px; max-width: 380px; }
+.sp-volrow input { flex: 1; }
+.sp-mute { width: 48px; height: 48px; flex: none; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: inherit; font-size: 1.1rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+
+/* --- Copertina (immersive): colours of the cover, ambient glow, white text --- */
+#spotify-view.sp-l-immersive {
+  background: color-mix(in srgb, var(--sp-bg, var(--bg-panel)) 80%, color-mix(in srgb, var(--pink) 25%, var(--bg-deep)));
+  color: #fff;
+}
+.sp-l-immersive .sp-title, .sp-l-immersive #sp-track, .sp-l-immersive #sp-artist { color: #fff; }
+.sp-l-immersive #sp-artist { color: rgba(255, 255, 255, 0.92); }
+.sp-l-immersive .sp-seekrow, .sp-l-immersive .sp-volrow { color: rgba(255, 255, 255, 0.78); }
+.sp-l-immersive .sp-seekrow input, .sp-l-immersive .sp-volrow input { accent-color: var(--pink); }
+.sp-l-immersive .sp-controls button { color: #fff; border-color: rgba(255, 255, 255, 0.35); }
+.sp-l-immersive .sp-controls .sp-play { color: var(--on-pink, #fff); background: var(--pink); border-color: transparent; }
+.sp-l-immersive .sp-source { background: rgba(255, 255, 255, 0.16); color: #fff; }
+.sp-l-immersive .sp-layouts { background: rgba(255, 255, 255, 0.14); }
+.sp-l-immersive .sp-layouts .sp-layout { color: #fff; }
+.sp-l-immersive .sp-layouts .sp-layout.active { background: var(--pink); color: var(--on-pink, #fff); }
+.sp-l-immersive .sp-bar .actionbutton { color: #fff; }
+.sp-l-immersive .sp-art { position: relative; }
+.sp-l-immersive .sp-art::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  z-index: -1;
+  background: radial-gradient(closest-side, var(--sp-glow, transparent), transparent 78%);
+  filter: blur(28px);
+}
+
+/* --- next track card --- */
+.sp-nextcard {
+  appearance: none; -webkit-appearance: none;
+  width: 100%; max-width: 560px; min-height: 96px;
+  display: flex; align-items: center; gap: 16px; padding: 12px 16px 12px 12px;
+  font: inherit; text-align: left; color: #fff; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 18px; background: rgba(255, 255, 255, 0.12);
+}
+.sp-nextcard img { width: 72px; height: 72px; flex: none; object-fit: cover; border-radius: 12px; }
+.sp-nextcard-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sp-nextcard-text small { font-size: 0.78rem; letter-spacing: 0.12em; opacity: 0.75; }
+.sp-nextcard-text b { font-size: 1.15rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-nextcard-text span { font-size: 1rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-nextcard-list { flex: none; width: 52px; height: 52px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.18); font-size: 1.15rem; }
+.sp-nextcard:active { background: rgba(255, 255, 255, 0.2); }
+
+/* --- Vinile: the cover + record group centred in the left column --- */
+.sp-l-vinyl .sp-cover-wrap { padding-left: 0; justify-content: center; }
+.sp-l-vinyl .sp-art { transform: translateX(-18%); }   /* cover + the record that sticks out on the right: centred as a group */
+
+/* --- library rows: quick play on playlists, current song in the queue --- */
+.sp-row-play { margin-left: auto; flex: none; width: 48px; height: 48px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--pink); color: var(--on-pink, #fff); cursor: pointer; }
+.sp-row.playing { border-color: var(--pink); box-shadow: 0 0 0 1px var(--pink); }
+
+/* --- Video (cinema): wider media area, cover kept whole over a blurred copy of itself --- */
+.sp-l-cinema .sp-now { grid-template-columns: 58% minmax(0, 1fr); }
+.sp-l-cinema .sp-art { position: relative; overflow: hidden; background: #000; }
+.sp-l-cinema .sp-art::before { content: ""; position: absolute; inset: -12%; background: var(--sp-cover-url, none) center / cover no-repeat; filter: blur(32px) brightness(0.65); }
+.sp-l-cinema #sp-cover { position: relative; width: 100%; height: 100%; object-fit: contain; }
+.sp-l-cinema .sp-shelf-row { overflow-x: auto; -webkit-mask-image: linear-gradient(to right, #000 84%, transparent); mask-image: linear-gradient(to right, #000 84%, transparent); padding-right: 40px; scrollbar-width: none; }
+.sp-l-cinema .sp-shelf-row::-webkit-scrollbar { display: none; }

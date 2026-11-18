@@ -167,7 +167,7 @@
         b.addEventListener('click', async () => {
           b.classList.add('busy');
           try {
-            await window.musicApi.playPlaylist(p.id);
+            await window.musicApi.playPlaylist(p.id, p.title);
           } catch (e) { /* the player shows its own message */ }
           b.classList.remove('busy');
         });
