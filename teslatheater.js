@@ -263,38 +263,68 @@ function hostOf(url) {
   }
 }
 
-// Quick launch: big cards on the home for every app of the side rail
+// Quick launch: three live widgets (YouTube, IPTV, YouTube Music) and a row for custom apps.
+// widgets.js fills the widget bodies with real content.
 function renderQuick() {
   const box = document.getElementById('quick');
   if (!box) {
     return;
   }
   box.textContent = '';
-  $('#apps .button').each(function () {
+  const widgets = document.createElement('div');
+  widgets.className = 'quick-widgets';
+  const apps = document.createElement('div');
+  apps.className = 'quick-apps';
+  const open = id => {
+    const tile = document.getElementById(id);
+    if (tile) {
+      tile.click();
+    }
+  };
+  [['youtube', 'YouTube', 'Novità', 'fab fa-youtube'], ['iptv', 'IPTV', 'Preferiti', 'fas fa-tv'], ['ytmusic', 'YouTube Music', 'Libreria', 'fas fa-music']].forEach(function (d) {
+    if (!document.getElementById(d[0])) {
+      return;
+    }
+    const card = document.createElement('section');
+    card.className = 'qw';
+    card.dataset.id = d[0];
+    const head = document.createElement('button');
+    head.type = 'button';
+    head.className = 'qw-head';
+    head.innerHTML = '<span class="qw-title"><em class="' + d[3] + '"></em><span class="qw-t"><b></b><small></small></span></span><span class="qw-open"><em class="fas fa-arrow-right"></em></span>';
+    head.querySelector('b').textContent = d[1];
+    head.querySelector('small').textContent = d[2];
+    head.addEventListener('click', () => open(d[0]));
+    const body = document.createElement('div');
+    body.className = 'qw-body';
+    card.append(head, body);
+    widgets.appendChild(card);
+  });
+  // custom apps added with the + button: compact cards in their own row
+  $('#apps .button.custom-app').each(function () {
     const id = this.id;
     const card = document.createElement('button');
     card.type = 'button';
-    card.className = 'quick-card';
-    card.dataset.id = id;
+    card.className = 'qa';
     const ic = this.querySelector('.tile-icon');
     const icon = document.createElement('span');
-    icon.className = 'quick-icon';
+    icon.className = 'qa-icon';
     if (ic) {
       icon.innerHTML = ic.innerHTML;
     }
     const name = document.createElement('b');
     name.textContent = this.getAttribute('title') || '';
-    const sub = document.createElement('small');
-    sub.textContent = this.getAttribute('data-sub') || '';
-    card.append(icon, name, sub);
-    card.addEventListener('click', () => {
-      const tile = document.getElementById(id);
-      if (tile) {
-        tile.click();
-      }
-    });
-    box.appendChild(card);
+    card.append(icon, name);
+    card.addEventListener('click', () => open(id));
+    apps.appendChild(card);
   });
+  box.appendChild(widgets);
+  if (apps.children.length) {
+    box.appendChild(apps);
+  }
+  if (typeof window.fillQuickWidgets === 'function') {
+    window.fillQuickWidgets();
+  }
 }
 
 function addSiteButton($template, siteId, site, $apps) {

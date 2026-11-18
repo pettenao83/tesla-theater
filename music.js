@@ -1693,6 +1693,13 @@
     shuffle: toggleShuffle,
     repeat: cycleRepeat,
     open: () => openMusic(),
+    playlists: () => fetchPlaylists(),
+    playPlaylist: async id => {
+      const tracks = await fetchItems(id);
+      if (tracks.length) {
+        playList(tracks, 0);
+      }
+    },
     close: () => closeMusic(),
     openArtist: t => { openMusic(); openArtist(t || cur); },
     keepAlive: on => {

@@ -1329,6 +1329,34 @@
 
   window.openIptv = openIptv;
   window.closeIptv = closeIptv;
+  // for the home widget: favourite channels (or the first ones of the list) with their logos
+  window.iptvQuick = async function (max) {
+    loadState();
+    addMissingDefaults();
+    const list = activeList() || state.lists[0];
+    if (!list) {
+      return { favorites: false, items: [] };
+    }
+    let chs = list.channels;
+    if (!chs && list.url) {
+      try {
+        chs = await fetchPlaylist(list.url);
+        list.channels = chs;
+        saveState();
+      } catch (e) {
+        chs = [];
+      }
+    }
+    chs = chs || [];
+    await loadPrefs();
+    const byUrl = new Map(chs.map(c => [c[1], c]));
+    const fav = (prefs.favorites || []).map(u => byUrl.get(u)).filter(Boolean);
+    const pick = fav.length ? fav : chs;
+    return {
+      favorites: fav.length > 0,
+      items: pick.slice(0, max || 6).map(c => ({ name: c[0], url: c[1], logo: c[2] || '' }))
+    };
+  };
   window.iptvPlayUrl = function (url) {
     pendingUrl = url;
     openIptv();

@@ -646,7 +646,17 @@
     return true;
   }
 
-  window.ytCard = { render: renderCard, pause: pauseCard, place, control };
+  // home widget: the latest videos, and start one inside the home player card
+  async function startFromHome(list, i) {
+    items = list;
+    const sw = byId('dash-sw-video');
+    if (sw) {
+      sw.click();
+    }
+    play(i);
+  }
+
+  window.ytCard = { render: renderCard, pause: pauseCard, place, control, shelf: loadShelf, start: startFromHome };
   window.addEventListener('resize', () => setTimeout(place, 150));
 
   function closeYoutube() {
