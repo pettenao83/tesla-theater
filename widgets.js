@@ -43,6 +43,16 @@
     host.appendChild(b);
   }
 
+  // last tile of a list: opens the whole section
+  function seeAll(host, id, label) {
+    const b = el('button', 'qw-all');
+    b.type = 'button';
+    b.innerHTML = '<span></span><em class="fas fa-arrow-right"></em>';
+    b.firstChild.textContent = label || 'Vedi tutti';
+    b.addEventListener('click', () => openTile(id));
+    host.appendChild(b);
+  }
+
   function letter(name) {
     const s = el('span', 'qw-letter', (name || '?').trim().charAt(0).toUpperCase());
     return s;
@@ -80,6 +90,7 @@
         b.addEventListener('click', () => window.ytCard.start(list, i));
         host.appendChild(b);
       });
+      seeAll(host, 'youtube');
     } catch (e) {
       openButton(host, 'Apri YouTube', 'fab fa-youtube', 'youtube');
     }
@@ -93,7 +104,7 @@
     host.textContent = '';
     host.appendChild(el('p', 'qw-note', 'Carico…'));
     try {
-      const q = await window.iptvQuick(6);
+      const q = await window.iptvQuick(4);
       if (!q.items.length) {
         throw new Error('empty');
       }
@@ -126,6 +137,7 @@
         grid.appendChild(b);
       });
       host.appendChild(grid);
+      seeAll(host, 'iptv');
     } catch (e) {
       openButton(host, 'Apri IPTV', 'fas fa-tv', 'iptv');
     }
@@ -162,7 +174,6 @@
         }
         const txt = el('span', 'qw-pl-text');
         txt.appendChild(el('b', null, p.title));
-        txt.appendChild(el('small', null, p.count != null ? p.count + ' brani' : 'Playlist'));
         b.append(img, txt, Object.assign(el('em', 'fas fa-play qw-pl-play'), {}));
         b.addEventListener('click', async () => {
           b.classList.add('busy');
@@ -173,6 +184,7 @@
         });
         host.appendChild(b);
       });
+      seeAll(host, 'ytmusic');
     } catch (e) {
       openButton(host, 'Apri YouTube Music', 'fas fa-music', 'ytmusic');
     }
